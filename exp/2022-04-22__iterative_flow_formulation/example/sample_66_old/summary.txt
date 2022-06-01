@@ -1,0 +1,43 @@
+### General information
+Paired short reads: MOB-suite_samples/unicycler_pipeline/sample_66/SRR3222213_1.fastq, MOB-suite_samples/unicycler_pipeline/sample_66/SRR3222213_2.fastq
+
+### Preprocessing
+
+Preprocessed FASTQ reads:
+MOB-suite_samples/unicycler_pipeline/sample_66/data/SRR3222213_1_preprocessed.fastq
+MOB-suite_samples/unicycler_pipeline/sample_66/data/SRR3222213_2_preprocessed.fastq
+
+Quality-check results of the FASTQ reads (after preprocessing) are available in MOB-suite_samples/unicycler_pipeline/sample_66/data.
+
+### Assembly
+
+Short reads (paired): MOB-suite_samples/unicycler_pipeline/sample_66/data/SRR3222213_1_preprocessed.fastq, MOB-suite_samples/unicycler_pipeline/sample_66/data/SRR3222213_2_preprocessed.fastq
+Long reads: none
+Assembly mode: normal
+
+Assembly outputs are stored in MOB-suite_samples/unicycler_pipeline/sample_66/assembly/.
+
+### Analysis of assembly graphs
+
+Visualisation:
+MOB-suite_samples/unicycler_pipeline/sample_66/assembly/001_best_spades_graph.gfa --> MOB-suite_samples/unicycler_pipeline/sample_66/plots_stats/001_best_spades_graph.png
+MOB-suite_samples/unicycler_pipeline/sample_66/assembly/002_overlaps_removed.gfa --> MOB-suite_samples/unicycler_pipeline/sample_66/plots_stats/002_overlaps_removed.png
+MOB-suite_samples/unicycler_pipeline/sample_66/assembly/003_bridges_applied.gfa --> MOB-suite_samples/unicycler_pipeline/sample_66/plots_stats/003_bridges_applied.png
+MOB-suite_samples/unicycler_pipeline/sample_66/assembly/004_cleaned.gfa --> MOB-suite_samples/unicycler_pipeline/sample_66/plots_stats/004_cleaned.png
+MOB-suite_samples/unicycler_pipeline/sample_66/assembly/005_merged.gfa --> MOB-suite_samples/unicycler_pipeline/sample_66/plots_stats/005_merged.png
+MOB-suite_samples/unicycler_pipeline/sample_66/assembly/006_final_clean.gfa --> MOB-suite_samples/unicycler_pipeline/sample_66/plots_stats/006_final_clean.png
+MOB-suite_samples/unicycler_pipeline/sample_66/assembly/007_polished.gfa --> MOB-suite_samples/unicycler_pipeline/sample_66/plots_stats/007_polished.png
+MOB-suite_samples/unicycler_pipeline/sample_66/assembly/008_rotated.gfa --> MOB-suite_samples/unicycler_pipeline/sample_66/plots_stats/008_rotated.png
+MOB-suite_samples/unicycler_pipeline/sample_66/assembly/assembly.gfa --> MOB-suite_samples/unicycler_pipeline/sample_66/plots_stats/assembly.png
+
+Basic statistics (obtained with Bandage) of all assembly graphs are available in MOB-suite_samples/unicycler_pipeline/sample_66/plots_stats/bandage_stats.txt.
+
+Detailed statistics for assembly graph MOB-suite_samples/unicycler_pipeline/sample_66/assembly/assembly.gfa available in MOB-suite_samples/unicycler_pipeline/sample_66/plots_stats/assembly_stats.csv.
+
+### Determination of putative plasmid contigs
+
+37180 genes (from /project/6007976/wg-anoph/Plasmids-Assembly/data/2018-06-12__MOB-suite_benchmark_genes/all_genes.fasta) have to be searched.
+
+After filtering, 3819 (of 7517) gene matches remain, covering 28 (of 110) contigs and 3730 genes.
+
+The assembly graph of putative plasmid contigs consists of 29 contigs.
