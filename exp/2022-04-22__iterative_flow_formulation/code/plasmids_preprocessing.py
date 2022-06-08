@@ -41,7 +41,10 @@ def get_read_depth(line):
 #2. Overall read depth of the contig (float)
 #3. GC content of the contig (float)
 #4. Indication if the contig is a seed (binary)
-#5. Class probabilities of the contig (float)
+#5. Sequence of a contig (string)
+#6. Probability that a contig is of plasmidic origin (float)
+#7. Probability that a contig is of chromosomal origin (float)
+#8. Log ratio of the above probabilities (float)
 def update_contigs_dict(contigs_dict, line):
 	c = get_id(line)
 	seq = get_nucleotide_seq(line) 
@@ -156,19 +159,20 @@ def contig_vars(m, contigs_dict, contigs, contigs_ext):
 
 #links[e] == 1 if link 'e' belongs to solution, else 0
 #For each link e, we also add the edge variable in the reverse direction
-def link_vars(m, links_list, links):
+def link_vars(m, links_list, contigs, links):
 	links = {}
 	for e in links_list:		
 		links[e] = m.addVar(vtype=GRB.BINARY, name='link-'+e[0][0]+e[0][1]+e[1][0]+e[1][1])
 		links[e[::-1]] = m.addVar(vtype=GRB.BINARY, name='link-'+e[1][0]+e[1][1]+e[0][0]+e[0][1])
 
-		ext1, ext2 = e[0], e[1]
-		if ('S',ext1) not in links:
-			links[('S',ext1)] = m.addVar(vtype=GRB.BINARY, name='link-S-to-'+e[0][0]+e[0][1])
-			links[(ext1,'T')] = m.addVar(vtype=GRB.BINARY, name='link-'+e[0][0]+e[0][1]+'-to-T')
-		if ('S',ext2) not in links:
-			links[('S',ext2)] = m.addVar(vtype=GRB.BINARY, name='link-S-to-'+e[1][0]+e[1][1])
-			links[(ext2,'T')] = m.addVar(vtype=GRB.BINARY, name='link-'+e[1][0]+e[1][1]+'-to-T')			
+	for c in contigs:
+		h_ext = (c, 'h')
+		t_ext = (c, 't')
+		
+		links[('S',h_ext)] = m.addVar(vtype=GRB.BINARY, name='link-S-to-'+c+'-h')
+		links[(h_ext,'T')] = m.addVar(vtype=GRB.BINARY, name='link-'+c+'-h-to-T')
+		links[('S',t_ext)] = m.addVar(vtype=GRB.BINARY, name='link-S-to-'+c+'-t')
+		links[(t_ext,'T')] = m.addVar(vtype=GRB.BINARY, name='link-'+c+'-t-to-T')			
 	return links
 
 #TODO
@@ -196,12 +200,11 @@ def len_vars(m, contigs_dict, counted_len):
 	return counted_ln
 
 #TODO
-def flow_vars(m, links, flows, counted_flow, counted_overall_flow):
+def flow_vars(m, links, flows, counted_overall_flow):
 	for e in links:
 		flows[e] = m.addVar(vtype=GRB.CONTINUOUS, name='flow_edge-'+str(e[0])+'-to-'+str(e[1]))	
-		counted_flow[e] = m.addVar(vtype=GRB.CONTINUOUS, name='counted-flow_edge-'+str(e[0])+'-to-'+str(e[1]))	
 		counted_overall_flow[e] = m.addVar(vtype=GRB.CONTINUOUS, name='counted-overall-flow_edge-'+str(e[0])+'-to-'+str(e[1]))	
-	return flows, counted_flow, counted_overall_flow	
+	return flows, counted_overall_flow	
 
 '''
 #-------------------------------------------------------------

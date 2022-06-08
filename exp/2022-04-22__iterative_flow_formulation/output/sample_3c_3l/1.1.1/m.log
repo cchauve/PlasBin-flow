@@ -1,0 +1,164 @@
+
+Gurobi 9.5.1 (win64) logging started Tue Jun  7 21:21:17 2022
+
+Set parameter LogFile to value "..\output\sample_3c_3l\/1.1.1\m.log"
+Set parameter TimeLimit to value 240
+Set parameter MIPGap to value 0.05
+Gurobi Optimizer version 9.5.1 build v9.5.1rc2 (win64)
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 244 rows, 100 columns and 582 nonzeros
+Model fingerprint: 0xba25eefa
+Variable types: 37 continuous, 63 integer (60 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+02]
+  Objective range  [4e-01, 3e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+02]
+Presolve removed 114 rows and 23 columns
+Presolve time: 0.01s
+Presolved: 130 rows, 77 columns, 412 nonzeros
+Variable types: 36 continuous, 41 integer (41 binary)
+Found heuristic solution: objective 6.4169924
+
+Root relaxation: objective 1.115841e+01, 60 iterations, 0.00 seconds (0.00 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+*    0     0               0       7.5480688    7.54807  0.00%     -    0s
+
+Explored 1 nodes (87 simplex iterations) in 0.02 seconds (0.00 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 2: 7.54807 6.41699 
+
+Optimal solution found (tolerance 5.00e-02)
+Best objective 7.548068831833e+00, best bound 7.548068831833e+00, gap 0.0000%
+
+Gurobi 9.5.1 (win64) logging started Wed Jun  8 10:31:04 2022
+
+Set parameter LogFile to value "..\output\sample_3c_3l\/1.1.1\m.log"
+Set parameter TimeLimit to value 240
+Set parameter MIPGap to value 0.05
+Gurobi Optimizer version 9.5.1 build v9.5.1rc2 (win64)
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 241 rows, 100 columns and 588 nonzeros
+Model fingerprint: 0xb7c7b209
+Variable types: 37 continuous, 63 integer (60 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+02]
+  Objective range  [4e-01, 3e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+02]
+Found heuristic solution: objective 5.3167785
+Presolve removed 208 rows and 76 columns
+Presolve time: 0.00s
+Presolved: 33 rows, 24 columns, 101 nonzeros
+Found heuristic solution: objective 5.7880688
+Variable types: 23 continuous, 1 integer (1 binary)
+
+Root relaxation: objective 7.548069e+00, 6 iterations, 0.00 seconds (0.00 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+*    0     0               0       7.5480688    7.54807  0.00%     -    0s
+
+Explored 1 nodes (6 simplex iterations) in 0.02 seconds (0.00 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 3: 7.54807 5.78807 5.31678 
+
+Optimal solution found (tolerance 5.00e-02)
+Best objective 7.548068831833e+00, best bound 7.548068831833e+00, gap 0.0000%
+
+    Variable            x 
+-------------------------
+    contig-1            1 
+contigext-1h            1 
+contigext-1t            1 
+    contig-2            1 
+contigext-2h            1 
+contigext-2t            1 
+   link-1h2t            1 
+link-S-to-1-t            1 
+link-2-h-to-T            1 
+plasmid-GC-bin-4            1 
+contig-1-GC-bin-4            1 
+contig-2-GC-bin-4            1 
+counted-seed_contig-2            1 
+flow_edge-('1', 'h')-to-('2', 't')         1.76 
+counted-overall-flow_edge-('1', 'h')-to-('2', 't')         1.76 
+flow_edge-S-to-('1', 't')         1.76 
+counted-overall-flow_edge-S-to-('1', 't')         1.76 
+flow_edge-('2', 'h')-to-T         1.76 
+counted-overall-flow_edge-('2', 'h')-to-T         1.76 
+overall-flow         1.76 
+aux-var-('1', 'h')            1 
+aux-var-('1', 't')            1 
+aux-var-('2', 'h')            1 
+aux-var-('2', 't')            1 
+
+Gurobi 9.5.1 (win64) logging started Wed Jun  8 10:55:14 2022
+
+Set parameter LogFile to value "..\output\sample_3c_3l\/1.1.1\m.log"
+Set parameter TimeLimit to value 240
+Set parameter MIPGap to value 0.05
+Gurobi Optimizer version 9.5.1 build v9.5.1rc2 (win64)
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 241 rows, 100 columns and 588 nonzeros
+Model fingerprint: 0xb7c7b209
+Variable types: 37 continuous, 63 integer (60 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+02]
+  Objective range  [4e-01, 3e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+02]
+Found heuristic solution: objective 5.3167785
+Presolve removed 208 rows and 76 columns
+Presolve time: 0.00s
+Presolved: 33 rows, 24 columns, 101 nonzeros
+Found heuristic solution: objective 5.7880688
+Variable types: 23 continuous, 1 integer (1 binary)
+
+Root relaxation: objective 7.548069e+00, 6 iterations, 0.00 seconds (0.00 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+*    0     0               0       7.5480688    7.54807  0.00%     -    0s
+
+Explored 1 nodes (6 simplex iterations) in 0.02 seconds (0.00 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 3: 7.54807 5.78807 5.31678 
+
+Optimal solution found (tolerance 5.00e-02)
+Best objective 7.548068831833e+00, best bound 7.548068831833e+00, gap 0.0000%
+
+    Variable            x 
+-------------------------
+    contig-1            1 
+contigext-1h            1 
+contigext-1t            1 
+    contig-2            1 
+contigext-2h            1 
+contigext-2t            1 
+   link-1h2t            1 
+link-S-to-1-t            1 
+link-2-h-to-T            1 
+plasmid-GC-bin-4            1 
+contig-1-GC-bin-4            1 
+contig-2-GC-bin-4            1 
+counted-seed_contig-2            1 
+flow_edge-('1', 'h')-to-('2', 't')         1.76 
+counted-overall-flow_edge-('1', 'h')-to-('2', 't')         1.76 
+flow_edge-S-to-('1', 't')         1.76 
+counted-overall-flow_edge-S-to-('1', 't')         1.76 
+flow_edge-('2', 'h')-to-T         1.76 
+counted-overall-flow_edge-('2', 'h')-to-T         1.76 
+overall-flow         1.76 
+aux-var-('1', 'h')            1 
+aux-var-('1', 't')            1 
+aux-var-('2', 'h')            1 
+aux-var-('2', 't')            1 
