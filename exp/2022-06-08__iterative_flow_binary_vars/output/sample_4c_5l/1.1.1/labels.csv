@@ -1,0 +1,5 @@
+short_read_contig_id,short_read_contig_length,bin_id,hybrid_contig_length,number_of_residue_matches,is_circular,label
+1,1500,2,0,0,False,plasmid
+2,1500,2,0,0,False,plasmid
+4,1500,2,0,0,False,plasmid
+5,1500,1,0,0,False,chromosome

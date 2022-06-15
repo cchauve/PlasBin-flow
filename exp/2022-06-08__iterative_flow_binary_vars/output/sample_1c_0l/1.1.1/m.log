@@ -1,0 +1,467 @@
+
+Gurobi 9.5.1 (win64) logging started Tue Jun  7 19:24:40 2022
+
+Set parameter LogFile to value "..\output\sample_1c_0l\/1.1.1\m.log"
+Set parameter TimeLimit to value 240
+Set parameter MIPGap to value 0.05
+Gurobi Optimizer version 9.5.1 build v9.5.1rc2 (win64)
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 38 rows, 20 columns and 69 nonzeros
+Model fingerprint: 0xcb7e0933
+Variable types: 1 continuous, 19 integer (18 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+02]
+  Objective range  [4e-01, 3e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+02]
+Presolve time: 0.00s
+
+Explored 0 nodes (0 simplex iterations) in 0.00 seconds (0.00 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+IIS computed: 1 constraints, 0 bounds
+IIS runtime: 0.00 seconds (0.00 work units)
+
+Gurobi 9.5.1 (win64) logging started Tue Jun  7 19:26:54 2022
+
+Set parameter LogFile to value "..\output\sample_1c_0l\/1.1.1\m.log"
+Set parameter TimeLimit to value 240
+Set parameter MIPGap to value 0.05
+Gurobi Optimizer version 9.5.1 build v9.5.1rc2 (win64)
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 38 rows, 20 columns and 69 nonzeros
+Model fingerprint: 0xcb7e0933
+Variable types: 1 continuous, 19 integer (18 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+02]
+  Objective range  [4e-01, 3e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+02]
+Presolve time: 0.00s
+
+Explored 0 nodes (0 simplex iterations) in 0.00 seconds (0.00 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+IIS computed: 1 constraints, 0 bounds
+IIS runtime: 0.00 seconds (0.00 work units)
+
+Gurobi 9.5.1 (win64) logging started Tue Jun  7 19:27:49 2022
+
+Set parameter LogFile to value "..\output\sample_1c_0l\/1.1.1\m.log"
+Set parameter TimeLimit to value 240
+Set parameter MIPGap to value 0.05
+Gurobi Optimizer version 9.5.1 build v9.5.1rc2 (win64)
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 38 rows, 20 columns and 69 nonzeros
+Model fingerprint: 0xcb7e0933
+Variable types: 1 continuous, 19 integer (18 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+02]
+  Objective range  [4e-01, 3e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+02]
+Presolve time: 0.00s
+
+Explored 0 nodes (0 simplex iterations) in 0.01 seconds (0.00 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+IIS computed: 1 constraints, 0 bounds
+IIS runtime: 0.00 seconds (0.00 work units)
+
+Gurobi 9.5.1 (win64) logging started Tue Jun  7 19:34:39 2022
+
+Set parameter LogFile to value "..\output\sample_1c_0l\/1.1.1\m.log"
+Set parameter TimeLimit to value 240
+Set parameter MIPGap to value 0.05
+Gurobi Optimizer version 9.5.1 build v9.5.1rc2 (win64)
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 66 rows, 32 columns and 133 nonzeros
+Model fingerprint: 0xf2c0bee5
+Variable types: 9 continuous, 23 integer (22 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+02]
+  Objective range  [4e-01, 3e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+02]
+Presolve removed 24 rows and 8 columns
+Presolve time: 0.00s
+
+Explored 0 nodes (0 simplex iterations) in 0.00 seconds (0.00 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Computing Irreducible Inconsistent Subsystem (IIS)...
+
+           Constraints          |            Bounds           |  Runtime
+      Min       Max     Guess   |   Min       Max     Guess   |
+--------------------------------------------------------------------------
+        0        57         -         0        10         -           0s
+        5         5         -         0         0         -           0s
+
+IIS computed: 5 constraints, 0 bounds
+IIS runtime: 0.02 seconds (0.00 work units)
+Warning: linear constraint 0 and linear constraint 1 have the same name "link_ubd"
+
+Gurobi 9.5.1 (win64) logging started Tue Jun  7 19:38:36 2022
+
+Set parameter LogFile to value "..\output\sample_1c_0l\/1.1.1\m.log"
+Set parameter TimeLimit to value 240
+Set parameter MIPGap to value 0.05
+Gurobi Optimizer version 9.5.1 build v9.5.1rc2 (win64)
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 66 rows, 32 columns and 133 nonzeros
+Model fingerprint: 0xf2c0bee5
+Variable types: 9 continuous, 23 integer (22 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+02]
+  Objective range  [4e-01, 3e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+02]
+Presolve removed 24 rows and 8 columns
+Presolve time: 0.00s
+
+Explored 0 nodes (0 simplex iterations) in 0.00 seconds (0.00 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Computing Irreducible Inconsistent Subsystem (IIS)...
+
+           Constraints          |            Bounds           |  Runtime
+      Min       Max     Guess   |   Min       Max     Guess   |
+--------------------------------------------------------------------------
+        0        57         -         0        10         -           0s
+        5         5         -         0         0         -           0s
+
+IIS computed: 5 constraints, 0 bounds
+IIS runtime: 0.02 seconds (0.00 work units)
+Warning: constraint name "link_ubd-('S', ('1', 'h'))-by-('1', 'h')" has a space
+
+Gurobi 9.5.1 (win64) logging started Tue Jun  7 19:43:08 2022
+
+Set parameter LogFile to value "..\output\sample_1c_0l\/1.1.1\m.log"
+Set parameter TimeLimit to value 240
+Set parameter MIPGap to value 0.05
+Gurobi Optimizer version 9.5.1 build v9.5.1rc2 (win64)
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 66 rows, 32 columns and 133 nonzeros
+Model fingerprint: 0xf2c0bee5
+Variable types: 9 continuous, 23 integer (22 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+02]
+  Objective range  [4e-01, 3e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+02]
+Presolve removed 24 rows and 8 columns
+Presolve time: 0.00s
+
+Explored 0 nodes (0 simplex iterations) in 0.02 seconds (0.00 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Computing Irreducible Inconsistent Subsystem (IIS)...
+
+           Constraints          |            Bounds           |  Runtime
+      Min       Max     Guess   |   Min       Max     Guess   |
+--------------------------------------------------------------------------
+        0        57         -         0        10         -           0s
+        5         5         -         0         0         -           0s
+
+IIS computed: 5 constraints, 0 bounds
+IIS runtime: 0.00 seconds (0.00 work units)
+Warning: constraint name "link_ubd-('S', ('1', 'h'))-by-('1', 'h')" has a space
+
+Gurobi 9.5.1 (win64) logging started Tue Jun  7 19:44:23 2022
+
+Set parameter LogFile to value "..\output\sample_1c_0l\/1.1.1\m.log"
+Set parameter TimeLimit to value 240
+Set parameter MIPGap to value 0.05
+Gurobi Optimizer version 9.5.1 build v9.5.1rc2 (win64)
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 66 rows, 32 columns and 133 nonzeros
+Model fingerprint: 0xf2c0bee5
+Variable types: 9 continuous, 23 integer (22 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+02]
+  Objective range  [4e-01, 3e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+02]
+Presolve removed 24 rows and 8 columns
+Presolve time: 0.00s
+
+Explored 0 nodes (0 simplex iterations) in 0.02 seconds (0.00 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Computing Irreducible Inconsistent Subsystem (IIS)...
+
+           Constraints          |            Bounds           |  Runtime
+      Min       Max     Guess   |   Min       Max     Guess   |
+--------------------------------------------------------------------------
+        0        57         -         0        10         -           0s
+        5         5         -         0         0         -           0s
+
+IIS computed: 5 constraints, 0 bounds
+IIS runtime: 0.01 seconds (0.00 work units)
+Warning: constraint name "link_ubd-('S', ('1', 'h'))-by-('1', 'h')" has a space
+
+Gurobi 9.5.1 (win64) logging started Tue Jun  7 19:47:49 2022
+
+Set parameter LogFile to value "..\output\sample_1c_0l\/1.1.1\m.log"
+Set parameter TimeLimit to value 240
+Set parameter MIPGap to value 0.05
+Gurobi Optimizer version 9.5.1 build v9.5.1rc2 (win64)
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 66 rows, 32 columns and 141 nonzeros
+Model fingerprint: 0x73c9bf25
+Variable types: 9 continuous, 23 integer (22 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+02]
+  Objective range  [4e-01, 3e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+02]
+Found heuristic solution: objective 2.1793469
+Presolve removed 50 rows and 23 columns
+Presolve time: 0.00s
+Presolved: 16 rows, 9 columns, 40 nonzeros
+Found heuristic solution: objective 2.7559496
+Variable types: 5 continuous, 4 integer (4 binary)
+
+Root relaxation: objective 9.775950e+00, 6 iterations, 0.00 seconds (0.00 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+*    0     0               0       9.7759496    9.77595  0.00%     -    0s
+
+Explored 1 nodes (6 simplex iterations) in 0.00 seconds (0.00 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 2: 9.77595 2.17935 
+
+Optimal solution found (tolerance 5.00e-02)
+Best objective 9.775949578958e+00, best bound 9.775949578958e+00, gap 0.0000%
+
+Gurobi 9.5.1 (win64) logging started Tue Jun  7 19:51:05 2022
+
+Set parameter LogFile to value "..\output\sample_1c_0l\/1.1.1\m.log"
+Set parameter TimeLimit to value 240
+Set parameter MIPGap to value 0.05
+Gurobi Optimizer version 9.5.1 build v9.5.1rc2 (win64)
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 67 rows, 32 columns and 143 nonzeros
+Model fingerprint: 0x0288340e
+Variable types: 9 continuous, 23 integer (22 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+02]
+  Objective range  [4e-01, 3e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+02]
+Found heuristic solution: objective 2.1793469
+Presolve removed 62 rows and 28 columns
+Presolve time: 0.00s
+Presolved: 5 rows, 4 columns, 13 nonzeros
+Found heuristic solution: objective 2.7559496
+Variable types: 3 continuous, 1 integer (1 binary)
+
+Root relaxation: objective 9.775950e+00, 2 iterations, 0.00 seconds (0.00 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+*    0     0               0       9.7759496    9.77595  0.00%     -    0s
+
+Explored 1 nodes (2 simplex iterations) in 0.01 seconds (0.00 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 2: 9.77595 2.17935 
+
+Optimal solution found (tolerance 5.00e-02)
+Best objective 9.775949578958e+00, best bound 9.775949578958e+00, gap 0.0000%
+
+Gurobi 9.5.1 (win64) logging started Wed Jun  8 10:31:11 2022
+
+Set parameter LogFile to value "..\output\sample_1c_0l\/1.1.1\m.log"
+Set parameter TimeLimit to value 240
+Set parameter MIPGap to value 0.05
+Gurobi Optimizer version 9.5.1 build v9.5.1rc2 (win64)
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 69 rows, 32 columns and 152 nonzeros
+Model fingerprint: 0x5c2514fe
+Variable types: 9 continuous, 23 integer (22 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+02]
+  Objective range  [4e-01, 3e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+02]
+Found heuristic solution: objective 2.1796537
+Presolve removed 64 rows and 28 columns
+Presolve time: 0.00s
+Presolved: 5 rows, 4 columns, 13 nonzeros
+Found heuristic solution: objective 2.7559496
+Variable types: 3 continuous, 1 integer (1 binary)
+
+Root relaxation: objective 9.775950e+00, 2 iterations, 0.00 seconds (0.00 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+*    0     0               0       9.7759496    9.77595  0.00%     -    0s
+
+Explored 1 nodes (2 simplex iterations) in 0.02 seconds (0.00 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 3: 9.77595 2.75595 2.17965 
+
+Optimal solution found (tolerance 5.00e-02)
+Best objective 9.775949578958e+00, best bound 9.775949578958e+00, gap 0.0000%
+
+    Variable            x 
+-------------------------
+    contig-1            1 
+contigext-1h            1 
+contigext-1t            1 
+link-S-to-1-h            1 
+link-1-t-to-T            1 
+plasmid-GC-bin-4            1 
+contig-1-GC-bin-4            1 
+counted-seed_contig-1            1 
+flow_edge-S-to-('1', 'h')         7.02 
+counted-overall-flow_edge-S-to-('1', 'h')         7.02 
+flow_edge-('1', 't')-to-T         7.02 
+counted-overall-flow_edge-('1', 't')-to-T         7.02 
+overall-flow         7.02 
+
+Gurobi 9.5.1 (win64) logging started Wed Jun  8 10:55:08 2022
+
+Set parameter LogFile to value "..\output\sample_1c_0l\/1.1.1\m.log"
+Set parameter TimeLimit to value 240
+Set parameter MIPGap to value 0.05
+Gurobi Optimizer version 9.5.1 build v9.5.1rc2 (win64)
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 69 rows, 32 columns and 152 nonzeros
+Model fingerprint: 0x5c2514fe
+Variable types: 9 continuous, 23 integer (22 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+02]
+  Objective range  [4e-01, 3e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+02]
+Found heuristic solution: objective 2.1796537
+Presolve removed 64 rows and 28 columns
+Presolve time: 0.00s
+Presolved: 5 rows, 4 columns, 13 nonzeros
+Found heuristic solution: objective 2.7559496
+Variable types: 3 continuous, 1 integer (1 binary)
+
+Root relaxation: objective 9.775950e+00, 2 iterations, 0.00 seconds (0.00 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+*    0     0               0       9.7759496    9.77595  0.00%     -    0s
+
+Explored 1 nodes (2 simplex iterations) in 0.02 seconds (0.00 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 3: 9.77595 2.75595 2.17965 
+
+Optimal solution found (tolerance 5.00e-02)
+Best objective 9.775949578958e+00, best bound 9.775949578958e+00, gap 0.0000%
+
+    Variable            x 
+-------------------------
+    contig-1            1 
+contigext-1h            1 
+contigext-1t            1 
+link-S-to-1-h            1 
+link-1-t-to-T            1 
+plasmid-GC-bin-4            1 
+contig-1-GC-bin-4            1 
+counted-seed_contig-1            1 
+flow_edge-S-to-('1', 'h')         7.02 
+counted-overall-flow_edge-S-to-('1', 'h')         7.02 
+flow_edge-('1', 't')-to-T         7.02 
+counted-overall-flow_edge-('1', 't')-to-T         7.02 
+overall-flow         7.02 
+
+Gurobi 9.5.1 (win64) logging started Tue Jun 14 23:41:06 2022
+
+Set parameter LogFile to value "..\output\sample_1c_0l\/1.1.1\m.log"
+Set parameter TimeLimit to value 240
+Set parameter MIPGap to value 0.05
+Gurobi Optimizer version 9.5.1 build v9.5.1rc2 (win64)
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 59 rows, 27 columns and 135 nonzeros
+Model fingerprint: 0x911ded3e
+Variable types: 9 continuous, 18 integer (18 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+02]
+  Objective range  [4e-01, 3e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+02]
+Found heuristic solution: objective 2.1796537
+Presolve removed 54 rows and 23 columns
+Presolve time: 0.00s
+Presolved: 5 rows, 4 columns, 10 nonzeros
+Found heuristic solution: objective 2.7559496
+Variable types: 2 continuous, 2 integer (2 binary)
+
+Root relaxation: objective 9.775950e+00, 1 iterations, 0.00 seconds (0.00 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+*    0     0               0       9.7759496    9.77595  0.00%     -    0s
+
+Explored 1 nodes (1 simplex iterations) in 0.02 seconds (0.00 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 3: 9.77595 2.75595 2.17965 
+
+Optimal solution found (tolerance 5.00e-02)
+Best objective 9.775949578958e+00, best bound 9.775949578958e+00, gap 0.0000%
+
+    Variable            x 
+-------------------------
+    contig-1            1 
+link-1-h-to-T            1 
+link-S-to-1-t            1 
+plasmid-GC-bin-4            1 
+contig-1-GC-bin-4            1 
+flow_edge-('1', 'h')-to-T         7.02 
+counted-overall-flow_edge-('1', 'h')-to-T         7.02 
+flow_edge-S-to-('1', 't')         7.02 
+counted-overall-flow_edge-S-to-('1', 't')         7.02 
+overall-flow         7.02 
+   aux-var-1            1 

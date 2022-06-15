@@ -1,0 +1,44 @@
+
+Iteration 0:
+contig-1	1.0
+contig-2	1.0
+contig-4	1.0
+link-2t1h	1.0
+link-1t4h	1.0
+link-S-to-2-h	1.0
+link-4-t-to-T	1.0
+plasmid-GC-bin-4	1.0
+contig-1-GC-bin-4	1.0
+contig-2-GC-bin-4	1.0
+contig-4-GC-bin-4	1.0
+flow_edge-('2', 't')-to-('1', 'h')	1.7600000000000886
+counted-overall-flow_edge-('2', 't')-to-('1', 'h')	1.7600000000000886
+flow_edge-('1', 't')-to-('4', 'h')	1.7600000000000886
+counted-overall-flow_edge-('1', 't')-to-('4', 'h')	1.7600000000000886
+flow_edge-S-to-('2', 'h')	1.7600000000000886
+counted-overall-flow_edge-S-to-('2', 'h')	1.7600000000000886
+flow_edge-('4', 't')-to-T	1.7600000000000886
+counted-overall-flow_edge-('4', 't')-to-T	1.7600000000000886
+overall-flow	1.7600000000000886
+aux-var-1	1.0
+aux-var-2	1.0
+aux-var-4	1.0
+
+Iteration 1:
+contig-1	1.0
+contig-4	1.0
+link-4h1t	1.0
+link-1-h-to-T	1.0
+link-S-to-4-t	1.0
+plasmid-GC-bin-4	1.0
+contig-1-GC-bin-4	1.0
+contig-4-GC-bin-4	1.0
+flow_edge-('4', 'h')-to-('1', 't')	1.7299999999999116
+counted-overall-flow_edge-('4', 'h')-to-('1', 't')	1.7299999999999116
+flow_edge-('1', 'h')-to-T	1.7299999999999436
+counted-overall-flow_edge-('1', 'h')-to-T	1.7299999999999436
+flow_edge-S-to-('4', 't')	1.7299999999999116
+counted-overall-flow_edge-S-to-('4', 't')	1.7299999999999116
+overall-flow	1.7299999999999436
+aux-var-1	1.0
+aux-var-4	1.0

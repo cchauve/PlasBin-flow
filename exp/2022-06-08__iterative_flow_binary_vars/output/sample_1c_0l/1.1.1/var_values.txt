@@ -1,0 +1,13 @@
+
+Iteration 0:
+contig-1	1.0
+link-1-h-to-T	1.0
+link-S-to-1-t	1.0
+plasmid-GC-bin-4	1.0
+contig-1-GC-bin-4	1.0
+flow_edge-('1', 'h')-to-T	7.02
+counted-overall-flow_edge-('1', 'h')-to-T	7.02
+flow_edge-S-to-('1', 't')	7.02
+counted-overall-flow_edge-S-to-('1', 't')	7.02
+overall-flow	7.02
+aux-var-1	1.0

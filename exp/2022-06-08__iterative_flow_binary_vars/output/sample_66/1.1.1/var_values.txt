@@ -1,0 +1,452 @@
+
+Iteration 0:
+contig-22	1.0
+contig-26	1.0
+contig-27	1.0
+contig-29	1.0
+contig-31	1.0
+contig-32	1.0
+contig-33	1.0
+contig-35	1.0
+contig-36	1.0
+contig-39	1.0
+contig-42	1.0
+contig-44	1.0
+contig-49	1.0
+contig-50	1.0
+contig-81	1.0
+contig-90	1.0
+contig-96	1.0
+link-22h50t	1.0
+link-49t26h	1.0
+link-39t27h	1.0
+link-29h49t	1.0
+link-32h49t	1.0
+link-49t33h	1.0
+link-36h81t	1.0
+link-35t39h	1.0
+link-42h22t	1.0
+link-27t42h	1.0
+link-44h32t	1.0
+link-49h90t	1.0
+link-90t49h	1.0
+link-49h96t	1.0
+link-96t49h	1.0
+link-50h44t	1.0
+link-81h42t	1.0
+link-42t81h	1.0
+link-90h29t	1.0
+link-33t90h	1.0
+link-96h31h	1.0
+link-26t96h	1.0
+link-81t36t	1.0
+link-31-t-to-T	1.0
+link-S-to-35-h	1.0
+plasmid-GC-bin-4	1.0
+contig-22-GC-bin-4	1.0
+contig-26-GC-bin-4	1.0
+contig-27-GC-bin-4	1.0
+contig-29-GC-bin-4	1.0
+contig-31-GC-bin-4	1.0
+contig-32-GC-bin-4	1.0
+contig-33-GC-bin-4	1.0
+contig-35-GC-bin-4	1.0
+contig-36-GC-bin-4	1.0
+contig-39-GC-bin-4	1.0
+contig-42-GC-bin-4	1.0
+contig-44-GC-bin-4	1.0
+contig-49-GC-bin-4	1.0
+contig-50-GC-bin-4	1.0
+contig-81-GC-bin-4	1.0
+contig-90-GC-bin-4	1.0
+contig-96-GC-bin-4	1.0
+flow_edge-('22', 'h')-to-('50', 't')	0.8595634371475853
+counted-overall-flow_edge-('22', 'h')-to-('50', 't')	0.8595634371475853
+flow_edge-('49', 't')-to-('26', 'h')	0.8595634371475853
+counted-overall-flow_edge-('49', 't')-to-('26', 'h')	0.8595634371475853
+flow_edge-('39', 't')-to-('27', 'h')	0.8595634371475853
+counted-overall-flow_edge-('39', 't')-to-('27', 'h')	0.8595634371475853
+flow_edge-('29', 'h')-to-('49', 't')	0.8595634371475853
+counted-overall-flow_edge-('29', 'h')-to-('49', 't')	0.8595634371475853
+flow_edge-('32', 'h')-to-('49', 't')	0.8595634371475853
+counted-overall-flow_edge-('32', 'h')-to-('49', 't')	0.8595634371475853
+flow_edge-('49', 't')-to-('33', 'h')	0.8595634371475853
+counted-overall-flow_edge-('49', 't')-to-('33', 'h')	0.8595634371475853
+flow_edge-('36', 'h')-to-('81', 't')	0.8595634371475853
+counted-overall-flow_edge-('36', 'h')-to-('81', 't')	0.8595634371475853
+flow_edge-('35', 't')-to-('39', 'h')	0.8595634371475849
+counted-overall-flow_edge-('35', 't')-to-('39', 'h')	0.8595634371475849
+flow_edge-('42', 'h')-to-('22', 't')	0.8595634371475853
+counted-overall-flow_edge-('42', 'h')-to-('22', 't')	0.8595634371475853
+flow_edge-('27', 't')-to-('42', 'h')	0.8595634371475853
+counted-overall-flow_edge-('27', 't')-to-('42', 'h')	0.8595634371475853
+flow_edge-('44', 'h')-to-('32', 't')	0.8595634371475853
+counted-overall-flow_edge-('44', 'h')-to-('32', 't')	0.8595634371475853
+flow_edge-('49', 'h')-to-('90', 't')	0.8595634371475853
+counted-overall-flow_edge-('49', 'h')-to-('90', 't')	0.8595634371475853
+flow_edge-('90', 't')-to-('49', 'h')	0.8595634371475853
+counted-overall-flow_edge-('90', 't')-to-('49', 'h')	0.8595634371475853
+flow_edge-('49', 'h')-to-('96', 't')	0.8595634371475853
+counted-overall-flow_edge-('49', 'h')-to-('96', 't')	0.8595634371475853
+flow_edge-('96', 't')-to-('49', 'h')	0.8595634371475853
+counted-overall-flow_edge-('96', 't')-to-('49', 'h')	0.8595634371475853
+flow_edge-('50', 'h')-to-('44', 't')	0.8595634371475853
+counted-overall-flow_edge-('50', 'h')-to-('44', 't')	0.8595634371475853
+flow_edge-('81', 'h')-to-('42', 't')	0.8595634371475853
+counted-overall-flow_edge-('81', 'h')-to-('42', 't')	0.8595634371475853
+flow_edge-('42', 't')-to-('81', 'h')	0.8595634371475853
+counted-overall-flow_edge-('42', 't')-to-('81', 'h')	0.8595634371475853
+flow_edge-('90', 'h')-to-('29', 't')	0.8595634371475853
+counted-overall-flow_edge-('90', 'h')-to-('29', 't')	0.8595634371475853
+flow_edge-('33', 't')-to-('90', 'h')	0.8595634371475853
+counted-overall-flow_edge-('33', 't')-to-('90', 'h')	0.8595634371475853
+flow_edge-('96', 'h')-to-('31', 'h')	0.8595634371475853
+counted-overall-flow_edge-('96', 'h')-to-('31', 'h')	0.8595634371475853
+flow_edge-('26', 't')-to-('96', 'h')	0.8595634371475853
+counted-overall-flow_edge-('26', 't')-to-('96', 'h')	0.8595634371475853
+flow_edge-('81', 't')-to-('36', 't')	0.8595634371475853
+counted-overall-flow_edge-('81', 't')-to-('36', 't')	0.8595634371475853
+flow_edge-('31', 't')-to-T	0.8595634371475853
+counted-overall-flow_edge-('31', 't')-to-T	0.8595634371475853
+flow_edge-S-to-('35', 'h')	0.8595634371475847
+counted-overall-flow_edge-S-to-('35', 'h')	0.8595634371475847
+overall-flow	0.8595634371475853
+aux-var-22	1.0
+aux-var-26	1.0
+aux-var-27	1.0
+aux-var-29	1.0
+aux-var-31	1.0
+aux-var-32	1.0
+aux-var-33	1.0
+aux-var-35	1.0
+aux-var-36	1.0
+aux-var-39	1.0
+aux-var-42	1.0
+aux-var-44	1.0
+aux-var-49	1.0
+aux-var-50	1.0
+aux-var-81	1.0
+aux-var-90	1.0
+aux-var-96	1.0
+
+Iteration 1:
+contig-22	1.0
+contig-26	1.0
+contig-27	1.0
+contig-29	1.0
+contig-31	1.0
+contig-32	1.0
+contig-33	1.0
+contig-36	1.0
+contig-42	1.0
+contig-44	1.0
+contig-49	1.0
+contig-50	1.0
+contig-81	1.0
+contig-90	1.0
+contig-96	1.0
+link-22h50t	1.0
+link-49t26h	1.0
+link-49t29h	1.0
+link-32h49t	1.0
+link-33h49t	1.0
+link-36h81t	1.0
+link-42h22t	1.0
+link-27t42h	1.0
+link-44h32t	1.0
+link-49h90t	1.0
+link-90t49h	1.0
+link-49h96t	1.0
+link-96t49h	1.0
+link-50h44t	1.0
+link-81h42t	1.0
+link-42t81h	1.0
+link-29t90h	1.0
+link-90h33t	1.0
+link-96h31h	1.0
+link-26t96h	1.0
+link-81t36t	1.0
+link-S-to-27-h	1.0
+link-31-t-to-T	1.0
+plasmid-GC-bin-4	1.0
+contig-22-GC-bin-4	1.0
+contig-26-GC-bin-4	1.0
+contig-27-GC-bin-4	1.0
+contig-29-GC-bin-4	1.0
+contig-31-GC-bin-4	1.0
+contig-32-GC-bin-4	1.0
+contig-33-GC-bin-4	1.0
+contig-36-GC-bin-4	1.0
+contig-42-GC-bin-4	1.0
+contig-44-GC-bin-4	1.0
+contig-49-GC-bin-4	1.0
+contig-50-GC-bin-4	1.0
+contig-81-GC-bin-4	1.0
+contig-90-GC-bin-4	1.0
+contig-96-GC-bin-4	1.0
+flow_edge-('22', 'h')-to-('50', 't')	0.06758766612236178
+counted-overall-flow_edge-('22', 'h')-to-('50', 't')	0.06758766612236178
+flow_edge-('49', 't')-to-('26', 'h')	0.06758766612236122
+counted-overall-flow_edge-('49', 't')-to-('26', 'h')	0.06758766612236122
+flow_edge-('49', 't')-to-('29', 'h')	0.06758766612235977
+counted-overall-flow_edge-('49', 't')-to-('29', 'h')	0.06758766612235977
+flow_edge-('32', 'h')-to-('49', 't')	0.06758766612236182
+counted-overall-flow_edge-('32', 'h')-to-('49', 't')	0.06758766612236182
+flow_edge-('33', 'h')-to-('49', 't')	0.0675876661223617
+counted-overall-flow_edge-('33', 'h')-to-('49', 't')	0.0675876661223617
+flow_edge-('36', 'h')-to-('81', 't')	0.06758766612236021
+counted-overall-flow_edge-('36', 'h')-to-('81', 't')	0.06758766612236021
+flow_edge-('42', 'h')-to-('22', 't')	0.06758766612236178
+counted-overall-flow_edge-('42', 'h')-to-('22', 't')	0.06758766612236178
+flow_edge-('27', 't')-to-('42', 'h')	0.06758766612236111
+counted-overall-flow_edge-('27', 't')-to-('42', 'h')	0.06758766612236111
+flow_edge-('44', 'h')-to-('32', 't')	0.06758766612236182
+counted-overall-flow_edge-('44', 'h')-to-('32', 't')	0.06758766612236182
+flow_edge-('49', 'h')-to-('90', 't')	0.06758766612236021
+counted-overall-flow_edge-('49', 'h')-to-('90', 't')	0.06758766612236021
+flow_edge-('90', 't')-to-('49', 'h')	0.06758766612236021
+counted-overall-flow_edge-('90', 't')-to-('49', 'h')	0.06758766612236021
+flow_edge-('49', 'h')-to-('96', 't')	0.06758766612236078
+counted-overall-flow_edge-('49', 'h')-to-('96', 't')	0.06758766612236078
+flow_edge-('96', 't')-to-('49', 'h')	0.06758766612236021
+counted-overall-flow_edge-('96', 't')-to-('49', 'h')	0.06758766612236021
+flow_edge-('50', 'h')-to-('44', 't')	0.06758766612236021
+counted-overall-flow_edge-('50', 'h')-to-('44', 't')	0.06758766612236021
+flow_edge-('81', 'h')-to-('42', 't')	0.06758766612236021
+counted-overall-flow_edge-('81', 'h')-to-('42', 't')	0.06758766612236021
+flow_edge-('42', 't')-to-('81', 'h')	0.06758766612236021
+counted-overall-flow_edge-('42', 't')-to-('81', 'h')	0.06758766612236021
+flow_edge-('29', 't')-to-('90', 'h')	0.06758766612235977
+counted-overall-flow_edge-('29', 't')-to-('90', 'h')	0.06758766612235977
+flow_edge-('90', 'h')-to-('33', 't')	0.0675876661223617
+counted-overall-flow_edge-('90', 'h')-to-('33', 't')	0.0675876661223617
+flow_edge-('96', 'h')-to-('31', 'h')	0.06758766612236078
+counted-overall-flow_edge-('96', 'h')-to-('31', 'h')	0.06758766612236078
+flow_edge-('26', 't')-to-('96', 'h')	0.06758766612236122
+counted-overall-flow_edge-('26', 't')-to-('96', 'h')	0.06758766612236122
+flow_edge-('81', 't')-to-('36', 't')	0.06758766612236021
+counted-overall-flow_edge-('81', 't')-to-('36', 't')	0.06758766612236021
+flow_edge-('42', 't')-to-('48', 't')	9.020562075079397e-16
+counted-overall-flow_edge-('42', 't')-to-('48', 't')	9.020562075079397e-16
+flow_edge-S-to-('27', 'h')	0.06758766612236111
+counted-overall-flow_edge-S-to-('27', 'h')	0.06758766612236111
+flow_edge-('31', 't')-to-T	0.06758766612236078
+counted-overall-flow_edge-('31', 't')-to-T	0.06758766612236078
+flow_edge-('48', 'h')-to-T	9.020562075079397e-16
+counted-overall-flow_edge-('48', 'h')-to-T	9.020562075079397e-16
+overall-flow	0.06758766612236022
+aux-var-22	1.0
+aux-var-26	1.0
+aux-var-27	1.0
+aux-var-29	1.0
+aux-var-31	1.0
+aux-var-32	1.0
+aux-var-33	1.0
+aux-var-36	1.0
+aux-var-42	1.0
+aux-var-44	1.0
+aux-var-49	1.0
+aux-var-50	1.0
+aux-var-81	1.0
+aux-var-90	1.0
+aux-var-96	1.0
+
+Iteration 2:
+contig-22	1.0
+contig-27	1.0
+contig-32	1.0
+contig-33	1.0
+contig-36	1.0
+contig-42	1.0
+contig-44	1.0
+contig-49	1.0
+contig-50	1.0
+contig-81	1.0
+contig-90	1.0
+link-50t22h	1.0
+link-49t33h	1.0
+link-81t36h	1.0
+link-22t42h	1.0
+link-42h27t	1.0
+link-32t44h	1.0
+link-90t49h	1.0
+link-44t50h	1.0
+link-81h42t	1.0
+link-42t81h	1.0
+link-33t90h	1.0
+link-36t81t	1.0
+link-27-h-to-T	1.0
+link-S-to-32-h	1.0
+plasmid-GC-bin-4	1.0
+contig-22-GC-bin-4	1.0
+contig-27-GC-bin-4	1.0
+contig-32-GC-bin-4	1.0
+contig-33-GC-bin-4	1.0
+contig-36-GC-bin-4	1.0
+contig-42-GC-bin-4	1.0
+contig-44-GC-bin-4	1.0
+contig-49-GC-bin-4	1.0
+contig-50-GC-bin-4	1.0
+contig-81-GC-bin-4	1.0
+contig-90-GC-bin-4	1.0
+flow_edge-('50', 't')-to-('22', 'h')	0.05707946813493303
+counted-overall-flow_edge-('50', 't')-to-('22', 'h')	0.05707946813493303
+flow_edge-('49', 't')-to-('33', 'h')	0.05707946813493303
+counted-overall-flow_edge-('49', 't')-to-('33', 'h')	0.05707946813493303
+flow_edge-('81', 't')-to-('36', 'h')	0.05707946813493303
+counted-overall-flow_edge-('81', 't')-to-('36', 'h')	0.05707946813493303
+flow_edge-('22', 't')-to-('42', 'h')	0.05707946813493303
+counted-overall-flow_edge-('22', 't')-to-('42', 'h')	0.05707946813493303
+flow_edge-('42', 'h')-to-('27', 't')	0.05707946813493303
+counted-overall-flow_edge-('42', 'h')-to-('27', 't')	0.05707946813493303
+flow_edge-('32', 't')-to-('44', 'h')	0.05707946813493303
+counted-overall-flow_edge-('32', 't')-to-('44', 'h')	0.05707946813493303
+flow_edge-('90', 't')-to-('49', 'h')	0.05707946813493303
+counted-overall-flow_edge-('90', 't')-to-('49', 'h')	0.05707946813493303
+flow_edge-('44', 't')-to-('50', 'h')	0.05707946813493303
+counted-overall-flow_edge-('44', 't')-to-('50', 'h')	0.05707946813493303
+flow_edge-('81', 'h')-to-('42', 't')	0.05707946813493303
+counted-overall-flow_edge-('81', 'h')-to-('42', 't')	0.05707946813493303
+flow_edge-('42', 't')-to-('81', 'h')	0.05707946813493303
+counted-overall-flow_edge-('42', 't')-to-('81', 'h')	0.05707946813493303
+flow_edge-('33', 't')-to-('90', 'h')	0.05707946813493303
+counted-overall-flow_edge-('33', 't')-to-('90', 'h')	0.05707946813493303
+flow_edge-('36', 't')-to-('81', 't')	0.05707946813493303
+counted-overall-flow_edge-('36', 't')-to-('81', 't')	0.05707946813493303
+flow_edge-('27', 'h')-to-T	0.05707946813493303
+counted-overall-flow_edge-('27', 'h')-to-T	0.05707946813493303
+flow_edge-S-to-('32', 'h')	0.05707946813493303
+counted-overall-flow_edge-S-to-('32', 'h')	0.05707946813493303
+overall-flow	0.05707946813493303
+aux-var-22	1.0
+aux-var-27	1.0
+aux-var-32	1.0
+aux-var-33	1.0
+aux-var-36	1.0
+aux-var-42	1.0
+aux-var-44	1.0
+aux-var-49	1.0
+aux-var-50	1.0
+aux-var-81	1.0
+aux-var-90	1.0
+
+Iteration 3:
+contig-22	1.0
+contig-27	1.0
+contig-36	1.0
+contig-42	1.0
+contig-81	1.0
+link-36h81t	1.0
+link-22t42h	1.0
+link-42h27t	1.0
+link-81h42t	1.0
+link-42t81h	1.0
+link-81t36t	1.0
+link-S-to-22-h	1.0
+link-27-h-to-T	1.0
+plasmid-GC-bin-3	1.0
+contig-22-GC-bin-3	1.0
+contig-27-GC-bin-3	1.0
+contig-36-GC-bin-3	1.0
+contig-42-GC-bin-3	1.0
+contig-81-GC-bin-3	1.0
+flow_edge-('36', 'h')-to-('81', 't')	0.12435655520729105
+counted-overall-flow_edge-('36', 'h')-to-('81', 't')	0.12435655520729105
+flow_edge-('22', 't')-to-('42', 'h')	0.12435655520729061
+counted-overall-flow_edge-('22', 't')-to-('42', 'h')	0.12435655520729061
+flow_edge-('42', 'h')-to-('27', 't')	0.12435655520729061
+counted-overall-flow_edge-('42', 'h')-to-('27', 't')	0.12435655520729061
+flow_edge-('81', 'h')-to-('42', 't')	0.12435655520729061
+counted-overall-flow_edge-('81', 'h')-to-('42', 't')	0.12435655520729061
+flow_edge-('42', 't')-to-('81', 'h')	0.12435655520729105
+counted-overall-flow_edge-('42', 't')-to-('81', 'h')	0.12435655520729105
+flow_edge-('81', 't')-to-('36', 't')	0.12435655520729105
+counted-overall-flow_edge-('81', 't')-to-('36', 't')	0.12435655520729105
+flow_edge-S-to-('22', 'h')	0.12435655520729061
+counted-overall-flow_edge-S-to-('22', 'h')	0.12435655520729061
+flow_edge-('27', 'h')-to-T	0.12435655520729061
+counted-overall-flow_edge-('27', 'h')-to-T	0.12435655520729061
+flow_edge-('81', 'h')-to-T	4.440892098500626e-16
+counted-overall-flow_edge-('81', 'h')-to-T	4.440892098500626e-16
+overall-flow	0.12435655520729061
+aux-var-22	1.0
+aux-var-27	1.0
+aux-var-36	1.0
+aux-var-42	1.0
+aux-var-81	1.0
+
+Iteration 4:
+contig-16	1.0
+link-S-to-16-h	1.0
+link-16-t-to-T	1.0
+plasmid-GC-bin-3	1.0
+contig-16-GC-bin-3	1.0
+flow_edge-S-to-('16', 'h')	0.9236398330207624
+counted-overall-flow_edge-S-to-('16', 'h')	0.9236398330207624
+flow_edge-('16', 't')-to-T	0.9236398330207624
+counted-overall-flow_edge-('16', 't')-to-T	0.9236398330207624
+overall-flow	0.9236398330207624
+aux-var-16	1.0
+
+Iteration 5:
+contig-27	1.0
+contig-36	1.0
+contig-42	1.0
+contig-81	1.0
+link-36h81t	1.0
+link-27t42h	1.0
+link-81h42t	1.0
+link-42t81h	1.0
+link-81t36t	1.0
+link-S-to-27-h	1.0
+link-42-h-to-T	1.0
+plasmid-GC-bin-3	1.0
+contig-27-GC-bin-3	1.0
+contig-36-GC-bin-3	1.0
+contig-42-GC-bin-3	1.0
+contig-81-GC-bin-3	1.0
+flow_edge-('36', 'h')-to-('81', 't')	0.08874081643805098
+counted-overall-flow_edge-('36', 'h')-to-('81', 't')	0.08874081643805098
+flow_edge-('27', 't')-to-('42', 'h')	0.08874081643805107
+counted-overall-flow_edge-('27', 't')-to-('42', 'h')	0.08874081643805107
+flow_edge-('81', 'h')-to-('42', 't')	0.08874081643805098
+counted-overall-flow_edge-('81', 'h')-to-('42', 't')	0.08874081643805098
+flow_edge-('42', 't')-to-('81', 'h')	0.08874081643805103
+counted-overall-flow_edge-('42', 't')-to-('81', 'h')	0.08874081643805103
+flow_edge-('81', 't')-to-('36', 't')	0.08874081643805098
+counted-overall-flow_edge-('81', 't')-to-('36', 't')	0.08874081643805098
+flow_edge-S-to-('27', 'h')	0.08874081643805107
+counted-overall-flow_edge-S-to-('27', 'h')	0.08874081643805107
+flow_edge-('42', 'h')-to-T	0.08874081643805098
+counted-overall-flow_edge-('42', 'h')-to-T	0.08874081643805098
+overall-flow	0.08874081643805098
+aux-var-27	1.0
+aux-var-36	1.0
+aux-var-42	1.0
+aux-var-81	1.0
+
+Iteration 6:
+contig-39	1.0
+link-39-h-to-T	1.0
+link-S-to-39-t	1.0
+plasmid-GC-bin-2	1.0
+contig-39-GC-bin-2	1.0
+flow_edge-('39', 'h')-to-T	1.055920172508922
+counted-overall-flow_edge-('39', 'h')-to-T	1.055920172508922
+flow_edge-S-to-('39', 't')	1.055920172508922
+counted-overall-flow_edge-S-to-('39', 't')	1.055920172508922
+overall-flow	1.055920172508922
+aux-var-39	1.0
+
+Iteration 7:
+contig-28	1.0
+link-28-h-to-T	1.0
+link-S-to-28-t	1.0
+plasmid-GC-bin-4	1.0
+contig-28-GC-bin-4	1.0
+flow_edge-('28', 'h')-to-T	0.9654498491154532
+counted-overall-flow_edge-('28', 'h')-to-T	0.9654498491154532
+flow_edge-S-to-('28', 't')	0.9654498491154532
+counted-overall-flow_edge-S-to-('28', 't')	0.9654498491154532
+overall-flow	0.9654498491154532
+aux-var-28	1.0
