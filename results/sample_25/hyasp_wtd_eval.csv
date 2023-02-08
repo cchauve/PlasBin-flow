@@ -1,0 +1,36 @@
+##### general information #####
+>number of reference plasmids: 2
+AP017618.1
+AP017619.1
+
+##### predictions #####
+>number of predicted plasmids: 7
+0
+1
+2
+5
+7
+10
+11
+###Precision details###
+>Precision: Proportion of correctedly identified contigs for each prediction
+#Predicted_bin	Precision	Reference_plasmid
+0	1.0	AP017618.1
+1	1.0	AP017618.1
+2	0.0	AP017619.1
+5	0.9184	AP017618.1
+7	1.0	AP017618.1
+10	1.0	AP017619.1
+11	1.0	AP017619.1
+
+###Recall details###
+>Recall: Proportion of correctedly identified contigs for each reference
+#Reference_plasmid	Recall	Predicted_bin
+AP017618.1	0.748	0
+AP017619.1	0.5738	10
+
+###Overall details###
+>Final statistics:
+Precision	0.9425008763583554
+Recall	0.6863924489890344
+F1	0.7943128928469942

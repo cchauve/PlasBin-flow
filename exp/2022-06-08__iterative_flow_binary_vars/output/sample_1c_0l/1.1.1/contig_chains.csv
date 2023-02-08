@@ -1,7 +1,0 @@
-#Contig	PrPl	Flow	Read_depth	Length
-# 1	0.96	7.02	7.02	1500
-
-#Link	Capacity
-# (('1', 'h'), 'T')	7.02
-# ('S', ('1', 't'))	7.02
-
