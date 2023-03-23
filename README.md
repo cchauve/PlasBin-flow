@@ -29,7 +29,7 @@ PlasBin-flow requires the following input files:
 3. A file containing a list of GC content likelihoods (one entry per line)<br/>
 Each line of this file contains the probabilities that a particular contig belongs to a plasmid with GC content to various GC content ranges.
 
-### Usage
+## Usage
 ```
 python plasbin_flow.py --ag assembly.gfa --gc gc_probs.csv --map gene_contig_mapping.csv \
 		--out output_dir --alpha1 alpha_1 --alpha2 alpha_2 --alpha3 alpha_3 --rmiter rmiter
