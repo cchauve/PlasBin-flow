@@ -16,9 +16,9 @@ PlasBin-flow can be installed from this repository
 git clone https://github.com/cchauve/PlasBin-flow.git
 ~~~
 
-PlasBin-flow is written in python 3 and requires the module NetworkX.
+PlasBin-flow is written in python (version 3.9.11) and requires the module NetworkX (version 2.7).
  
-We strongly recommand to run PlasBin-flow using a dedicated python virtual environment (see https://docs.python.org/3.8/library/venv.html).
+We strongly recommand to run PlasBin-flow using a dedicated python virtual environment (see https://docs.python.org/3.9/library/venv.html).
 
 A conda package will soon be available.
 
