@@ -30,7 +30,7 @@ To use PlasBin-flow, a Gurobi license is needed, which is free for academics.
 
 If you plan to use PlasBin-flow on an institutional High-Performance Computing system (such as a university cluster or a cluster of the <a href="https://alliancecan.ca/en">Digital Research Alliance of Canada</a>), we recommend that you contact a system administrator as it is lilely that such a license is already available.
 
-Alternatively, to be used on a local system or on a local computer (all experiments in the paper *PlasBin-flow: A flow-based MILP algorithm for plasmid contigs binning* have been ran on a laptop computer), you can obtain and install a free academic license following the instructions provided at <a href="https://www.gurobi.com/academia/academic-program-and-licenses/">Gurobi: Always Free for Academics</a>.
+Alternatively, to be used on a local system or on a local computer (all experiments in the paper *PlasBin-flow: A flow-based MILP algorithm for plasmid contigs binning* were ran on a laptop computer), you can obtain and install a free academic license following the instructions provided at <a href="https://www.gurobi.com/academia/academic-program-and-licenses/">Gurobi: Always Free for Academics</a>.
 
 ## Input
 PlasBin-flow requires the following input files:
