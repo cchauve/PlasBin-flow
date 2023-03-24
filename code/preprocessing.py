@@ -98,14 +98,6 @@ def get_data(assembly_file,contigs_dict, links_list):
 			links_list = get_link(line, links_list)		
 	return contigs_dict, links_list
 
-#Reads the seed file and makes a list of seeds
-#def get_seeds(seeds_file, seeds_set):
-#	string_list = read_file(seeds_file)
-#	for line in string_list:
-#		line = line.split("\t")
-#		seeds_set.add(line[0])
-#	return seeds_set	
-
 #Determine seeds from class probs
 def get_seeds(contigs_dict, seeds_set):
 	for c in contigs_dict:
@@ -226,16 +218,12 @@ def get_caps(links_list, contigs_dict, capacities):
 #contigs[c] == 1 if contig 'c' belongs to solution, else 0
 def contig_vars(m, contigs_dict, contigs):
 	contigs = {}
-	#contigs_ext = {}
 	for c in contigs_dict:
-		contigs[c] = m.addVar(vtype=GRB.BINARY, name='contig-'+c)
-		#contigs_ext[(c, 'h')] = m.addVar(vtype=GRB.BINARY, name='contigext-'+c+'h')
-		#contigs_ext[(c, 't')] = m.addVar(vtype=GRB.BINARY, name='contigext-'+c+'t')			
+		contigs[c] = m.addVar(vtype=GRB.BINARY, name='contig-'+c)		
 	return contigs
 
 #links[e] == 1 if link 'e' belongs to solution, else 0
 #For each link e, we also add the edge variable in the reverse direction
-#def link_vars(m, links_list, links, seeds_set):
 def link_vars(m, links_list, links, contigs):
 	links = {}
 	for e in links_list:		
@@ -254,14 +242,16 @@ def link_vars(m, links_list, links, contigs):
 
 #TODO
 def GC_vars(m, gc_probs, plas_GC, contig_GC):
-	bins = [1,2,3,4,5,6]
-	#bins = {1: [0,0.4], 2: [0.4,0.45], 3: [0.45,0.5], 4: [0.5,0.55], 5: [0.55,0.6], 6: [0.6,1]}
-	for b in bins:
-		plas_GC[b] = m.addVar(vtype=GRB.BINARY, name='plasmid-GC-bin-'+str(b))
+	#bins = [1,2,3,4,5,6]
+
+	#for b in bins:
+	#	plas_GC[b] = m.addVar(vtype=GRB.BINARY, name='plasmid-GC-bin-'+str(b))
 	for c in gc_probs:
 		contig_GC[c] = {}
-		for b in bins:
+		for b in gc_probs[c]:
 			contig_GC[c][b] = m.addVar(vtype=GRB.BINARY, name='contig-'+c+'-GC-bin-'+str(b))
+			if b not in plas_GC:
+				plas_GC[b] = m.addVar(vtype=GRB.BINARY, name='plasmid-GC-bin-'+str(b))
 	return plas_GC, contig_GC		
 
 #TODO
