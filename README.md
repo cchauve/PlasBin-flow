@@ -25,21 +25,12 @@ We strongly recommand to run PlasBin-flow using a dedicated python virtual envir
 A conda package will soon be available.
 
 ## Obtaining Gurobi license
-PlasBin-flow uses the Gurobi Solver.
-To use PlasBin-flow, a Gurobi license is needed.
-It can be obtained for free using an academic email address:
-- Go to [https://pages.gurobi.com/registration](https://pages.gurobi.com/registration) to register an account.
-Make sure to select "Academic" to obtain the free license.
-- Once you have registered and logged in to [Gurobi.com](https://www.gurobi.com/) with your account, go to [here](https://www.gurobi.com/downloads/end-user-license-agreement-academic/) to obtain an academic license code.
-You need to write this license code down because Gurobi does not save it for you. 
-- Install the license on your machine using the following commands:
-```bash
-grbgetkey <License Code>
-```
-To use PlasBin-flow, make sure to modify the Bash environment variable before running it using the following command:
-```bash
-export GRB_LICENSE_FILE=/path/to/gurobi.lic
-```
+PlasBin-flow uses the <a href="https://www.gurobi.com/">Gurobi Solver</a>.
+To use PlasBin-flow, a Gurobi license is needed, which is free for academics.  
+
+If you plan to use PlasBin-flow on an institutional High-Performance Computing system (such as a university cluster or a cluster of the <a href="https://alliancecan.ca/en">Digital Research Alliance of Canada</a>), we recommend that you contact a system administrator as it is lilely that such a license is already available.
+
+Alternatively, to be used on a local system or on a local computer (all experiments in the paper *PlasBin-flow: A flow-based MILP algorithm for plasmid contigs binning* have been ran on a laptop computer), you can obtain and install a free academic license following the instructions provided at <a href="https://www.gurobi.com/academia/academic-program-and-licenses/">Gurobi: Always Free for Academics</a>.
 
 ## Input
 PlasBin-flow requires the following input files:
