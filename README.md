@@ -34,7 +34,6 @@ Make sure to select "Academic" to obtain the free license.
 You need to write this license code down because Gurobi does not save it for you. 
 - Install the license on your machine using the following commands:
 ```bash
-conda activate freddie #Freddie conda environment contains Gurobi command line programs
 grbgetkey <License Code>
 ```
 To use PlasBin-flow, make sure to modify the Bash environment variable before running it using the following command:
