@@ -42,6 +42,16 @@ PlasBin-flow requires the following input files:
 ### Creating the plasmid gene mapping file
 
 ### Creating the GC content file
+This code helps in generating the *GC content* TSV file mentioned above. It takes as input an assembly graph file in GFA format (same as above) and optionally, a file specifying the endpoints of the GC content intervals. The output generated is a TSV file with one line per contig, with the probablities that a contig originates from a molecule of GC content within the prescribed ranges. 
+```
+python code/get_gc_probs.py --ag assembly_graph --out output_file
+```
+where `assembly_graph` is the assembly graph file.
+
+Additional arguments:
+```
+--gcint			Path to file with GC content interval. This file should contain the endpoints of required GC content intervals (including 0 and 1), one endpoint per line
+```
 
 ## Usage
 ```
@@ -52,7 +62,8 @@ where `assembly_graph` is the assembly graph file, `gc_content_file` is the GC c
 
 Additional arguments:
 ```
--- out output_dir               Directory where the output files are written (required)
+--output_dir        Directory where the output files are written (required)
+--output_file       Name of output file (required)
 --rmiter			Maximum number of iterations to remove circular components. (optional, default: 50)
 --alpha1			Weight of flow term. (optional, default: 1)                              
 --alpha2			Weight of GC content term. (optional, default: 1)
@@ -60,5 +71,14 @@ Additional arguments:
 ```
 
 ## Output
-
-
+The output of plasbin is a TSV file with each line containing the following information:
+```
+Plasmid bin			Iteration number associated with plasmid bin
+Flow value			Flow value associated with plasmid bin
+GC bin				Index of GC content interval associated with plasmid bin
+Contigs				List of contigs associated with plasmid bin alongwith their multiplicities in a CSV format
+```
+Thus a typical line in an output file from plasbin looks as follows:
+```
+P1	2.5	4	a:2, b:3, c:2, d:1
+```
