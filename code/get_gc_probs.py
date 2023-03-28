@@ -80,9 +80,9 @@ def gprob2(n,g,p,m):
 if __name__ == "__main__":
 	#Parsing arguments
 	parser = argparse.ArgumentParser()
-	parser.add_argument("--ag", help="Path to assembly graph file")
-	parser.add_argument("--out", help="Path to output dir")
-	parser.add_argument("--gcint", default = None, help="Path to GC interval file")
+	parser.add_argument("-ag", help="Path to assembly graph file")
+	parser.add_argument("-out", help="Path to output file")
+	parser.add_argument("-gcint", default = None, help="Path to GC interval file")
 
 	args = parser.parse_args()
 
@@ -114,10 +114,10 @@ if __name__ == "__main__":
 		gp_array = []
 		for i in range(0, len(probs)-1):
 			gp2 = integrate.quad(lambda x: gprob2(n,g,x,m), probs[i], probs[i+1])
-			#print(gp2)
-			total += gp2[0]
+			gp2 = gp2[0]/(probs[i+1] - probs[i])
+			total += gp2
 			
-			gp_array.append(gp2[0])
+			gp_array.append(gp2)
 		for gp in gp_array:	
 			gc_file.write("\t"+str(gp / total))
 		gc_file.write("\n")

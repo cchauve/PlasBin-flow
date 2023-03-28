@@ -50,37 +50,37 @@ where `accessions_ids` is the file containing the list of accession numbers of p
 
 The second step after creating the database is to map the genes onto contigs. 
 ```
-python code/get_gd.py map genes_fasta gene_contig_mapping_file -g assembly_graph
+python code/get_gd.py map genes_fasta gene_contig_mapping_file -ag assembly_graph
 ```
 where `genes_fasta` is the file containing the sequences of plasmids genes in the database and `assembly_graph` is the assembly graph file. `gene_contig_mapping_file` is the file containing the mapping of genes to contigs in blastn output format 6. 
 
 ### Creating the GC content file
 The following script helps in generating the *GC content* TSV file. It takes as input an assembly graph file in GFA format (same as above) and optionally, a file specifying the endpoints of the GC content intervals. The output generated is a TSV file with one line per contig, with the probablities that a contig originates from a molecule of GC content within the prescribed ranges. 
 ```
-python code/get_gc_probs.py --ag assembly_graph --out output_file
+python code/get_gc_probs.py -ag assembly_graph -out output_file
 ```
 where `assembly_graph` is the assembly graph file.
 
 Additional arguments:
 ```
---gcint			Path to file with GC content interval. This file should contain the endpoints of required GC content intervals (including 0 and 1), one endpoint per line
+-gcint			Path to file with GC content interval. This file should contain the endpoints of required GC content intervals (including 0 and 1), one endpoint per line
 ```
 
 ## Usage
 ```
-python code/plasbin_flow.py --ag assembly_graph --gc gc_content_file --map gene_contig_mapping_file \
-		--out output_dir --alpha1 alpha_1 --alpha2 alpha_2 --alpha3 alpha_3 --rmiter rmiter
+python code/plasbin_flow.py -ag assembly_graph -gc gc_content_file -map gene_contig_mapping_file \
+		-outdir output_dir -outfile output_file -alpha1 alpha_1 -alpha2 alpha_2 -alpha3 alpha_3 -rmiter rmiter
 ```
 where `assembly_graph` is the assembly graph file, `gc_content_file` is the GC content file described above and `gene_contig_mapping_file` is the gene mapping file described above.
 
 Additional arguments:
 ```
---output_dir			Directory where the output files are written (required)
---output_file			Name of output file (required)
---rmiter			Maximum number of iterations to remove circular components. (optional, default: 50)
---alpha1			Weight of flow term. (optional, default: 1)                              
---alpha2			Weight of GC content term. (optional, default: 1)
---alpha3			Weight of gene density term. (optional, default: 1)
+-output_dir			Directory where the output files are written (required)
+-output_file			Name of output file (required)
+-rmiter			Maximum number of iterations to remove circular components. (optional, default: 50)
+-alpha1			Weight of flow term. (optional, default: 1)                              
+-alpha2			Weight of GC content term. (optional, default: 1)
+-alpha3			Weight of gene density term. (optional, default: 1)
 ```
 
 ## Output
