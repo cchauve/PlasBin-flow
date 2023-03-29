@@ -42,7 +42,7 @@ PlasBin-flow requires the following input files:
 3. A *GC content* TSV file containing on each line the probability for a contig to originate from a molecule of GC content within a given range (see section 2.5 of the paper *PlasBin-flow: A flow-based MILP algorithm for plasmid contigs binning*).
 
 ### Creating the plasmid gene mapping file
-The following set of scripts help in generating the *plasmid gene mapping* TSV file. As a first step, we create the database of genes that is to be used for mapping onto contigs. Note that if you already have a database of genes in FASTA format, this step can be skipped.
+The following set of scripts can be used to create the *plasmid gene mapping* TSV file. As a first step, we create the database of genes that is to be used for mapping onto contigs. Note that if you already have a database of genes in FASTA format, this step can be skipped.
 ```
 python code/get_gd.py create genes_fasta -a accessions_ids
 ```
@@ -52,10 +52,10 @@ The second step after creating the database is to map the genes onto contigs.
 ```
 python code/get_gd.py map genes_fasta gene_contig_mapping_file -ag assembly_graph
 ```
-where `genes_fasta` is the file containing the sequences of plasmids genes in the database and `assembly_graph` is the assembly graph file. `gene_contig_mapping_file` is the file containing the mapping of genes to contigs in blastn output format 6. 
+where `genes_fasta` is the file containing the sequences of plasmids genes in the database and `assembly_graph` is the assembly graph file; `gene_contig_mapping_file` is the file containing the mapping of genes to contigs in blastn output format 6. 
 
 ### Creating the GC content file
-The following script helps in generating the *GC content* TSV file. It takes as input an assembly graph file in GFA format (same as above) and optionally, a file specifying the endpoints of the GC content intervals. The output generated is a TSV file with one line per contig, with the probablities that a contig originates from a molecule of GC content within the prescribed ranges. 
+The following script helps in generating the *GC content* TSV file. It takes as input an assembly graph file in GFA format (same as above) and optionally, a file specifying the endpoints of the GC content intervals. The output generated is a TSV file with one line per contig, with the probablities that a contig originates from a molecule of GC content within the pre-defined GC content ranges. 
 ```
 python code/get_gc_probs.py -ag assembly_graph -out output_file
 ```
@@ -86,13 +86,13 @@ Additional arguments:
 ## Output
 The output of plasbin is a TSV file with each line containing the following information:
 ```
-Plasmid bin			Iteration number associated with plasmid bin
-Flow value			Flow value associated with plasmid bin
-GC bin				Index of GC content interval associated with plasmid bin
-Contigs				List of contigs associated with plasmid bin alongwith their multiplicities in a CSV format
+Plasmid bin			Number (ID) associated with the plasmid bin
+Flow value			Flow value associated with the plasmid bin
+GC bin				Index of GC content interval associated with the plasmid bin
+Contigs				Comma-separated list of contigs associated with plasmid bin along with their multiplicities
 ```
 Thus a typical line in an output file from plasbin looks as follows:
 ```
 #Pls_ID	Flow	GC_bin	Contigs
-P1	2.5	4	a:2, b:3, c:2, d:1
+P1	2.5	4	a:2,b:3,c:2,d:1
 ```
