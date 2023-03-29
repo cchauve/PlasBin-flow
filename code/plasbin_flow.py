@@ -1,10 +1,12 @@
 __author__ = 'amane'
 
 #-------------------
-
 #USAGE: 
-#time python plasbin_flow.py --ag assembly.gfa --gc gc_probs.csv --map gene_contig_mapping.csv \
-#				 --out output_dir --alpha1 alpha_1 --alpha2 alpha_2 --alpha3 alpha_3 --rmiter rmiter
+#time python plasbin_flow.py --ag assembly.gfa 
+# 				--gc gc_probs.csv --map gene_contig_mapping.csv \
+#				--outdir output_dir --outfile output_file \
+# 				--alpha1 alpha_1 --alpha2 alpha_2 --alpha3 alpha_3 \
+# 				--offset offset --rmiter rmiter --unique unique
 
 from re import L
 from gurobipy import *
@@ -12,11 +14,10 @@ from sys import argv
 import os
 import time
 from random import randint
-import math
-import csv
 import argparse
-import preprocessing
-import postprocessing
+#import preprocessing
+import get_data
+import model_setup
 import networkx as nx
 
 def read_file(filename):
@@ -30,43 +31,49 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--ag", help="Path to assembly graph file")
 	parser.add_argument("--gc", help="Path to GC probabilities file")
-	#parser.add_argument("--c", help="Path to contig classification file")
 	parser.add_argument("--map", help="Path to gene to contig mapping file")
-	#parser.add_argument("--seeds", help="Path to seed contigs file")
-	#parser.add_argument("--p", type=float, default = 0.5, help="Contribution of plasmid score to plasmidness term")
-	parser.add_argument("--out", help="Path to output dir")
+	parser.add_argument("--p", type=float, default = 0.5, help="Offset gd / plasmid score term")
+	parser.add_argument("--outdir", help="Path to output dir")
+	parser.add_argument("--outfile", help="Name of output file")
 	parser.add_argument("--alpha1", nargs='?', const = 1, type=int, default = 1, help="Weight of flow term")
 	parser.add_argument("--alpha2", nargs='?', const = 1, type=int, default = 1, help="Weight of GC content term")
 	parser.add_argument("--alpha3", nargs='?', const = 1, type=int, default = 1, help="Weight of log probabilities term")	
 	parser.add_argument("--rmiter", nargs='?', const = 1, type=int, default = 50, help="Number of iterations to remove circular components")
+	parser.add_argument("--unique", nargs='?', const = 1, type=int, default = 1, help="Unique bins")
 
 	args = parser.parse_args()
 
-	output_dir = args.out
+	output_dir = args.outdir
+	output_file = args.outfile
 	assembly_file = args.ag
 	gc_file = args.gc
-	#class_file = args.c
 	mapping_file = args.map
-	#p = float(args.p)
-	#seeds_file = args.seeds
+	p = float(args.p)
 	alpha1 = args.alpha1
 	alpha2 = args.alpha2
 	alpha3 = args.alpha3
-	rmiter = args.rmiter
+	rmiter = int(args.rmiter)
+	unique = int(args.unique)
 
 	#Naming and creating output files
 	ratios = str(alpha1) + '.' + str(alpha2) + '.' + str(alpha3)
 	output_folder = output_dir + '/' + ratios
 	if not os.path.exists(output_folder):
-	    os.makedirs(output_folder)
+		os.makedirs(output_folder)
+
+	output_bins = open(os.path.join(output_folder, output_file), "w")
+
 	
-	output_fasta = 'putative_plasmids.fasta'
-	ques_fasta = 'questionable_plasmids.fasta'
-	score_filename = 'MILP_objective.csv'
-	output_contigs = 'contig_chains.csv'
-	ques_contigs = 'questionable_contig_chains.csv'
-	components = 'components.csv'
-	var_vals = 'var_values.txt'
+	
+	#output_fasta = 'putative_plasmids.fasta'
+	#score_filename = 'MILP_objective.csv'
+	#var_vals = 'var_values.txt'
+
+	#Dictionary for storing bins
+	#Key = Plasmid id, Value = Dictionary of attributes
+	#Flow (float), GC bin id, List of contigs with multiplicities
+	pbf_bins = {}
+	n_iter = 0
 
 	#-----------------------------------------------
 	#Main program
@@ -77,14 +84,11 @@ if __name__ == "__main__":
 	gc_pens = {}		#Key: contigs IDs, Values: Penalty for each GC bin
 	capacities = {}     #Key: 
 
-	contigs_dict, links_list = preprocessing.get_data(assembly_file, contigs_dict, links_list)
-	#seeds_set = preprocessing.get_seeds(seeds_file, seeds_set)
-	contigs_dict = preprocessing.get_gene_coverage(mapping_file, contigs_dict)
-	#contigs_dict = preprocessing.get_class_probs(class_file, contigs_dict)
+	contigs_dict, links_list = get_data.get_ag_details(assembly_file, contigs_dict, links_list)
+	contigs_dict = get_data.get_gene_coverage(mapping_file, contigs_dict)
 	
-	#contigs_dict = preprocessing.get_log_ratio(contigs_dict, p)
-	seeds_set = preprocessing.get_seeds(contigs_dict, seeds_set)
-	gc_probs, gc_pens = preprocessing.get_gc_probs(gc_file, gc_probs, gc_pens)
+	seeds_set = get_data.get_seeds(contigs_dict, seeds_set)
+	gc_probs, gc_pens = get_data.get_gc_probs(gc_file, gc_probs, gc_pens)
 
 	for c in contigs_dict:  #Assigning seeds
 		if c in seeds_set:
@@ -93,6 +97,7 @@ if __name__ == "__main__":
 			contigs_dict[c]['Seed'] = 0
 
 	#Keeping a log of details about contigs in the assembly graph
+	'''
 	input_details = 'details.csv'
 	details_file = open(os.path.join(output_folder, input_details), "w")
 	details_file.write("Contig"+"\t"+"Read_depth"+ "\t"+"GC_cont"+"\t"+ "Length"+"\t"+"Density"+"\n")
@@ -103,21 +108,15 @@ if __name__ == "__main__":
 			if c == link[0][0] or c == link[1][0]:
 				details_file.write(str(link)+"\t")
 		details_file.write("\n")
+	'''
 
-	output_fasta_file = open(os.path.join(output_folder, output_fasta), "w")
-	ques_fasta_file = open(os.path.join(output_folder, ques_fasta), "w")
-	score_file = open(os.path.join(output_folder, score_filename), "w")
-	contigs_file = open(os.path.join(output_folder, output_contigs), "w")
-	ques_contigs_file = open(os.path.join(output_folder, ques_contigs), "w")
-	components_file = open(os.path.join(output_folder, components), "w")
-	var_file = open(os.path.join(output_folder, var_vals), "w")
+	#output_fasta_file = open(os.path.join(output_folder, output_fasta), "w")
+	#score_file = open(os.path.join(output_folder, score_filename), "w")
+	#contigs_file = open(os.path.join(output_folder, output_contigs), "w")
+	#var_file = open(os.path.join(output_folder, var_vals), "w")
 
-	logfile_3 = open(os.path.join(output_folder,'circ_sequences.log'),"w")	
-
-	n_iter = 0
-	q_iter = 0
+	
 	n_comp = 0
-	q_comp = 0
 
 	while len(seeds_set) > 0:
 		#For consistency, both extremities for a contig should be part of exactly the same number of links in a plasmid.
@@ -127,23 +126,20 @@ if __name__ == "__main__":
 		#Including links from S and links to T
 		incoming, outgoing = {}, {}	#Key: Extremity, Value: List of ordered links in/out of extremity
 
+		UBD_rd, LBD_rd = 0, 100
 		for c in contigs_dict:
+			UBD_rd = max(UBD_rd, contigs_dict[c]['Read_depth'])
+			LBD_rd = min(LBD_rd, contigs_dict[c]['Read_depth'])
+
 			ext1, ext2 = (c, 'h'), (c, 't')
-			extr_dict[ext1] = []
-			extr_dict[ext2] = []
-			incoming[ext1] = []
-			incoming[ext2] = []
-			outgoing[ext1] = []
-			outgoing[ext2] = []			
+			extr_dict[ext1], extr_dict[ext2] = [], []
+			incoming[ext1], incoming[ext2] = [], []
+			outgoing[ext1], outgoing[ext2] = [], []
 			if c in seeds_set:
-				extr_dict[ext1] = [('S',ext1)]
-				extr_dict[ext2] = [('S',ext2)]
-				incoming[ext1] = [('S', ext1)]
-				incoming[ext2] = [('S', ext2)]
-			extr_dict[ext1] = [(ext1,'T')]
-			extr_dict[ext2] = [(ext2,'T')]
-			outgoing[ext1] = [(ext1, 'T')]
-			outgoing[ext2] = [(ext2, 'T')]
+				extr_dict[ext1], extr_dict[ext2] = [('S',ext1)], [('S',ext2)]
+				incoming[ext1], incoming[ext2] = [('S', ext1)], [('S', ext2)]
+			extr_dict[ext1], extr_dict[ext2] = [(ext1,'T')], [(ext2,'T')]
+			outgoing[ext1], outgoing[ext2] = [(ext1, 'T')], [(ext2, 'T')]
 
 			for link in links_list:
 				if link[0] == ext1 or link[1] == ext1:
@@ -153,15 +149,6 @@ if __name__ == "__main__":
 					extr_dict[ext2].append(link)
 					extr_dict[ext2].append(link[::-1])
 
-		#print("EXTR", extr_dict)
-
-		UBD_rd, LBD_rd = 0, 100
-		for c in contigs_dict:	#Computing the upper bound for the read depth (and hence the upper bound for the flow)
-			UBD_rd = max(UBD_rd, contigs_dict[c]['Read_depth'])
-			LBD_rd = min(LBD_rd, contigs_dict[c]['Read_depth'])
-		print(UBD_rd, LBD_rd)		
-
-		#TODO: Include in above loop.	
 		for link in links_list:
 			ext1, ext2 = link[0], link[1]
 			incoming[ext1].append(link[::-1])
@@ -169,7 +156,8 @@ if __name__ == "__main__":
 			incoming[ext2].append(link)
 			outgoing[ext2].append(link[::-1])		
 		
-		capacities = preprocessing.get_caps(links_list, contigs_dict, capacities)
+		capacities = get_data.get_caps(links_list, contigs_dict, capacities)
+
 		print("\n\n\n\n\n")
 		#-----------------------------------------------
 		#Initializing the ILP
@@ -180,31 +168,21 @@ if __name__ == "__main__":
 
 		#Initializing variables
 		contigs = {}	#Key: Contig (e.g. '1'), Value: Gurobi binary variable
-		#ext = {}		#Key: Extremity (e.g. ('1','h')), Value: Gurobi binary variable
-		contigs = preprocessing.contig_vars(m, contigs_dict, contigs)
+		contigs = model_setup.contig_vars(m, contigs_dict, contigs)
 
 		links = {}		#Key: Directed link from one extremity to another 
 						#(e.g. (('1','h'),('2','t')) ), Value: Gurobi binary variable
-		links = preprocessing.link_vars(m, links_list, links, contigs)
+		links = model_setup.link_vars(m, links_list, links, contigs)
 
 		plas_GC = {}	#Key: GC bin, Value: Gurobi binary variable
 		contig_GC = {}	#Nested Dict: Key: Contig, Value: Dict of GC bins (Key: GC bin, Value: Gurobi binary variable)
-		plas_GC, contig_GC = preprocessing.GC_vars(m, gc_probs, plas_GC, contig_GC)
-
-		#counted_seed = {}	#Key: Contig, Value: Gurobi binary variable
-		#counted_seed = preprocessing.seed_vars(m, contigs_dict, counted_seed)				
-
-		#counted_len = {}	#Key: Contig, Value: Gurobi integer variable
-		#counted_len = preprocessing.len_vars(m, contigs_dict, counted_len)
+		plas_GC, contig_GC = model_setup.GC_vars(m, gc_probs, plas_GC, contig_GC)
 
 		flows = {}		#Key: Directed link, Value: Gurobi continuous variable
-		#counted_flow = {}
 		counted_F = {}	#Key: Directed link, Value: Gurobi continuous variable
-		flows, counted_F = preprocessing.flow_vars(m, links, flows, counted_F)
+		flows, counted_F = model_setup.flow_vars(m, links, flows, counted_F)
 		F = m.addVar(vtype=GRB.CONTINUOUS, name='overall-flow')	
 
-		#print(links_list)
-		print(len(links_list))		
 		#-----------------------------------------------
 		#Setting up the expression for the objective function
 		expr = LinExpr()
@@ -216,7 +194,7 @@ if __name__ == "__main__":
 				#expr.addTerms(-alpha2*(1-gc_probs[c][b]), contig_GC[c][b])
 				expr.addTerms(alpha2*(gc_pens[c][b]), contig_GC[c][b])
 			#expr.addTerms(alpha3*contigs_dict[c]['log_ratio'], contigs[c])
-			expr.addTerms(alpha3*(contigs_dict[c]['Gene_coverage'] - 0.50), contigs[c])
+			expr.addTerms(alpha3*(contigs_dict[c]['Gene_coverage'] - p), contigs[c])
 		m.setObjective(expr, GRB.MAXIMIZE)
 
 		#-----------------------------------------------
@@ -225,69 +203,21 @@ if __name__ == "__main__":
 		constraint_count = 0
 		#Constraint type 1
 		#A link 'e' is in the plasmid only if both its endpoints are in the plasmid.
-		for e in links:	
-			end1, end2 = e[0], e[1]
-			c1, c2 = end1[0], end2[0]
-			if c1 != 'S' and c1 != 'T':
-				m.addConstr(links[e] <= contigs[c1], "link_ubd-"+str(e)+'-by-'+str(c1))
-				constraint_count += 1
-			if c2 != 'S' and c2 != 'T':	
-				m.addConstr(links[e] <= contigs[c2], "link_ubd-"+str(e)+'-by-'+str(c2))
-				constraint_count += 1
+		m, constraint_count = model_setup.link_inclusion_constr(m, links, contigs, constraint_count)
 					
 		#Constraint type 2
 		#An extremity is in the plasmid only if at least one link is incident on it.
-		M = -100	#Big-M lower bound constant
-		b = {}		#Auxilliary binary variable dictionary for each extremity
-		for c in contigs:
-			b[c] = m.addVar(vtype=GRB.BINARY, name='aux-var-'+str(c))
-			x1, x2 = (c, 'h'), (c, 't')	
-			expr = LinExpr()
-			link_count = 0
-			for link in extr_dict[x1]:
-				link_count += 1
-				expr.addTerms(1, links[link])
-			for link in extr_dict[x2]:
-				link_count += 1
-				expr.addTerms(1, links[link])				
-			m.addConstr(contigs[c] <= expr, "extr_ubd-"+str(c)+'-by-expr')
-			m.addConstr(contigs[c] <= 1, "extr_ubd-"+str(c)+'-by-1')
-			m.addConstr(contigs[c] >= expr + M*b[c], "extr_lbd")
-			m.addConstr(contigs[c] >= 1 + M*(1-b[c]), "extr_lbd")
-			constraint_count += 4
+		m, constraint_count = model_setup.extr_inclusion_constr(m, links, contigs, extr_dict, constraint_count)
 
 		#Constraint type 3
 		#A contig is considered to be a ”counted” seed if it is eligible to be a seed contig
 		#and is considered to be part of the solution
-		seed_expr = LinExpr()
-		for c in contigs:
-			seed_expr.addTerms(contigs_dict[c]['Seed'], contigs[c])
-		m.addConstr(seed_expr >= 1, "at-least-one-seed")
-		constraint_count += 1
+		m, constraint_count = model_setup.seed_inclusion_constr(m, contigs, contigs_dict, constraint_count)
 
 		#Constraint type 4
 		#'F' should equal the flow out of 'S' and into 'T'. 
 		#Exactly one edge exits 'S' and exactly one enters 'T'.
-		xS_expr = LinExpr()
-		xT_expr = LinExpr()
-		fS_expr = LinExpr()
-		fT_expr = LinExpr()
-		#print("TESTING", len(links))
-		for e in links:
-			#print(e)
-			if e[0] == 'S':
-				xS_expr.addTerms(1, links[e])
-				fS_expr.addTerms(1, flows[e])
-			if e[1] == 'T':
-				xT_expr.addTerms(1, links[e])
-				fT_expr.addTerms(1, flows[e])
-		m.addConstr(xS_expr == 1, "one-edge-from-S")
-		m.addConstr(xT_expr == 1, "one-edge-into-T")
-		m.addConstr(F == fS_expr, "flow-from-S")		
-		m.addConstr(F == fT_expr, "flow-into-T")
-		constraint_count += 4
-		#print(LBD_rd, "to avoid zero flow - debugging")
-		m.addConstr(F >= LBD_rd, "minimum flow (to avoid zero flow)")
+		m, constraint_count = model_setup.min_flow_constr(m, links, flows, F, LBD_rd, constraint_count)
 
 		#Constraint types 5 and 6
 		#6. Conservation constraints
@@ -295,106 +225,16 @@ if __name__ == "__main__":
 		#7. Capacity constraints
 		#	The maximum flow into a vertex should be at most the capacity (read depth) of the vertex itself.
 		#	The maximum flow through an edge has to be at most the capacity (capacities[e]) of the edge. 
-		for c in contigs:
-			ext1, ext2 = (c, 'h'), (c, 't')
-			hin_flow = LinExpr()	#flow into head extremity
-			hout_flow = LinExpr()	#flow out of head extremity
-			tin_flow = LinExpr()	#flow into tail extremity
-			tout_flow = LinExpr()	#flow out of tail extremity	
-
-			#hin_count = LinExpr()	#flow into head extremity
-			#hout_count = LinExpr()	#flow out of head extremity
-			#tin_count = LinExpr()	#flow into tail extremity
-			#tout_count = LinExpr()	#flow out of tail extremity	
-			#print("\n\n\n")
-			#TODO: incoming and outgoing should be updated with graph update to avoid 'if' conditions
-			if ext1 in incoming:
-				for e in incoming[ext1]:
-
-					hin_flow.addTerms(1, flows[e])
-					#hin_count.addTerms(1, links[e])
-					#print(c, 'h-in', e)
-				#print("\n")		
-			if ext1 in outgoing:
-				for e in outgoing[ext1]:
-					hout_flow.addTerms(1, flows[e])
-					#hout_count.addTerms(1, links[e])
-					#print(c, 'h-out', e)
-				#print("\n")	
-			if ext2 in incoming:
-				for e in incoming[ext2]:
-					tin_flow.addTerms(1, flows[e])
-					#tin_count.addTerms(1, links[e])
-					#print(c, 't-in', e)
-				#print("\n")	
-			if ext2 in outgoing:
-				for e in outgoing[ext2]:
-					tout_flow.addTerms(1, flows[e])
-					#tout_count.addTerms(1, links[e])
-					#print(c, 't-out', e)
-			
-			m.addConstr(hin_flow == tout_flow, "contig-"+c+"-flow-conservation-h2t")
-			m.addConstr(tin_flow == hout_flow, "contig-"+c+"-flow-conservation-t2h")
-
-			#m.addConstr(hin_count == tout_count, "contig-"+c+"-count-conservation-h2t")
-			#m.addConstr(tin_count == hout_count, "contig-"+c+"-count-conservation-t2h")			
-
-			m.addConstr(hin_flow + tin_flow <= contigs_dict[c]['Read_depth'], "cap-"+c)	
-			constraint_count += 3
-
-			'''
-			#Temporary constraint to avoid self loops
-			eh2t = (ext1, ext2)
-			et2h = (ext2, ext1)
-			if eh2t in links:
-				m.addConstr(links[eh2t] == 0, "self-loop-"+str(eh2t))
-			if et2h in links:
-				m.addConstr(links[et2h] == 0, "self-loop-"+str(et2h))
-			'''					
-
-		for e in links:
-			m.addConstr(flows[e] <= capacities[e]*links[e], "cap-"+str(e))		
-			constraint_count += 1
+		m, constraint_count = model_setup.flow_conservation_constraints(m, links, contigs, flows, incoming, outgoing, capacities, contigs_dict, constraint_count)
 
 		#Constraint types 7 and 8
 		#8. The overall flow 'F' through link 'e' is ”counted” only if 'e' is part of the solution.
 		#9. The overall flow 'F' cannot exceed the flow through any active link 'e'.
-		for e in links:
-			m.addConstr(counted_F[e] <= UBD_rd*links[e], "xF1-"+str(e))
-			m.addConstr(counted_F[e] <= F, "xF2-"+str(e))
-			m.addConstr(counted_F[e] >= F - (1-links[e])*UBD_rd, "xF3-"+str(e))
-			m.addConstr(counted_F[e] >= 0, "xF4-"+str(e))
-
-			m.addConstr(counted_F[e] <= flows[e], "xF5-"+str(e))
-					
-			constraint_count += 5
+		m, constraint_count = model_setup.counted_flow_constr(m, links, flows, counted_F, F, UBD_rd, constraint_count)
 
 		#Constraint type 9
 		#Handling the GC-content term in the objective function
-		for c in contig_GC:
-			for b in plas_GC:
-				m.addConstr(contig_GC[c][b] <= contigs[c], "xGC1")
-				m.addConstr(contig_GC[c][b] <= plas_GC[b], "xGC2")
-				m.addConstr(contig_GC[c][b] >= contigs[c] + plas_GC[b] - 1, "xGC3")
-				constraint_count += 3
-		expr = LinExpr()
-		for b in plas_GC:
-			expr.addTerms(1, plas_GC[b])
-		m.addConstr(expr == 1)	
-		constraint_count += 1
-
-		'''
-		#Constraint type 11
-		#Preliminary path constraints. Note that we also account for the vertices 'S' and 'T'.
-		c_expr = LinExpr()
-		for c in contigs:
-			c_expr.addTerms(1, contigs[c])
-		l_expr = LinExpr()
-		for e in links:
-			l_expr.addTerms(1, links[e])
-		m.addConstr(c_expr == l_expr - 1, "path_simple")					
-		constraint_count += 1
-		'''
+		m, constraint_count = model_setup.GC_constr(m, contig_GC, plas_GC, contigs, constraint_count)
 
 		extra_comps = 1	#default
 		iter_count = 0
@@ -458,37 +298,42 @@ if __name__ == "__main__":
 					else:
 						c2 = end2[0]
 						ext2 = end2[1]
-					#print(c1, c2)	
 					G.add_edge(c1,c2)
 					nx.set_edge_attributes(G, {(c1, c2): {"extremities": (ext1, ext2)}})
-			#print("HELLO")
 			conn_comps = nx.weakly_connected_components(G)
 
-			components_file = open(os.path.join(output_folder, components), "a")
+			#components_file = open(os.path.join(output_folder, components), "a")
 			comp_count = 0
 			for comp in conn_comps:
 				comp_count += 1
-				#print(comp)
 				comp_len = 0
-				#components_file.write("Component "+str(comp_count)+":\t")
 				for node in comp:
-					#components_file.write(str(node)+",")
 					if node != 'S' and node != 'T':
 						comp_len += contigs_dict[node]['Length']
-				print("Conn comp:", comp_count, comp_len)
+				#print("Conn comp:", comp_count, comp_len)
 				if 'S' in comp:
 					ST_comp = G.subgraph(comp)
 					print("Edges:",ST_comp.edges())
 					for edge in ST_comp.edges:
 						print(nx.get_edge_attributes(G,'extremities')[edge])
 				else:
+					disconn_comp = G.subgraph(comp)
+					#Muting individual edges
+					for edge in disconn_comp.edges:
+						#print(nx.get_edge_attributes(G,'extremities')[edge])	
+						exts = nx.get_edge_attributes(G,'extremities')[edge]
+						e = ((edge[0],exts[0]),(edge[1],exts[1]))
+						#expr.addTerms(1, links[e])
+						
+						m.addConstr(links[e] == 0, "muted_edge-"+str(e))	
+					'''
 					dc_count += 1
 					dc_dict[dc_count] = m.addVar(vtype=GRB.BINARY, name='dc-binary-'+str(dc_count))
 					eps = 0.001
 					bigM = 1000
 					expr = LinExpr()
-					disconn_comp = G.subgraph(comp)
-					print("Disconnected comp:",disconn_comp.edges())
+					
+					#print("Disconnected comp:",disconn_comp.edges())
 					nodes = disconn_comp.nodes()
 					#edges = disconn_comp.edges
 					edges_into_comp = LinExpr()
@@ -509,54 +354,26 @@ if __name__ == "__main__":
 
 					#m.addConstr(x >= y + eps - M * (1 - b), name="bigM_constr1")
 					#m.addConstr(x <= y + M * b, name="bigM_constr2")					
-					#Muting individual edges
-					for edge in disconn_comp.edges:
-						print(nx.get_edge_attributes(G,'extremities')[edge])	
-						exts = nx.get_edge_attributes(G,'extremities')[edge]
-						e = ((edge[0],exts[0]),(edge[1],exts[1]))
-						expr.addTerms(1, links[e])
-						
-						m.addConstr(links[e] == 0, "muted_edge-"+str(e))	
-																		
-
-				#if comp_len >= 1500:
-				#	components_file.write("Putative\n")
-				#else:
-				#	components_file.write("Questionable\n")
-
+					'''
 
 
 			#Condition to stop iterating. 
 			#If number of connected components is 1, there are no extra components, thus breaking the while loop.	
-			extra_comps = comp_count - 1
-			#Temp
-			#extra_comps = 0
-
-			#if len(comp_count) == 1:
-			#	extra_comps = 0					
+			extra_comps = comp_count - 1			
 
 		#Plasmid bin obtained for the iteration.
-		#Out of while loop to remove extra circular components.
+		#Out of while loop to remove extra circular components. 
+		#Proceeding to output
 
 		#Retrieving plasmid bin
-		output_fasta_file = open(os.path.join(output_folder, output_fasta), "a")
-		ques_fasta_file = open(os.path.join(output_folder, ques_fasta), "a")
-		score_file = open(os.path.join(output_folder, score_filename), "a")
-		contigs_file = open(os.path.join(output_folder, output_contigs), "a")
-		ques_contigs_file = open(os.path.join(output_folder, ques_contigs), "a")
-		components_file = open(os.path.join(output_folder, components), "a")
+		#output_fasta_file = open(os.path.join(output_folder, output_fasta), "a")
+		#score_file = open(os.path.join(output_folder, score_filename), "a")
+		#contigs_file = open(os.path.join(output_folder, output_contigs), "a")
+		#components_file = open(os.path.join(output_folder, components), "a")
 
 
 		#Recording variable values (mainly for debugging purposes)
 		plasmid_length = 0
-		
-
-		#for c in contigs:
-		#	var_file.write(contigs[c].VarName +"\t"+ str(contigs[c].x)+"\n")
-		#for e in links:
-		#	var_file.write(links[e].VarName +"\t"+ str(links[e].x)+"\n")
-		#	var_file.write(flows[e].VarName +"\t"+ str(flows[e].x)+"\n")
-		#	var_file.write(counted_F[e].VarName +"\t"+ str(counted_F[e].x)+"\n")
 
 		#Post-processing: Determining if plasmid bin is putative or questionable
 		#Recording the plasmid bin
@@ -564,66 +381,45 @@ if __name__ == "__main__":
 			if contigs[c].x > 0:
 				plasmid_length += contigs_dict[c]['Length']
 		
-		'''
-		from_ext = {}			#Key: Extremity, Value: List of extremities reached from this extremity by a link
-		to_ext = {}				#Key: Extremity, Value: List of extremities from which this extremity is reached
-		for e in links:
-			if links[e].x > 0:	
-				end1, end2 = e[0], e[1]		
-				solution_links.add(e)
-				if end1 not in from_ext:
-					from_ext[end1] = [end2]
-				else:
-					from_ext[end1].append(end2)
-				if end2 not in to_ext:
-					to_ext[end2] = [end1]
-				else:
-					to_ext[end2].append(end1)	
-		'''				
+			
 
 		#Sorting into putative and questionable
 		if plasmid_length >= 1500:
-			var_file = open(os.path.join(output_folder, var_vals), "a")
-			var_file.write("\nIteration "+str(n_iter)+":\n")
-			for v in m.getVars():
-				if v.X > 0:
-					var_file.write(v.varName+"\t"+str(v.X)+"\n")
 
-			output_fasta_file.write(">plasmid_"+str(n_iter)+"\t"+"length="+str(plasmid_length)+"\n")
-			contigs_file.write("#Contig\tDensity\tFlow\tRead_depth\tLength\n")		
-			for c in contigs:
-				if contigs[c].x > 0.5:			
-					contigs_file.write("# "+c+"\t"+str(contigs_dict[c]['Gene_coverage'])+"\t"+str(F.x)+"\t"+str(contigs_dict[c]['Read_depth'])+"\t"+str(contigs_dict[c]['Length'])+"\n")				
-			contigs_file.write("\n")
+			#var_file = open(os.path.join(output_folder, var_vals), "a")
+			#var_file.write("\nIteration "+str(n_iter)+":\n")
+			#for v in m.getVars():
+			#	if v.X > 0:
+			#		var_file.write(v.varName+"\t"+str(v.X)+"\n")
 
-			contigs_file.write("#Link\tCapacity\n")
-			for e in links:
-				if links[e].x > 0:
-					contigs_file.write("# "+str(e)+"\t"+str(capacities[e])+"\n")
-			contigs_file.write("\n")
+			#output_fasta_file.write(">plasmid_"+str(n_iter)+"\t"+"length="+str(plasmid_length)+"\n")
+			#contigs_file.write("#Contig\tDensity\tFlow\tRead_depth\tLength\n")		
+			#for c in contigs:
+			#	if contigs[c].x > 0.5:			
+			#		contigs_file.write("# "+c+"\t"+str(contigs_dict[c]['Gene_coverage'])+"\t"+str(F.x)+"\t"+str(contigs_dict[c]['Read_depth'])+"\t"+str(contigs_dict[c]['Length'])+"\n")				
+			#contigs_file.write("\n")
+
+			#contigs_file.write("#Link\tCapacity\n")
+			#for e in links:
+			#	if links[e].x > 0:
+			#		contigs_file.write("# "+str(e)+"\t"+str(capacities[e])+"\n")
+			#contigs_file.write("\n")
 
 			#Recording objective function scores
 			GC_sum = 0
-			#class_sum = 0
 			gd_sum = 0
 			for c in contigs:
-				#if c == '192' or c == '213':
-				#	for b in gc_probs[c]:
-				#		if b == 3:
-				#			print(-alpha2*(1-gc_probs[c][b]))
-				#	print(contigs_dict[c]['log_ratio'])
 				gc_c_sum = 0
 				for b in contig_GC[c]:
 					#GC_sum += -alpha2*(1-gc_probs[c][b])*contig_GC[c][b].x
 					GC_sum += alpha2*(gc_pens[c][b])*contig_GC[c][b].x
 					gc_c_sum += alpha2*(gc_pens[c][b])*contig_GC[c][b].x
-				#class_sum += alpha3*contigs_dict[c]['log_ratio']*contigs[c].x
 				gd_sum += alpha3*(contigs_dict[c]['Gene_coverage']-0.5)*contigs[c].x
-				#lr_c = contigs_dict[c]['log_ratio']*contigs[c].x
 				lr_gd = (contigs_dict[c]['Gene_coverage']-0.5)*contigs[c].x
-				score_file.write("putative_plasmid_"+str(n_iter)+"\t\t"+str(c)+"\t"+str(gc_c_sum)+"\t"+str(lr_gd)+"\n")
-			score_file.write("Overall\nputative_plasmid_"+str(n_iter)+"\t\t"+str(m.objVal)+"\t"+str(F.x)+"\t"+str(GC_sum)+"\t"+str(gd_sum)+"\n\n")
-			n_iter += 1	
+				#score_file.write("putative_plasmid_"+str(n_iter)+"\t\t"+str(c)+"\t"+str(gc_c_sum)+"\t"+str(lr_gd)+"\n")
+			#score_file.write("Overall\nputative_plasmid_"+str(n_iter)+"\t\t"+str(m.objVal)+"\t"+str(F.x)+"\t"+str(GC_sum)+"\t"+str(gd_sum)+"\n\n")
+				
+
 
 			#Recording components in the solution
 			G = nx.DiGraph()
@@ -651,25 +447,37 @@ if __name__ == "__main__":
 					#print(c1, c2)	
 					G.add_edge(c1,c2)
 					nx.set_edge_attributes(G, {(c1, c2): {"extremities": (ext1, ext2)}})
-			#print("HELLO")
 			conn_comps = nx.weakly_connected_components(G)
 
 			#components_file = open(os.path.join(output_folder, components), "a")
+			GC_bin = 0
+			for b in plas_GC:
+				if plas_GC[b].x == 1:
+					GC_bin = b
+
 			comp_count = 0
 			for comp in conn_comps:
+				n_iter += 1	
+				pbf_bins[n_iter] = {'Flow': F.x, 'GC_bin': GC_bin, 'Contigs': {}}
+
 				comp_count += 1
-				print(comp)
+				#print(comp)
 				comp_len = 0
-				components_file.write("Component "+str(comp_count)+":\t")
+				#components_file.write("Component "+str(comp_count)+":\t")
 				for node in comp:
-					components_file.write(str(node)+",")
-				components_file.write("\n")				
+					if node != 'S' and node != 'T':
+						if node not in pbf_bins[n_iter]['Contigs']:
+							pbf_bins[n_iter]['Contigs'][node] = 0
+					#components_file.write(str(node)+",")
+				#components_file.write("\n")				
 
 		#Updating assembly graph and formulation
 		for e in flows:
 			if e[1] != 'T':
 				c = e[1][0]
 				contigs_dict[c]['Read_depth'] = max(0, contigs_dict[c]['Read_depth'] - flows[e].x)
+				if c in pbf_bins[n_iter]['Contigs']:
+					pbf_bins[n_iter]['Contigs'][c] += round(flows[e].x / F.x, 2)
 
 			
 		for c in contigs:
@@ -687,7 +495,32 @@ if __name__ == "__main__":
 					for e in links_list:						
 						if (c, 'h') not in e and (c, 't') not in e:
 							temp_list.append(e)
-					links_list = temp_list			
+					links_list = temp_list	
+		
 
+				
 		#For debugging purposes
-		#seeds_set = set()				
+		#seeds_set = set()	
+	output_bins.write('#Pls_ID\tFlow\tGC_bin\tContigs\n')		
+	for p in pbf_bins:
+		fval = "%.2f" %pbf_bins[p]['Flow']
+		gcb = pbf_bins[p]['GC_bin']
+		print(p, fval, gcb, pbf_bins[p]['Contigs'])
+		
+		output_bins.write('P'+str(p)+'\t\t'+str(fval)+'\t'+str(gcb)+'\t\t')
+		#nctg = len(pbf_bins[p]['Contigs'])
+		nctg = 0
+		for c in pbf_bins[p]['Contigs']:
+			ctg_mul = pbf_bins[p]['Contigs'][c]
+			if nctg == 0:
+				output_bins.write(c+':'+str(ctg_mul))
+			else:
+				output_bins.write(','+c+':'+str(ctg_mul))
+			nctg += 1
+		output_bins.write('\n')
+		
+	print("Out of while loop")
+
+
+	#print(pbf_bins)
+		

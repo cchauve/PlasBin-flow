@@ -75,8 +75,8 @@ where `assembly_graph` is the assembly graph file, `gc_content_file` is the GC c
 
 Additional arguments:
 ```
--output_dir			Directory where the output files are written (required)
--output_file			Name of output file (required)
+-output_dir		Directory where the output files are written (required)
+-output_file		Name of output file (required)
 -rmiter			Maximum number of iterations to remove circular components. (optional, default: 50)
 -alpha1			Weight of flow term. (optional, default: 1)                              
 -alpha2			Weight of GC content term. (optional, default: 1)
