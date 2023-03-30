@@ -56,10 +56,6 @@ def update_contigs_dict(contigs_dict, line):
 	contigs_dict[c]['Read_depth'] = rd
 	contigs_dict[c]['Gene_coverage'] = 0				#Default
 	contigs_dict[c]['Gene_coverage_intervals'] = []		#Default
-	contigs_dict[c]['Seed'] = 0		#Default
-	contigs_dict[c]['PrPl'] = 0.5	#Default
-	contigs_dict[c]['PrChr'] = 0.5	#Default
-	contigs_dict[c]['log_ratio'] = math.log(0.5/0.5)	#Default
 
 	return contigs_dict
 
@@ -142,57 +138,23 @@ def get_gene_coverage(mapping_file, contigs_dict):
 		contigs_dict[sseqid]['Gene_coverage'] = covered/length
 	return contigs_dict	
 
-def get_class_probs(class_file, contigs_dict):
-	string_list = read_file(class_file)
-	for line in string_list[1:]:
-		#print(line)
-		prpl, prchr = 0, 0
-
-		#PlasForest results
-		line = line.split(",")
-		c = line[1]
-		prpl = float(line[2])
-		prchr = float(line[3])
-
-		'''
-		#mlplasmids results
-		line = line.split(" ")
-		c, prpl, prchr = line[0], float(line[3]), float(line[2])
-		if prpl == 0:
-			prpl = 0.01
-		if prchr == 0:
-			prchr = 0.01
-		'''			
-		if c in contigs_dict:
-			contigs_dict[c]['PrPl'] = prpl
-			contigs_dict[c]['PrChr'] = prchr
-			#contigs_dict[c]['log_ratio'] = math.log(prpl/prchr)
-
-	return contigs_dict 
-
-def get_log_ratio(contigs_dict, p):
-	for c in contigs_dict:
-		prpl = contigs_dict[c]['PrPl']
-		prchr = contigs_dict[c]['PrChr']
-		gd = contigs_dict[c]['Gene_coverage']
-
-		contigs_dict[c]['log_ratio'] = math.log((p*prpl+(1-p)*gd)/prchr)
-	return contigs_dict
-
 def get_gc_probs(gc_file, gc_probs, gc_pens):
 	string_list = read_file(gc_file)
-	for line in string_list:
+	gc_intervals = string_list[0].split("\t")[1:]
+	for line in string_list[1:]:
 		line = line.split("\t")
 		c = line[0]
 		gc_probs[c] = {}
 		gc_pens[c] = {}
 		max_prob = 0
-		for i in range(1,len(line)):
-			gc_probs[c][i] = float(line[i])
-			if max_prob <= float(line[i]):
-				max_prob = float(line[i])
-		for i in range(1,len(line)):
-			gc_pens[c][i] = gc_probs[c][i] - max_prob
+		for i in range(len(gc_intervals)):
+			gc_int = gc_intervals[i]
+			bin_prob = float(line[i+1])
+			gc_probs[c][gc_int] = bin_prob 
+			if max_prob <= bin_prob:
+				max_prob = bin_prob
+		for gc_int in gc_probs[c]:
+			gc_pens[c][gc_int] = gc_probs[c][gc_int] - max_prob
 	return gc_probs, gc_pens
 
 def get_caps(links_list, contigs_dict, capacities):

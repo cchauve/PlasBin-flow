@@ -73,6 +73,7 @@ def main():
 
     if args.command == 'map':
         mg.map(args.mapping_file, args.genes_file, args.from_fasta, args.from_gfa, args.clean, args.verbose, args.makeblastdb, args.blastn)
+        
 
     if args.command == 'filter':
         mg.filter_blast(args.genes_file, args.mapping, args.filtered_mapping, identity_threshold = args.identity_threshold,

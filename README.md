@@ -46,18 +46,18 @@ The following set of scripts can be used to create the *plasmid gene mapping* TS
 ```
 python code/get_gd.py create genes_fasta -a accessions_ids
 ```
-where `accessions_ids` is the file containing the list of accession numbers of plasmid genes (one entry per line) and `genes_fasta` is the output file. 
+where `accessions_ids` is the file containing the list of accession numbers of plasmid genes (one entry per line) and `genes_fasta` is the output file. The list of accession ids used for building the gene database used in our experiments has been provided in the file `database/accessions.txt`.
 
 The second step after creating the database is to map the genes onto contigs. 
 ```
 python code/get_gd.py map genes_fasta gene_contig_mapping_file -ag assembly_graph
 ```
-where `genes_fasta` is the file containing the sequences of plasmids genes in the database and `assembly_graph` is the assembly graph file; `gene_contig_mapping_file` is the file containing the mapping of genes to contigs in blastn output format 6. 
+where `genes_fasta` is the file containing the sequences of plasmids genes in the database and `assembly_graph` is the assembly graph file; `gene_contig_mapping_file` is the file containing the mapping of genes to contigs in blastn output format 6. The plasmid gene sequences required for the mapping step have been provided in the file `database/genes.fasta`.
 
 ### Creating the GC content file
 The following script helps in generating the *GC content* TSV file. It takes as input an assembly graph file in GFA format (same as above) and optionally, a file specifying the endpoints of the GC content intervals. The output generated is a TSV file with one line per contig, with the probablities that a contig originates from a molecule of GC content within the pre-defined GC content ranges. 
 ```
-python code/get_gc_probs.py -ag assembly_graph -out output_file
+python code/get_gc_probs.py -ag assembly_graph -outdir output_dir -outfile output_file
 ```
 where `assembly_graph` is the assembly graph file.
 
@@ -65,6 +65,7 @@ Additional arguments:
 ```
 -gcint			Path to file with GC content interval. This file should contain the endpoints of required GC content intervals (including 0 and 1), one endpoint per line
 ```
+A sample GC content interval file `gc_intervals.txt` has been provided in the `example/input` folder. 
 
 ## Usage
 ```

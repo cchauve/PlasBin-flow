@@ -163,7 +163,7 @@ if __name__ == "__main__":
 		#Initializing the ILP
 		m = Model("Plasmids")
 		m.params.LogFile= os.path.join(output_folder,'m.log')
-		m.setParam(GRB.Param.TimeLimit, 240.0)
+		m.setParam(GRB.Param.TimeLimit, 2400)
 		m.setParam(GRB.Param.MIPGap, 0.05)
 
 		#Initializing variables
