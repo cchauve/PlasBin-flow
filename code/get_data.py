@@ -39,9 +39,6 @@ def get_read_depth(line):
 #3. GC content of the contig (float)
 #4. Indication if the contig is a seed (binary)
 #5. Sequence of a contig (string)
-#6. Probability that a contig is of plasmidic origin (float)
-#7. Probability that a contig is of chromosomal origin (float)
-#8. Log ratio of the above probabilities (float)
 def update_contigs_dict(contigs_dict, line):
 	c = get_id(line)
 	seq = get_nucleotide_seq(line) 

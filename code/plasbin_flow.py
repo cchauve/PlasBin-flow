@@ -56,8 +56,9 @@ if __name__ == "__main__":
 	unique = int(args.unique)
 
 	#Naming and creating output files
-	ratios = str(alpha1) + '.' + str(alpha2) + '.' + str(alpha3)
-	output_folder = output_dir + '/' + ratios
+	#ratios = str(alpha1) + '.' + str(alpha2) + '.' + str(alpha3)
+	#output_folder = output_dir + '/' + ratios
+	output_folder = output_dir
 	if not os.path.exists(output_folder):
 		os.makedirs(output_folder)
 

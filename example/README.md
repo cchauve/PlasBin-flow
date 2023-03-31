@@ -28,14 +28,14 @@ Here, `input/assembly.gfa` is the assembly graph file. The list of endpoints of 
 
 The generated output is stored in `input/gc_probs.tsv`. The first column of the file lists the contig ids while the remaining list the probabilities that a contig originates from a molecule of GC content within the respective GC content range defined by using the endpoints.
 
-## Usage
+## Running PlasBin-flow
 
 All the files required as input for PlasBin-flow are provided in the `input` folder. We now use the fpllowing command to execute PlasBin-flow.
 ```
 python ../code/plasbin_flow.py -ag input/assembly.gfa -gc input/gc_probs.tsv \
 		-map input/gene_contig_mapping.tsv -outdir output -outfile test.out
 ```
-where `input/assembly.gfa` is the assembly graph file, `input/gc_probs.tsv` is the GC content file described above and `input/gene_contig_mapping.tsv` is the gene mapping file described above. The output directory specified is `output` while the output file `test.out` contains the plasmid bins identified by PlasBin-flow. The output format has been described below. 
+where `input/assembly.gfa` is the assembly graph file, `input/gc_probs.tsv` is the GC content file described above and `input/gene_contig_mapping.tsv` is the gene mapping file described above. The output is stored in the directory `output`. The output file `test.out` contains the plasmid bins identified by PlasBin-flow. The output format has been described below.
 
 Additional arguments:
 ```
@@ -43,9 +43,10 @@ Additional arguments:
 -alpha1			Weight of flow term. (optional, default: 1)                              
 -alpha2			Weight of GC content term. (optional, default: 1)
 -alpha3			Weight of gene density term. (optional, default: 1)
-```
+``` 
 
-## Output
+## Interpreting the output
+
 The output of PlasBin-flow is a TSV file (`output/test.out` for this example) with each line containing the following information:
 ```
 Plasmid bin			Number (ID) associated with the plasmid bin
