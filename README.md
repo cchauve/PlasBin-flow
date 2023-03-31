@@ -95,5 +95,5 @@ Contigs				Comma-separated list of contigs associated with plasmid bin along wit
 Thus a typical line in an output file from PlasBin-flow looks as follows:
 ```
 #Pls_ID	Flow	GC_bin		Contigs
-P1	2.5		0.4-0.45	a:2,b:3,c:2,d:1
+P1	2.5	0.4-0.45	a:2,b:3,c:2,d:1
 ```
