@@ -501,7 +501,7 @@ if __name__ == "__main__":
 				
 		#For debugging purposes
 		#seeds_set = set()	
-	output_bins.write('#Pls_ID\tFlow\tGC_bin\tContigs\n')		
+	output_bins.write('#Pls_ID\tFlow\tGC_bin\t\tContigs\n')		
 	for p in pbf_bins:
 		fval = "%.2f" %pbf_bins[p]['Flow']
 		gcb = pbf_bins[p]['GC_bin']

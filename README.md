@@ -85,14 +85,14 @@ Additional arguments:
 ```
 
 ## Output
-The output of plasbin is a TSV file with each line containing the following information:
+The output of PlasBin-flow is a TSV file with each line containing the following information:
 ```
 Plasmid bin			Number (ID) associated with the plasmid bin
 Flow value			Flow value associated with the plasmid bin
 GC bin				Index of GC content interval associated with the plasmid bin
 Contigs				Comma-separated list of contigs associated with plasmid bin along with their multiplicities
 ```
-Thus a typical line in an output file from plasbin looks as follows:
+Thus a typical line in an output file from PlasBin-flow looks as follows:
 ```
 #Pls_ID	Flow	GC_bin		Contigs
 P1		2.5		0.4-0.45	a:2,b:3,c:2,d:1
