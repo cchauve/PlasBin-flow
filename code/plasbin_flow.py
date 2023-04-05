@@ -2,11 +2,11 @@ __author__ = 'amane'
 
 #-------------------
 #USAGE: 
-#time python plasbin_flow.py --ag assembly.gfa 
-# 				--gc gc_probs.csv --map gene_contig_mapping.csv \
-#				--outdir output_dir --outfile output_file \
-# 				--alpha1 alpha_1 --alpha2 alpha_2 --alpha3 alpha_3 \
-# 				--offset offset --rmiter rmiter --unique unique
+#time python plasbin_flow.py -ag assembly.gfa 
+# 				-gc gc_probs.csv -map gene_contig_mapping.csv \
+#				-outdir output_dir -outfile output_file \
+# 				-alpha1 alpha_1 -alpha2 alpha_2 -alpha3 alpha_3 \
+# 				-offset offset -rmiter rmiter -unique unique
 
 from re import L
 from gurobipy import *
@@ -29,17 +29,17 @@ def read_file(filename):
 if __name__ == "__main__":
 	#Parsing arguments
 	parser = argparse.ArgumentParser()
-	parser.add_argument("--ag", help="Path to assembly graph file")
-	parser.add_argument("--gc", help="Path to GC probabilities file")
-	parser.add_argument("--map", help="Path to gene to contig mapping file")
-	parser.add_argument("--p", type=float, default = 0.5, help="Offset gd / plasmid score term")
-	parser.add_argument("--outdir", help="Path to output dir")
-	parser.add_argument("--outfile", help="Name of output file")
-	parser.add_argument("--alpha1", nargs='?', const = 1, type=int, default = 1, help="Weight of flow term")
-	parser.add_argument("--alpha2", nargs='?', const = 1, type=int, default = 1, help="Weight of GC content term")
-	parser.add_argument("--alpha3", nargs='?', const = 1, type=int, default = 1, help="Weight of log probabilities term")	
-	parser.add_argument("--rmiter", nargs='?', const = 1, type=int, default = 50, help="Number of iterations to remove circular components")
-	parser.add_argument("--unique", nargs='?', const = 1, type=int, default = 1, help="Unique bins")
+	parser.add_argument("-ag", help="Path to assembly graph file")
+	parser.add_argument("-gc", help="Path to GC probabilities file")
+	parser.add_argument("-map", help="Path to gene to contig mapping file")
+	parser.add_argument("-p", type=float, default = 0.5, help="Offset gd / plasmid score term")
+	parser.add_argument("-outdir", help="Path to output dir")
+	parser.add_argument("-outfile", help="Name of output file")
+	parser.add_argument("-alpha1", nargs='?', const = 1, type=int, default = 1, help="Weight of flow term")
+	parser.add_argument("-alpha2", nargs='?', const = 1, type=int, default = 1, help="Weight of GC content term")
+	parser.add_argument("-alpha3", nargs='?', const = 1, type=int, default = 1, help="Weight of log probabilities term")	
+	parser.add_argument("-rmiter", nargs='?', const = 1, type=int, default = 50, help="Number of iterations to remove circular components")
+	parser.add_argument("-unique", nargs='?', const = 1, type=int, default = 1, help="Unique bins")
 
 	args = parser.parse_args()
 
