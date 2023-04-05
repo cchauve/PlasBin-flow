@@ -1,0 +1,24 @@
+##### general information #####
+>number of reference plasmids: 2
+CP016508.1
+CP016509.1
+
+##### predictions #####
+>number of predicted plasmids: 1
+P1
+###Precision details###
+>Precision: Proportion of correctedly identified contigs for each prediction
+#Predicted_bin	Precision	Reference_plasmid
+P1	1.0	CP016509.1
+
+###Recall details###
+>Recall: Proportion of correctedly identified contigs for each reference
+#Reference_plasmid	Recall	Predicted_bin
+CP016508.1	0.0	P1
+CP016509.1	1.0	P1
+
+###Overall details###
+>Final statistics:
+Precision	1.0
+Recall	0.947327419395371
+F1	0.9729513485611047
