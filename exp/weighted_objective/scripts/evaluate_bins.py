@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-#python evaluate_bins.py GROUND_TRUTH_CONTIG_MAPPING OUT_DIR EVAL_DIR -pbf 1 -th LENGTH_THRESHOLD
+#USAGE: python evaluate_bins.py -gt GROUND_TRUTH_CONTIG_MAPPING -out OUT_DIR -eval_dir EVAL_DIR -tool plasbin-flow -th LENGTH_THRESHOLD
 
 from __future__ import division
 import argparse
@@ -225,25 +225,18 @@ def eval_results(pred_dict, pls_dict, len_dict, th_len, ue, we):
 
 def main():
 	argparser = argparse.ArgumentParser()
-	argparser.add_argument("ground_truth", help = "")
-	argparser.add_argument("out_dir", help = "")
-	argparser.add_argument("eval_dir", help = "")
-
-
-	argparser.add_argument("-pb", "--plasbin", default = 0, help = "TODO")
-	argparser.add_argument("-pbf", "--plasbin_flow", default = 0, help = "TODO")
-	argparser.add_argument("-hy", "--greedy", default = 0, help = "TODO")
-	argparser.add_argument("-gp", "--gplas", default = 0, help = "TODO")
-	argparser.add_argument("-mob", "--mob_recon", default = 0, help = "TODO")
-	argparser.add_argument("-psp", "--plasmidspades", default = 0, help = "TODO")
-	argparser.add_argument("-th", "--len_th", default = 0, help = "TODO")
+	argparser.add_argument("-gt", "-ground_truth", help = "Path to ground truth file")
+	argparser.add_argument("-out", "-out_dir", help = "Path to method output directory")
+	argparser.add_argument("-eval_dir", help = "Path to evaluations directory")
+	argparser.add_argument("-tool", help = "Method to be evaluated")
+	argparser.add_argument("-th", "--len_th", default = 0, help = "Length threshold")
 
 	args = argparser.parse_args()
 	len_th = int(args.len_th)
 	out = args.out_dir
 
 	#Read ground truth file
-	string_list = read_file(args.ground_truth)
+	string_list = read_file(args.gt)
 	#print(len(string_list))
 
 	pls_ids = []
@@ -289,7 +282,7 @@ def main():
 		ue.write("\n")
 		we.write("\n")
 
-		if args.plasbin_flow == 1:
+		if args.tool == 'plasbin-flow':
 			#Call function to get pbf info
 			
 			#ctg_file = out+'/predicted_plasmids.tsv'
