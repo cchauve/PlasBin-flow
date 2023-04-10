@@ -1,10 +1,11 @@
 #!/usr/bin/python
 
-#USAGE: python evaluate_bins.py -gt GROUND_TRUTH_CONTIG_MAPPING -out OUT_DIR -eval_dir EVAL_DIR -tool plasbin-flow -th LENGTH_THRESHOLD
+#USAGE: python evaluate_bins.py -gt GROUND_TRUTH_CONTIG_MAPPING -out OUT_FILE -eval_dir EVAL_DIR -tool TOOL_IDS -th LENGTH_THRESHOLD
 
 from __future__ import division
 import argparse
 import pandas as pd
+import os
 
 def read_file(filename):
 	string = open(filename, "r").read()
@@ -136,7 +137,7 @@ def eval_results(pred_dict, pls_dict, len_dict, th_len, ue, we):
 	for x in unwtd_precision:
 		val = float("{:.4f}".format(unwtd_precision[x]['Val']))
 		ref = unwtd_precision[x]['Ref']
-		print(x, val, ref)
+		#print(x, val, ref)
 		unwtd_overall_common += unwtd_precision[x]['Common']
 		unwtd_overall_total += unwtd_precision[x]['Total']
 		ue.write(x + '\t' + str(val) + '\t' + ref + "\n")
@@ -154,7 +155,7 @@ def eval_results(pred_dict, pls_dict, len_dict, th_len, ue, we):
 	for x in unwtd_recall:
 		val = float("{:.4f}".format(unwtd_recall[x]['Val']))
 		bin = unwtd_recall[x]['Bin']
-		print(x, val, bin)
+		#print(x, val, bin)
 		unwtd_overall_common += unwtd_recall[x]['Common']
 		unwtd_overall_total += unwtd_recall[x]['Total']
 		ue.write(x + '\t' + str(val) + '\t' + bin + "\n")
@@ -185,7 +186,7 @@ def eval_results(pred_dict, pls_dict, len_dict, th_len, ue, we):
 	for x in wtd_precision:
 		val = float("{:.4f}".format(wtd_precision[x]['Val']))
 		ref = wtd_precision[x]['Ref']
-		print(x, val, ref)
+		#print(x, val, ref)
 		wtd_overall_common += wtd_precision[x]['Common']
 		wtd_overall_total += wtd_precision[x]['Total']
 		we.write(x + '\t' + str(val) + '\t' + ref + "\n")
@@ -203,7 +204,7 @@ def eval_results(pred_dict, pls_dict, len_dict, th_len, ue, we):
 	for x in wtd_recall:
 		val = float("{:.4f}".format(wtd_recall[x]['Val']))
 		bin = wtd_recall[x]['Bin']
-		print(x, val, bin)
+		#print(x, val, bin)
 		wtd_overall_common += wtd_recall[x]['Common']
 		wtd_overall_total += wtd_recall[x]['Total']
 		we.write(x + '\t' + str(val) + '\t' + bin + "\n")
@@ -225,18 +226,24 @@ def eval_results(pred_dict, pls_dict, len_dict, th_len, ue, we):
 
 def main():
 	argparser = argparse.ArgumentParser()
-	argparser.add_argument("-gt", "-ground_truth", help = "Path to ground truth file")
-	argparser.add_argument("-out", "-out_dir", help = "Path to method output directory")
+	argparser.add_argument("-gt",  help = "Path to ground truth file")
+	argparser.add_argument("-bins", help = "Path to tool output file")
 	argparser.add_argument("-eval_dir", help = "Path to evaluations directory")
 	argparser.add_argument("-tool", help = "Method to be evaluated")
-	argparser.add_argument("-th", "-len_th", default = 0, help = "Length threshold")
+	argparser.add_argument("-th", default = 0, help = "Length threshold")
 
 	args = argparser.parse_args()
-	len_th = int(args.len_th)
-	out = args.out_dir
+	len_th = int(args.th)
+	#pred = args.bins
+	out_dir = args.eval_dir
+	tool = args.tool
+
+	if not os.path.exists(out_dir):
+		os.makedirs(out_dir)
+
 
 	#Read ground truth file
-	string_list = read_file(args.ground_truth)
+	string_list = read_file(args.gt)
 	#print(len(string_list))
 
 	pls_ids = []
@@ -259,41 +266,72 @@ def main():
 		if pc_match >= 0.95:
 			pls_dict[pls].append(ctg)
 
-	predictions = {}
-	#Open output file
-	with open(args.detailed_output, "w") as out:
-		out.write("##### general information #####\n")
-		#out.write(">number of reference chromosomes: %i\n" % len(chr_dict))
-		#for chr in chr_dict:
-		#	out.write(chr+"\n")
-		out.write(">number of reference plasmids: %i\n" % len(pls_dict))
+	if len_th > 0:
+		unwtd_eval = args.eval_dir + '/'+tool+'_eval_st'+str(len_th)+'.csv'
+		wtd_eval = args.eval_dir + '/'+tool+'_wtd_eval_st'+str(len_th)+'.csv'
+	else:
+		unwtd_eval = args.eval_dir + '/'+tool+'_eval.csv'
+		wtd_eval = args.eval_dir + '/'+tool+'_wtd_eval.csv'
+
+	with open(unwtd_eval, "w") as ue, open(wtd_eval, "w") as we:
+		ue.write("##### general information #####\n")
+		we.write("##### general information #####\n")
+
+		ue.write(">number of reference plasmids: %i\n" % len(pls_dict))
+		we.write(">number of reference plasmids: %i\n" % len(pls_dict))
+
 		for pls in pls_dict:
-			out.write(pls+"\n")
-		out.write("\n")
+			ue.write(pls+"\n")
+			we.write(pls+"\n")
+		ue.write("\n")
+		we.write("\n")
 
-		if args.plasbin != "":
-			#Call function to get pb info
-			print("Hello-pb")
-			
-			ctg_file = '../../2021-06-14__iterative_MILP_edge_novelty/output/sample_'+str(args.sample_id)+'/1.1.1/nplasmids_1/MILP/predicted_plasmids.tsv'
+		if args.tool == "pb":
+			ctg_file = args.bins
 			string_list = read_file(ctg_file)
+			predictions = {}
+
+			unique_comps = []
 			for line in string_list:
-				ctg = line[1:].split('\t')[1]
-				pls = line.split('\t')[0]
-				#print(ctg, pls)
-				if pls not in predictions:
-					predictions[pls] = []
-				if ctg not in set(predictions[pls]):
-					predictions[pls].append(ctg)
-			
-			eval_results(predictions, pls_dict, len_dict, len_th, out)
+				#print(line)
+				if line[0] != 'p':
+					#line = line.split("\t")[1]
+					line = line.split(",")
+				#print(line)
 
-		if args.plasbin_flow == 1:
-			#Call function to get pbf info
-			
-			#ctg_file = out+'/predicted_plasmids.tsv'
-			ctg_file = out+'/pbf_bins.out'
+					current_comp = set()
+					for contig in line:
+						if contig not in ['S','T','']:
+							current_comp.add(contig.split('_')[0])
+					#print(current_comp)	
+
+					current_unique_comps = []
+					flag = 1	#current component is unique
+					for comp in unique_comps:
+						#print(comp)
+						if not comp.issubset(current_comp):
+							current_unique_comps.append(comp)
+						if current_comp.issubset(comp):
+							flag = 0
+					if flag == 1:
+						current_unique_comps.append(current_comp)
+					unique_comps = current_unique_comps
+
+			count = 0
+			for comp in unique_comps:
+				count += 1
+				#unique_components_file.write("Component_"+str(count)+";")
+				comp_name = "Component_"+str(count) 
+				predictions[comp_name] = []
+				for contig in comp:
+					if contig not in set(predictions[comp_name]):
+						predictions[comp_name].append(contig)
+			eval_results(predictions, pls_dict, len_dict, len_th, ue, we)
+
+		if args.tool == "pbf":
+			ctg_file = args.bins
 			string_list = read_file(ctg_file)
+			predictions = {}
 			for line in string_list:
 				#ctg = line[1:].split('\t')[1]
 				#pls = line.split('\t')[0]
@@ -312,14 +350,12 @@ def main():
 					ctg = ctg.split(':')[0]
 					predictions[pls].append(ctg)
 			
-			eval_results(predictions, pls_dict, len_dict, len_th, out)
+			eval_results(predictions, pls_dict, len_dict, len_th, ue, we)
 
-		elif args.greedy != "":
-			#Call function to get hy info
-			print("Hello-hy")
-			predictions = {}
-			ctg_file = '../../../data/HyAsP_old/sample_'+str(args.sample_id)+'/putative_plasmid_contigs.fasta'
+		elif args.tool == "greedy":
+			ctg_file = args.bins
 			string_list = read_file(ctg_file)
+			predictions = {}
 			for line in string_list:
 				if line[0] == '>':
 					ctg = line[1:].split('|')[0]
@@ -330,14 +366,12 @@ def main():
 					if ctg not in set(predictions[pls]):
 						predictions[pls].append(ctg)
 			
-			eval_results(predictions, pls_dict, len_dict, len_th, out)
+			eval_results(predictions, pls_dict, len_dict, len_th, ue, we)
 
-		elif args.gplas != "":
-			#Call function to get gp info
-			print("Hello-gp")
-			predictions = {}
-			ctg_file = '../../../data/gplas_res/sample_'+str(args.sample_id)+'_bins.tab'
+		elif args.tool == "gplas":
+			ctg_file = args.bins
 			string_list = read_file(ctg_file)
+			predictions = {}
 			for line in string_list[1:]:
 				line = line.split(' ')
 				ctg = line[0]
@@ -348,14 +382,12 @@ def main():
 				if ctg not in set(predictions[pls]):
 					predictions[pls].append(ctg)
 			
-			eval_results(predictions, pls_dict, len_dict, len_th, out)
+			eval_results(predictions, pls_dict, len_dict, len_th, ue, we)
 
-		elif args.mob_recon != "":
-			#Call function to get mob_recon info
-			print("Hello-mob")
-			predictions = {}
-			ctg_file = '../../../data/mob_recon_res/sample_'+str(args.sample_id)+'/contig_report.txt'
+		elif args.tool == "mob":
+			ctg_file = args.bins
 			string_list = read_file(ctg_file)
+			predictions = {}
 			for line in string_list[1:]:
 				line = line.split('\t')
 				pls = line[1]
@@ -368,13 +400,12 @@ def main():
 					if ctg not in set(predictions[pls]):
 						predictions[pls].append(ctg)
 			
-			eval_results(predictions, pls_dict, len_dict, len_th, out)
+			eval_results(predictions, pls_dict, len_dict, len_th, ue, we)
 		
-		elif args.plasmidspades != "":
-			print("Hello-psp")
-			predictions = {}
-			ctg_file = args.ground_truth + '/spades_ctg_bin.tsv'
+		elif args.tool == "psp":
+			ctg_file = args.bins
 			string_list = read_file(ctg_file)
+			predictions = {}
 			for line in string_list[1:]:
 				line = line.split('\t')
 				#print(line)
@@ -388,7 +419,7 @@ def main():
 				if ctg not in set(predictions[pls]):
 					predictions[pls].append(ctg)
 			
-			eval_results(predictions, pls_dict, len_dict, len_th, out)
+			eval_results(predictions, pls_dict, len_dict, len_th, ue, we)
 			
 
 

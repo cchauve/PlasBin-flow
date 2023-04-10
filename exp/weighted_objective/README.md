@@ -6,7 +6,7 @@ This directory contains the results of different weighting schemes used for the 
 
 Evaluation types (et): Evaluations have been carried out at `basepair` as well as `contig` level. 
 
-Length thrsholds (th): Finally, we evaluated the results for various minimum contig length thresholds (`0, 100, 1000`). Contigs below these length threshold have been left out of the respective evaluations.
+Length thresholds (th): Finally, we evaluated the results for various minimum contig length thresholds (`0, 100, 1000`). Contigs below these length threshold have been left out of the respective evaluations.
 
 ## Obtaining statistics
 
