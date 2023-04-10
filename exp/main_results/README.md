@@ -40,6 +40,7 @@ python scripts/evaluate_bins.py -gt GROUND_TRUTH_FILE -out TOOL_RESULTS -eval_di
 Here, `GROUND_TRUTH_FILE` is the TSV file generated above after formatting the blast output. `TOOL_ID` is the short id of each tool used in our experiments (refer to table below). `TOOL_RESULTS` is the file containing the output of the method of interest (with the exception of plasmidSPAdes, described below). `EVAL_DIR` is the path to the directory in which you wish to store the evaluations. Finally, `LENGTH_THRESHOLD` is the minimum length threshold; contigs shorter than this threshold will be excluded from the evaluation.
 
 | Tool			| ID	|
+|----			| ---	|
 | PlasBin-flow	| pbf	|
 | PlasBin		| pb	|
 | HyAsP			| hy	|
@@ -78,6 +79,7 @@ The following table lists the parameters to be used to generate the figures from
 | 2			| 1		| basepair	| 1000	|	
 | 3			| 2		| contig	| 0		|	
 | 4			| 2		| basepair	| 0		|
+| ------- 	| --- 	| -------	|	--- |
 | S1		| 1		| contig	| 0		|	
 | S2		| 1		| basepair	| 0		|	
 | S3		| 1		| contig	| 100	|	
