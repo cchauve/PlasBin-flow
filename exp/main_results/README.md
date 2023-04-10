@@ -75,11 +75,11 @@ where `X` is `1` or `2` based on set of samples, `EVAL_TYPE` refers to the desir
 The following table lists the parameters to be used to generate the figures from the main paper as well as the figures included in the supplementary material.
 
 | Figure	| X		| EVAL_TYPE	|	Y	|
+| ------- 	| --- 	| -------	|	--- |
 | 1			| 1		| contig	| 1000	|	
 | 2			| 1		| basepair	| 1000	|	
 | 3			| 2		| contig	| 0		|	
 | 4			| 2		| basepair	| 0		|
-| ------- 	| --- 	| -------	|	--- |
 | S1		| 1		| contig	| 0		|	
 | S2		| 1		| basepair	| 0		|	
 | S3		| 1		| contig	| 100	|	
