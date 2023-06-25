@@ -67,6 +67,31 @@ Additional arguments:
 ```
 A sample GC content interval file `gc_intervals.txt` has been provided in the `example/input` folder. 
 
+### Determining GC content intervals
+The following script helps in deciding the GC content intervals for PlasBin-flow. It takes as input a list of reference chromosome and plasmid sequences and generates a violinplot of the GC content distribution for both types of sequences. The GC content intervals can then be decided by referring to the violinplots.
+```
+python code/analyse_GC_content.py --chr chr_paths --pls pls_paths --out out_file --vplot vplot_file
+```
+Here, `chr_paths` and `pls_paths` are the paths to the files containing the addresses of the chromosome and plasmid sequences, respectively. Each sequence should be in a gunzipped fasta (.fasta.gz) file.<br>
+The violinplot image will be saved in the `vplot_file`.
+
+### Determining seed parameters
+The following script helps in deciding the seed parameters for PlasBin-flow. For each reference sample, it takes as input an assembly file (.fasta), the gene contig mapping file (as generated above) and the ground truth (.tsv) file.<br>
+
+The ground truth file lists contigs mapped to plasmids associated with the sample. A typical line in the ground truth (.tsv) file should contain the name or id of the plasmid in the first column and a contig that has been mapped to the plasmid in the second column. The file can contain other information as long as the first two columns contain the plasmid and contig ids respectively. 
+```
+#Pls_ID	Ctg_ID
+P1	C1
+P1	C2
+P2	C3
+```
+
+The input for this script is a (.csv) file with each line containing the sample id of the reference sample in the first column, followed by the paths to the assembly (.fasta) file, the mapping file and the ground truth (.tsv) file in that order.  
+```
+python code/analyse_seed_eligibility.py --paths paths_file --out out_file
+```
+The output from the this script is a file containing a pair of seed (gene density and length) parameters per line as suggested by the reference dataset.
+
 ## Usage
 ```
 python code/plasbin_flow.py -ag assembly_graph -gc gc_content_file -map gene_contig_mapping_file \
