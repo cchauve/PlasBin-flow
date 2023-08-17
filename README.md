@@ -72,7 +72,7 @@ The following script helps in deciding the GC content intervals for PlasBin-flow
 ```
 python code/analyse_GC_content.py --chr chr_paths --pls pls_paths --out out_file --vplot vplot_file
 ```
-Here, `chr_paths` and `pls_paths` are the paths to the files containing the addresses of the chromosome and plasmid sequences, respectively. Each sequence should be in a gunzipped fasta (.fasta.gz) file.<br>
+Here, `chr_paths` and `pls_paths` are the paths to the files containing the addresses of the chromosome and plasmid sequences, respectively. Each sequence should be in a gzipped fasta (.fasta.gz) file.<br>
 The violinplot image will be saved in the `vplot_file`.
 
 ### Determining seed parameters
