@@ -18,19 +18,16 @@ def get_nucleotide_seq(line):
 	return line[2]		
 #Computes GC ratio: counts no. of 'G'/'C' occurences in the sequence and divide by the sequence length.
 def compute_GCratio(seq):
-	GC = 0
-	ln_seq = 0
-	for nucl in seq:
-		if nucl == 'G' or nucl == 'C':
-			GC += 1
-		ln_seq += 1
-	return GC/ln_seq
+	return (seq.count('G') + seq.count('C'))/len(seq) if len(seq) > 0 else 0
 #Stores the length of the sequence
-def get_length(line):
-	return int(line[3].split(':')[2])
+def get_length(tags_dict, tags_keys, seq):
+	return int(tags_dict['LN']) if 'LN' in tags_keys else len(seq)
 #Stores the read depth of the contig
-def get_read_depth(line):
-	return float(line[4].split(':')[2])		
+def get_read_depth(tags_dict, tags_keys, ctg_len):
+	if 'dp' in tags_keys: rd = float(tags_dict['dp'])
+	elif 'KC' in tags_keys: rd = int(tags_dict['KC'])/ctg_len
+	else: rd = None
+	return rd	
 
 #Takes a contig from the assembly file and initiates an entry in the contigs_dict
 #Each contig is tagged with the following attributes:
@@ -39,17 +36,20 @@ def get_read_depth(line):
 #3. GC content of the contig (float)
 #4. Indication if the contig is a seed (binary)
 #5. Sequence of a contig (string)
-def update_contigs_dict(contigs_dict, line):
-	c = get_id(line)
-	seq = get_nucleotide_seq(line) 
+def update_contigs_dict(contigs_dict, tmp):
+	c = get_id(tmp)
+	seq = get_nucleotide_seq(tmp) 
+
+	tags_dict = {x.split(':')[0]:x.split(':')[2] for x in tmp[3:]}
+	tags_keys = tags_dict.keys()
+	ctg_len = get_length(tags_dict, tags_keys, seq)
 	GC_cont = compute_GCratio(seq)
-	n = get_length(line)
-	rd = get_read_depth(line)
+	rd = get_read_depth(tags_dict, tags_keys, ctg_len)
 
 	contigs_dict[c] = {}
 	contigs_dict[c]['Sequence'] = seq
 	contigs_dict[c]['GC_cont'] = GC_cont
-	contigs_dict[c]['Length'] = n
+	contigs_dict[c]['Length'] = ctg_len
 	contigs_dict[c]['Read_depth'] = rd
 	contigs_dict[c]['Gene_coverage'] = 0				#Default
 	contigs_dict[c]['Gene_coverage_intervals'] = []		#Default
@@ -78,14 +78,12 @@ def get_link(line, links_list):
 #to update_contigs_dict or get_link depending on the entry
 def get_ag_details(assembly_file,contigs_dict, links_list):
 	string_list = read_file(assembly_file)
-	count_s = 0
-	count_l = 0
 	for line in string_list:
-		line = line.split("\t")
-		if line[0] == 'S':
-			contigs_dict = update_contigs_dict(contigs_dict, line)
-		elif line[0] == 'L':
-			links_list = get_link(line, links_list)		
+		tmp = line.split("\t")
+		if tmp[0] == 'S':
+			contigs_dict = update_contigs_dict(contigs_dict, tmp)
+		elif tmp[0] == 'L':
+			links_list = get_link(tmp, links_list)		
 	return contigs_dict, links_list
 
 #Determine seeds from class probs
@@ -132,7 +130,10 @@ def get_gene_coverage(mapping_file, contigs_dict):
 		covered = 0
 		for interval in union:
 			covered += interval[1] - interval[0] + 1
-		contigs_dict[sseqid]['Gene_coverage'] = covered/length
+		if length > 0:
+			contigs_dict[sseqid]['Gene_coverage'] = covered/length
+		else:
+			contigs_dict[sseqid]['Gene_coverage'] = 0
 	return contigs_dict	
 
 def get_gc_probs(gc_file, gc_probs, gc_pens):
@@ -145,6 +146,7 @@ def get_gc_probs(gc_file, gc_probs, gc_pens):
 		gc_pens[c] = {}
 		max_prob = 0
 		for i in range(len(gc_intervals)):
+
 			gc_int = gc_intervals[i]
 			bin_prob = float(line[i+1])
 			gc_probs[c][gc_int] = bin_prob 
