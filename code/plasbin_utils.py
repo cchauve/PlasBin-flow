@@ -435,7 +435,7 @@ def create_ground_truth_files(
         pls_fasta_file = _pls_fasta_file(tmp_dir, sample)
         if not os.path.isfile(pls_fasta_file):
             pls_fastagz_file = _get_pls_fasta(samples_df, sample)
-            logging.info(f'ACTION\tgunzip {pls_fastagz_file}')
+            logging.info(f'ACTION\tdecompressing {pls_fastagz_file}')
             _gunzip_fasta(pls_fastagz_file, pls_fasta_file)
             _log_file(pls_fasta_file)
         logging.info(f'ACTION\tcompute blast database for {pls_fasta_file}')
