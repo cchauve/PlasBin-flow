@@ -295,11 +295,11 @@ def _pls_mappings_file(in_dir, sample):
     return os.path.join(in_dir, f'{sample}.pls_mappings.txt')
 def _ground_truth_file(in_dir, sample):
     return os.path.join(in_dir, f'{sample}.ground_truth.tsv')
+def _genes_mappings_file(in_dir, sample):
+    return os.path.join(in_dir, f'{sample}.genes_mappings.txt')
 GC_FILE_PREFIX='gc'
 def _gc_proba_file(in_dir, sample):
     return os.path.join(in_dir, f'{sample}.{GC_FILE_PREFIX}.tsv')
-def _genes_mappings_file(in_dir, sample):
-    return os.path.join(in_dir, f'{sample}.{GC_FILE_PREFIX}.txt')
 
 def _pls_gb_file(in_dir):
     return os.path.join(in_dir, 'pls.genbank.txt')
