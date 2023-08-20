@@ -197,14 +197,19 @@ def _gfa2fasta(in_gfa_file, out_fasta_file):
        in_gfa_file (str): path to input gzipped GFA file
        out_fasta_file (str): path to output FASTA file
     """
-    gfa_ctg_seqs = {}
-    with open(in_gfa_file, 'r') as in_file, open(out_fasta_file, 'w') as out_file:
-        for line in in_file.readlines():
-            line_split = line.strip().split('\t')
-            if line[0] == 'S':
-                ctg_id,ctg_data = line_split[1],line_split[2:]
-                ctg_seq = ctg_data[0]
-                out_file.write(f'>{ctg_id}\n{ctg_seq}\n')	   
+    try:
+        gfa_ctg_seqs = {}
+        with open(in_gfa_file, 'r') as in_file, open(out_fasta_file, 'w') as out_file:
+            for line in in_file.readlines():
+                line_split = line.strip().split('\t')
+                if line[0] == 'S':
+                    ctg_id,ctg_data = line_split[1],line_split[2:]
+                    ctg_seq = ctg_data[0]
+                    out_file.write(f'>{ctg_id}\n{ctg_seq}\n')
+    except:
+        logging.exception(
+            f'Converting {in_gfa_file} to {out_fasta_file}'
+        )
 
 def _clean_files(files2clean):
     for in_file in files2clean:
@@ -226,15 +231,24 @@ def _run_cmd(cmd):
         if len(process.stderr) > 0:
             logging.info(f'STDERR:\n{process.stderr}')
     except subprocess.CalledProcessError as e:
-        logging.exception(f'EXCEPTION in running {cmd_str}')
+        logging.exception(f'Running {cmd_str}')
 
 def _log_file(in_file):
     if os.path.isfile(in_file):
         logging.info(f'FILE\t{in_file}')
     else:
-        logging.error(f'FILE\t{in_file}')
+        logging.error(f'FILE\t{in_file} is missing')
 
 def _read_seq_len(in_fasta_file):
+    """
+    Read contigs length from a FASTA file
+
+    Args:
+        in_fasta_file (str): path to (unzipped) FASTA file
+
+    Returns:
+        (Dictionary): contig id -> contig length
+    """
     seq_len = {}
     try:
         with open(in_fasta_file, 'r') as f:
@@ -242,7 +256,30 @@ def _read_seq_len(in_fasta_file):
                 seq_len[record.id] = len(record.seq)
         return seq_len
     except:
-        logging.exception(f'Reading FASTA file {in_fasta_file}')
+        logging.exception(
+            f'Reading FASTA file {in_fasta_file}'
+        )
+
+def _read_seq_id_gz(in_fasta_file):
+    """
+    Read contigs id from a gzipped FASTA file
+
+    Args:
+        in_fasta_file (str): path to gzipped FASTA file
+
+    Returns:
+        (List): contigs id
+    """
+    seq_id_list = []
+    try:
+        with gzip.open(in_fasta_file, 'rt') as handle:
+            for record in SeqIO.parse(handle, 'fasta'):
+                seq_id_list.append(record.id)
+        return seq_id_list
+    except:
+        logging.exception(
+            f'Reading gzipped FASTA file {in_fasta_file}'
+        )
 
 # File names
 
@@ -295,6 +332,7 @@ def create_tmp_unzipped_gfa_fasta_files(tmp_dir, samples_df):
     Returns:
        None, creates files _gfa_file(tmp_dir, sample) and _gfa_fasta_file(tmp_dir, sample) for each sample
     """
+    logging.info(f'## Prepare temporary FASTA/GFA files')
     for sample in samples_df.index:
         logging.info(f'ACTION\tcopy assembly files for sample {sample}')
         gfa_file = _gfa_file(tmp_dir, sample)
@@ -391,17 +429,19 @@ def create_ground_truth_files(
     Returns:
        None, creates files _ground_truth_file(out_dir, sample) for each sample  
     """
+    logging.info(f'## Compute ground truth and create new dataset CSV file')
     for sample in samples_df.index:
         logging.info(f'ACTION\tground truth for {sample}')
-        pls_fastagz_file = _get_pls_fasta(samples_df, sample)
         pls_fasta_file = _pls_fasta_file(tmp_dir, sample)
         if not os.path.isfile(pls_fasta_file):
+            pls_fastagz_file = _get_pls_fasta(samples_df, sample)
+            logging.info(f'ACTION\tgunzip {pls_fastagz_file}')
             _gunzip_fasta(pls_fastagz_file, pls_fasta_file)
             _log_file(pls_fasta_file)
+        logging.info(f'ACTION\tcompute blast database for {pls_fasta_file}')
         pls_blastdb_prefix = _pls_blastdb_prefix(tmp_dir, sample)
         gfa_fasta_file = _gfa_fasta_file(tmp_dir, sample)
         pls_mappings_file = _pls_mappings_file(tmp_dir, sample)
-        logging.info(f'ACTION\tcompute blast database for {pls_fasta_file}')
         cmd1 = [
             'makeblastdb',
             '-in', pls_fasta_file,
@@ -441,21 +481,18 @@ def create_pls_genes_db(out_dir, tmp_dir, samples_df):
     Returns:
        None, creates file _pls_genes_db_file(out_dir, out_file_name)
     """
-    logging.info(f'ACTION\tcompute plasmid genes database')
+    logging.info(f'## Compute plasmid genes database')
+    logging.info(f'ACTION\tcreate plasmid GenBank accessions file')
     pls_gb_file = _pls_gb_file(tmp_dir)
-    with open(pls_gb_file, 'w') as out_file:
-        for sample in samples_df.index:
-            logging.info(f'ACTION\trecord plasmid GenBank accession for {sample}')
-            pls_fasta_file = _get_pls_fasta(samples_df, sample)
-            try:
-                with gzip.open(pls_fasta_file, 'rt') as handle:
-                    for record in SeqIO.parse(handle, 'fasta'):
-                        out_file.write(f'{record.id}\n')
-            except:
-                logging.exception(
-                    f'Error plasmid GenBank accessions in {pls_fasta_file}'
-                )    
-    _log_file(pls_gb_file)
+    try:
+        with open(pls_gb_file, 'w') as out_file:
+            for sample in samples_df.index:
+                pls_fasta_file = _get_pls_fasta(samples_df, sample)
+                for seq_id in _read_seq_id_gz(pls_fasta_file):
+                    out_file.write(f'{seq_id}\n')
+        _log_file(pls_gb_file)
+    except:
+        logging.exception(f'Creating {pls_gb_file}')
     logging.info(f'ACTION\tprocess {pls_gb_file}')
     pls_genes_db_file = _pls_genes_db_file(out_dir)
     cmd = [
@@ -479,6 +516,7 @@ def map_pls_genes_to_contigs(out_dir, tmp_dir, samples_df, db_file):
     Returns:
        None, creates files _genes_mappings_file(out_dir, sample)nfor each sample
     """
+    logging.info(f'## Mapping sample contigs to plasmid genes database')
     for sample in samples_df.index:
         genes_mappings_file = _genes_mappings_file(out_dir, sample)
         logging.info(f'ACTION\tmapping {sample} to {db_file}')
@@ -504,22 +542,27 @@ def create_GC_content_intervals_file(out_dir, tmp_dir, samples_df):
     Returns:
        None, creates files _gc_txt_file(out_dir) and _gc_png_file(out_dir)
     """
-    logging.info(f'ACTION\tcompute GC content intervals files')
+    logging.info(f'## Compute GC content intervals files')
     file_access_fun = {
         'chr': _get_chr_fasta,
         'pls': _get_pls_fasta
     }
     for file_type in ['chr','pls']:
+        logging.info(f'ACTION\trecord {file_type} FASTA files paths')
         fasta_path_file = _chr_pls_fasta_path_file(tmp_dir, file_type)
-        with open(fasta_path_file, 'w') as out_file:
-            logging.info(f'ACTION\trecord {file_type} files paths')
-            for sample in samples_df.index:
-                fasta_file = file_access_fun[file_type](samples_df, sample)
-                out_file.write(f'{fasta_file}\n')
+        try:
+            with open(fasta_path_file, 'w') as out_file:
+                for sample in samples_df.index:
+                    fasta_file = file_access_fun[file_type](
+                        samples_df, sample
+                    )
+                    out_file.write(f'{fasta_file}\n')
             _log_file(fasta_path_file)
+        except:
+            logging.exception(f'Creating {fasta_path_file}') 
+    logging.info(f'ACTION\tcompute GC content intervals files')
     out_txt_file = _gc_txt_file(out_dir)
     out_png_file = _gc_png_file(out_dir)
-    logging.info(f'ACTION\tcompute output files')
     cmd = [
         'python', 'analyse_GC_content.py',
         '--chr', _chr_pls_fasta_path_file(tmp_dir, 'chr'),
@@ -545,8 +588,9 @@ def create_GC_content_probabilities_file(
     Returns:
        None, creates files _gc_proba_file(out_dir, sample) for each sample
     """
-    logging.info(f'ACTION\tcompute GC content probabilities files')
+    logging.info(f'## GC content probabilities files')
     for sample in samples_df.index:
+        logging.info(f'ACTION\tcompute GC content probabilities file for sample {sample}')
         gfa_file = _gfa_file(tmp_dir, sample)
         gc_proba_file = _gc_proba_file(out_dir, sample)
         cmd = [
@@ -571,20 +615,26 @@ def create_seeds_parameters_file(out_dir, tmp_dir, samples_df, db_file):
     Returns:
        None, creates file _seeds_parameters_file(out_dir, out_file_name)
     """
-    logging.info(f'ACTION\tcompute seeds parameters')    
+    logging.info(f'## Compute seeds parameters file')
+    logging.info(f'ACTION\tmap plasmid genes to contigs')    
     map_pls_genes_to_contigs(
         tmp_dir, tmp_dir, samples_df, db_file
     )
+    logging.info(f'ACTION\tcreate plasmids seeds input file')    
     seeds_input_file = _seeds_input_file(tmp_dir)
-    with open(seeds_input_file, 'w') as out_file:
-        for sample in samples_df.index:
-            mappings_file = _genes_mappings_file(tmp_dir, sample)
-            ground_truth_file = _get_ground_truth(samples_df, sample)
-            gfa_fasta_file = _gfa_fasta_file(tmp_dir, sample)
-            out_file.write(
-                f'{sample},{gfa_fasta_file},{mappings_file},{ground_truth_file}\n'
-            )
-    _log_file(seeds_input_file)
+    try:
+        with open(seeds_input_file, 'w') as out_file:
+            for sample in samples_df.index:
+                mappings_file = _genes_mappings_file(tmp_dir, sample)
+                ground_truth_file = _get_ground_truth(samples_df, sample)
+                gfa_fasta_file = _gfa_fasta_file(tmp_dir, sample)
+                out_file.write(
+                    f'{sample},{gfa_fasta_file},{mappings_file},{ground_truth_file}\n'
+                )
+        _log_file(seeds_input_file)
+    except:
+        logging.exception(f'Creating {seeds_input_file}')
+    logging.info(f'ACTION\tcreate seeds parameters file') 
     seeds_parameters_file = _seeds_parameters_file(out_dir)
     cmd = [
         'python', 'analyse_seed_eligibility.py',
