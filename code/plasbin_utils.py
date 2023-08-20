@@ -70,7 +70,7 @@ python plasbin_utils.py seeds --input_file input_file --out_dir out_dir --tmp_di
 - tmp_dir: temporary directory, not deleted
 - pls_db_file: path to plasmid genes database file
 
-python plasbin_tuning.py tuning --input_file input_file --out_dir output_directory --tmp_dir tmp_directory 
+python plasbin_tuning.py tuning --input_file input_file --out_dir out_dir --tmp_dir tmp_dir
 - input_file: CSV file with one line per sample and 5 required fields:
   sample: sample name
   gfa: gzipped GFA file
@@ -109,7 +109,7 @@ from Bio.SeqRecord import SeqRecord
 
 def read_samples(in_csv_file):
     """
-    Reads the samples information
+    Reads the samples information CSV file
     
     Args:
         in_csv_file (str): path to the CSV file containing samples information
@@ -119,10 +119,7 @@ def read_samples(in_csv_file):
     """
     try:
         samples_df = pd.read_csv(
-            in_csv_file,
-            sep = ',',
-            header = 0,
-            index_col = 'sample'
+            in_csv_file, sep = ',', header = 0, index_col = 'sample'
         )
         return samples_df
     except:
@@ -130,35 +127,22 @@ def read_samples(in_csv_file):
             f'Reading CSV dataset file {in_csv_file}'
         )
 
-# Sample data access functions
+# Sample data access/modification functions
+def _get_sample_col(samples_df, sample, col):
+    try:
+        return samples_df.at[sample,col]
+    except:
+        logging.exception(
+            f'Reading {sample}.{col} in dataset file'
+        )
 def _get_gfa(samples_df, sample):
-    try:
-        return samples_df.at[sample,'gfa']
-    except:
-        logging.exception(
-            f'Reading datasets file for sample {sample} and column "gfa"'
-        )
+    return _get_sample_col(samples_df, sample, 'gfa')
 def _get_chr_fasta(samples_df, sample):
-    try:
-        return samples_df.at[sample,'chr_fasta']
-    except:
-        logging.exception(
-            f'Reading datasets file for sample {sample} and column "chr_fasta"'
-        )
+    return _get_sample_col(samples_df, sample, 'chr_fasta')
 def _get_pls_fasta(samples_df, sample):
-    try:
-        return samples_df.at[sample,'pls_fasta']
-    except:
-        logging.exception(
-            f'Reading datasets file for sample {sample} and column "pls_fasta"'
-        )
+    return _get_sample_col(samples_df, sample, 'pls_fasta')
 def _get_ground_truth(samples_df, sample):
-    try:
-        return samples_df.at[sample,'ground_truth']
-    except:
-        logging.exception(
-            f'Reading datasets file for sample {sample} and column "ground_truth"'
-        )
+    return _get_sample_col(samples_df, sample, 'ground_truth')
 def _set_ground_truth(samples_df, sample, gt_file):
     samples_df.at[sample,'ground_truth'] = gt_file
 
@@ -169,7 +153,14 @@ def _write_samples_df(samples_df, out_file):
 
 # Auxiliary functions
 
-def gunzip_fasta(in_fasta_file, out_fasta_file):
+def _gunzip_fasta(in_fasta_file, out_fasta_file):
+    """
+    Gunzip a FASTA file
+
+    Args:
+       in_fasta_file (str): path to input gzipped FASTA file
+       out_fasta_file (str): path to output FASTA file
+    """
     records = []
     try:
         with gzip.open(in_fasta_file, 'rt') as handle:
@@ -182,7 +173,14 @@ def gunzip_fasta(in_fasta_file, out_fasta_file):
             f'Decompressing FASTA file {in_fasta_file} into {out_fasta_file}'
         )
 
-def gunzip_gfa(in_gfa_file, out_gfa_file):
+def _gunzip_gfa(in_gfa_file, out_gfa_file):
+    """
+    Gunzip a GFA file
+
+    Args:
+       in_gfa_file (str): path to input gzipped GFA file
+       out_gfa_file (str): path to output GFA file
+    """
     try:
         with gzip.open(in_gfa_file) as in_file, open(out_gfa_file, 'wb') as out_file:
             shutil.copyfileobj(in_file, out_file)
@@ -191,7 +189,7 @@ def gunzip_gfa(in_gfa_file, out_gfa_file):
             f'Decompressing GFA file {in_gfa_file} into {out_gfa_file}'
         )
         
-def gfa2fasta(in_gfa_file, out_fasta_file):
+def _gfa2fasta(in_gfa_file, out_fasta_file):
     """
     Convert a GFA file into a FASTA file
 
@@ -246,49 +244,45 @@ def _read_seq_len(in_fasta_file):
     except:
         logging.exception(f'Reading FASTA file {in_fasta_file}')
 
-# Temporary file names
+# File names
 
-TMP_PLS_GB_FILE='pls.genbank.txt'
-def tmp_pls_gb_file(tmp_dir):
-    return os.path.join(tmp_dir, TMP_PLS_GB_FILE)
-def tmp_fastas_file(tmp_dir, file_type):
-    return {
-        'chr': os.path.join(tmp_dir, 'chr.fasta.txt'),
-        'pls': os.path.join(tmp_dir, 'pls.fasta.txt')
-    }[file_type]
-def tmp_gfa_file(tmp_dir, sample):
-    return os.path.join(tmp_dir, f'{sample}.gfa')
-def tmp_gfa_fasta_file(tmp_dir, sample):
-    return os.path.join(tmp_dir, f'{sample}.gfa.fasta')
-def tmp_pls_fasta_file(tmp_dir, sample):
-    return os.path.join(tmp_dir, f'{sample}.pls.fasta')
-def tmp_pls_blastdb_file(tmp_dir, sample):
-    return os.path.join(tmp_dir, f'{sample}.pls.fasta.db')
-def tmp_pls_mappings_file(tmp_dir, sample):
-    return os.path.join(tmp_dir, f'{sample}.pls_mappings.txt')
-def tmp_seeds_input_file(tmp_dir):
-    return os.path.join(tmp_dir, 'seeds_input.csv')
-
-# Output file names
-
-PLS_GENES_DB_FILE='pls.genes.fasta'
-def pls_genes_db_file(out_dir, out_file=PLS_GENES_DB_FILE):
-    return os.path.join(out_dir, out_file)
-def ground_truth_file(out_dir, sample):
-    return os.path.join(out_dir, f'{sample}.ground_truth.tsv')
-SEEDS_PARAMETERS_FILE='seeds.txt'
-def seeds_parameters_file(out_dir, out_file=SEEDS_PARAMETERS_FILE):
-    return os.path.join(out_dir, out_file)
+def _gfa_file(in_dir, sample):
+    return os.path.join(in_dir, f'{sample}.gfa')
+def _gfa_fasta_file(in_dir, sample):
+    return os.path.join(in_dir, f'{sample}.gfa.fasta')
+def _pls_fasta_file(in_dir, sample):
+    return os.path.join(in_dir, f'{sample}.pls.fasta')
+def _pls_blastdb_prefix(in_dir, sample):
+    return os.path.join(in_dir, f'{sample}.pls.fasta.db')
+def _pls_mappings_file(in_dir, sample):
+    return os.path.join(in_dir, f'{sample}.pls_mappings.txt')
+def _ground_truth_file(in_dir, sample):
+    return os.path.join(in_dir, f'{sample}.ground_truth.tsv')
 GC_FILE_PREFIX='gc'
-def gc_txt_file(out_dir, out_file=f'{GC_FILE_PREFIX}.txt'):
-    return os.path.join(out_dir, out_file)
-def gc_png_file(out_dir, out_file=f'{GC_FILE_PREFIX}.png'):
-    return os.path.join(out_dir, out_file)
-def gc_proba_file(out_dir, sample):
-    return os.path.join(out_dir, f'{sample}.gc.tsv')
+def _gc_proba_file(in_dir, sample):
+    return os.path.join(in_dir, f'{sample}.{GC_FILE_PREFIX}.tsv')
+def _genes_mappings_file(in_dir, sample):
+    return os.path.join(in_dir, f'{sample}.{GC_FILE_PREFIX}.txt')
 
-def genes_mappings_file(tmp_dir, sample):
-    return os.path.join(tmp_dir, f'{sample}.genes_mappings.txt')
+def _pls_gb_file(in_dir):
+    return os.path.join(in_dir, 'pls.genbank.txt')
+def _chr_pls_fasta_path_file(in_dir, file_type):
+    return {
+        'chr': os.path.join(in_dir, 'chr.fasta.txt'),
+        'pls': os.path.join(in_dir, 'pls.fasta.txt')
+    }[file_type]
+def _seeds_input_file(in_dir):
+    return os.path.join(in_dir, 'seeds_input.csv')
+def _pls_genes_db_file(in_dir):
+    return os.path.join(in_dir, 'pls.genes.fasta')
+def _seeds_parameters_file(in_dir):
+    return os.path.join(in_dir, 'seeds.txt')
+def _gc_txt_file(in_dir):
+    return os.path.join(in_dir, f'{GC_FILE_PREFIX}.txt')
+def _gc_png_file(in_dir):
+    return os.path.join(in_dir, f'{GC_FILE_PREFIX}.png')
+
+# Processing functions
 
 def create_tmp_unzipped_gfa_fasta_files(tmp_dir, samples_df):
     """
@@ -299,22 +293,18 @@ def create_tmp_unzipped_gfa_fasta_files(tmp_dir, samples_df):
        tmp_dir (str): path to temporary directory
 
     Returns:
-       None, creates files tmp_gfa_file(tmp_dir, sample) and tmp_gfa_fasta_file(tmp_dir, sample) for each sample
+       None, creates files _gfa_file(tmp_dir, sample) and _gfa_fasta_file(tmp_dir, sample) for each sample
     """
     for sample in samples_df.index:
         logging.info(f'ACTION\tcopy assembly files for sample {sample}')
-        gfagz_file = _get_gfa(samples_df,sample)
-        gfa_file = tmp_gfa_file(tmp_dir, sample)
+        gfa_file = _gfa_file(tmp_dir, sample)
         if not os.path.isfile(gfa_file):
-            gunzip_gfa(gfagz_file, gfa_file)
-        _log_file(tmp_gfa_file(tmp_dir, sample))
-        gfa_fasta_file = tmp_gfa_fasta_file(tmp_dir, sample)
+            _gunzip_gfa(_get_gfa(samples_df,sample), gfa_file)
+        _log_file(gfa_file)
+        gfa_fasta_file = _gfa_fasta_file(tmp_dir, sample)
         if not os.path.isfile(gfa_fasta_file):
-            gfa2fasta(
-                tmp_gfa_file(tmp_dir, sample),
-                gfa_fasta_file
-            )
-        _log_file(tmp_gfa_fasta_file(tmp_dir, sample))
+            _gfa2fasta(gfa_file, gfa_fasta_file)
+        _log_file(gfa_fasta_file)
 
 def _compute_ground_truth(out_dir, tmp_dir, sample, pid_threshold, cov_threshold):
     """
@@ -328,7 +318,7 @@ def _compute_ground_truth(out_dir, tmp_dir, sample, pid_threshold, cov_threshold
        cov_threshold (float): coverage threshold
 
     Returns:
-      None, creates the file ground_truth_file(out_dir, sample)
+      None, creates the file _ground_truth_file(out_dir, sample)
     """
     def _num_covered_positions(intervals):
         intervals.sort(key = lambda x: x[0])
@@ -347,12 +337,12 @@ def _compute_ground_truth(out_dir, tmp_dir, sample, pid_threshold, cov_threshold
         "evalue", "bitscore"
     ]  # outfmt 6
     hits = pd.read_csv(
-        tmp_pls_mappings_file(tmp_dir, sample),
+        _pls_mappings_file(tmp_dir, sample),
         sep = '\t', names = col_names, dtype = str
     )
         
-    ctg_len = _read_seq_len(tmp_gfa_fasta_file(tmp_dir, sample))        
-    pls_len = _read_seq_len(tmp_pls_fasta_file(tmp_dir, sample))
+    ctg_len = _read_seq_len(_gfa_fasta_file(tmp_dir, sample))        
+    pls_len = _read_seq_len(_pls_fasta_file(tmp_dir, sample))
     
     covered_sections = dict([(pred, []) for pred in ctg_len])	
     covered_per_ref = dict()		#Covered proportion per reference plasmid
@@ -371,7 +361,7 @@ def _compute_ground_truth(out_dir, tmp_dir, sample, pid_threshold, cov_threshold
                 if pident >= pid_threshold:
                     covered_sections[ctg].append(interval)
                     covered_per_ref[ref][ctg].append(interval)
-    with open(ground_truth_file(out_dir, sample), "w") as out_file:
+    with open(_ground_truth_file(out_dir, sample), "w") as out_file:
         for ref in covered_per_ref.keys():
             for ctg in covered_per_ref[ref]:
                 percent_mapping = _num_covered_positions(
@@ -399,49 +389,47 @@ def create_ground_truth_files(
        cov_threshold (float): coverage threshold to consider a hit 
 
     Returns:
-       None, creates files ground_truth_file(out_dir, sample) for each sample  
+       None, creates files _ground_truth_file(out_dir, sample) for each sample  
     """
     for sample in samples_df.index:
         logging.info(f'ACTION\tground truth for {sample}')
         pls_fastagz_file = _get_pls_fasta(samples_df, sample)
-        pls_fasta_file = tmp_pls_fasta_file(tmp_dir, sample)
-        pls_blastdb = tmp_pls_blastdb_file(tmp_dir, sample)
-        gfa_fasta_file = tmp_gfa_fasta_file(tmp_dir, sample)
-        mappings_file = tmp_pls_mappings_file(tmp_dir, sample)
-        gunzip_fasta(pls_fastagz_file, pls_fasta_file)
+        pls_fasta_file = _pls_fasta_file(tmp_dir, sample)
+        if not os.path.isfile(pls_fasta_file):
+            _gunzip_fasta(pls_fastagz_file, pls_fasta_file)
+            _log_file(pls_fasta_file)
+        pls_blastdb_prefix = _pls_blastdb_prefix(tmp_dir, sample)
+        gfa_fasta_file = _gfa_fasta_file(tmp_dir, sample)
+        pls_mappings_file = _pls_mappings_file(tmp_dir, sample)
         logging.info(f'ACTION\tcompute blast database for {pls_fasta_file}')
         cmd1 = [
             'makeblastdb',
             '-in', pls_fasta_file,
             '-dbtype', 'nucl',
-            '-out', pls_blastdb
+            '-out', pls_blastdb_prefix
         ]
         _run_cmd(cmd1)
-        logging.info(f'ACTION\tmap {gfa_fasta_file} to {pls_blastdb}')        
+        logging.info(f'ACTION\tmap {gfa_fasta_file} to {pls_blastdb_prefix}')        
         cmd2 = [
             'blastn', '-task', 'megablast',
             '-query', gfa_fasta_file,
-            '-db', pls_blastdb,
-            '-out', mappings_file,
+            '-db', pls_blastdb_prefix,
+            '-out', pls_mappings_file,
             '-outfmt', '6'
         ]
         _run_cmd(cmd2)
-        _log_file(mappings_file)
+        _log_file(pls_mappings_file)
         logging.info(f'ACTION\tcompute ground truth file')                
         _compute_ground_truth(
             out_dir, tmp_dir, sample, pid_threshold, cov_threshold
         )
-        _set_ground_truth(
-            samples_df, sample, ground_truth_file(out_dir, sample)
-        )
-        _log_file(ground_truth_file(out_dir, sample))
-        _set_ground_truth(samples_df, sample, ground_truth_file(out_dir, sample))
+        ground_truth_file = _ground_truth_file(out_dir, sample)
+        _set_ground_truth(samples_df, sample, ground_truth_file)
+        _log_file(ground_truth_file)
     _write_samples_df(samples_df, out_file)
     _log_file(out_file)
     
-def create_pls_genes_db(
-        out_dir, tmp_dir, samples_df, out_file_name=PLS_GENES_DB_FILE
-):
+def create_pls_genes_db(out_dir, tmp_dir, samples_df):
     """
     Creates a plasmid genes database
 
@@ -449,32 +437,34 @@ def create_pls_genes_db(
        out_dir (str): path to output directory
        tmp_dir (str): path to temporary directory
        samples_df (DataFrame): samples dataframe
-       out_file_name (str): name of output file
 
     Returns:
-       None, creates file pls_genes_db_file(out_dir, out_file_name)
+       None, creates file _pls_genes_db_file(out_dir, out_file_name)
     """
     logging.info(f'ACTION\tcompute plasmid genes database')
-    with open(tmp_pls_gb_file(tmp_dir), 'w') as out_file:
+    pls_gb_file = _pls_gb_file(tmp_dir)
+    with open(pls_gb_file, 'w') as out_file:
         for sample in samples_df.index:
             logging.info(f'ACTION\trecord plasmid GenBank accession for {sample}')
+            pls_fasta_file = _get_pls_fasta(samples_df, sample)
             try:
-                with gzip.open(_get_pls_fasta(samples_df, sample), 'rt') as handle:
+                with gzip.open(pls_fasta_file, 'rt') as handle:
                     for record in SeqIO.parse(handle, 'fasta'):
                         out_file.write(f'{record.id}\n')
             except:
                 logging.exception(
-                    f'Error plasmid GenBank accessions in {_get_pls_fasta(samples_df, sample)}'
-                ) 
-    _log_file(tmp_pls_gb_file(tmp_dir))
-    logging.info(f'ACTION\tprocess {tmp_pls_gb_file(tmp_dir)}')
+                    f'Error plasmid GenBank accessions in {pls_fasta_file}'
+                )    
+    _log_file(pls_gb_file)
+    logging.info(f'ACTION\tprocess {pls_gb_file}')
+    pls_genes_db_file = _pls_genes_db_file(out_dir)
     cmd = [
         'python', 'get_gd.py', 'create',
-        pls_genes_db_file(out_dir, out_file_name),
-        '-a', tmp_pls_gb_file(tmp_dir)
+        pls_genes_db_file,
+        '-a', pls_gb_file
     ]
     _run_cmd(cmd)
-    _log_file(pls_genes_db_file(out_dir, out_file_name))
+    _log_file(pls_genes_db_file)
 
 def map_pls_genes_to_contigs(out_dir, tmp_dir, samples_df, db_file):
     """
@@ -487,23 +477,21 @@ def map_pls_genes_to_contigs(out_dir, tmp_dir, samples_df, db_file):
        db_file (str): path to plasmid genes database file
 
     Returns:
-       None, creates files genes_mappings_file(out_dir, sample)nfor each sample
+       None, creates files _genes_mappings_file(out_dir, sample)nfor each sample
     """
     for sample in samples_df.index:
-        mappings_file = genes_mappings_file(out_dir, sample)
+        genes_mappings_file = _genes_mappings_file(out_dir, sample)
         logging.info(f'ACTION\tmapping {sample} to {db_file}')
         cmd = [
             'python', 'get_gd.py', 'map',
             db_file,
-            mappings_file,
-            '-a', tmp_gfa_file(tmp_dir, sample)
+            genes_mappings_file,
+            '-a', _gfa_file(tmp_dir, sample)
         ]
         _run_cmd(cmd)
-        _log_file(mappings_file)
+        _log_file(genes_mappings_file)
         
-def create_GC_content_intervals_file(
-        out_dir, tmp_dir, samples_df, out_file_prefix=GC_FILE_PREFIX
-):
+def create_GC_content_intervals_file(out_dir, tmp_dir, samples_df):
     """
     Creates GC content intervals files
 
@@ -514,7 +502,7 @@ def create_GC_content_intervals_file(
        out_file_prefix (str): prefix of output file names
 
     Returns:
-       None, creates files gc_txt_file(out_dir) and gc_png_file(out_dir)
+       None, creates files _gc_txt_file(out_dir) and _gc_png_file(out_dir)
     """
     logging.info(f'ACTION\tcompute GC content intervals files')
     file_access_fun = {
@@ -522,19 +510,20 @@ def create_GC_content_intervals_file(
         'pls': _get_pls_fasta
     }
     for file_type in ['chr','pls']:
-        with open(tmp_fastas_file(tmp_dir, file_type), 'w') as out_file:
+        fasta_path_file = _chr_pls_fasta_path_file(tmp_dir, file_type)
+        with open(fasta_path_file, 'w') as out_file:
             logging.info(f'ACTION\trecord {file_type} files paths')
             for sample in samples_df.index:
                 fasta_file = file_access_fun[file_type](samples_df, sample)
                 out_file.write(f'{fasta_file}\n')
-            _log_file(tmp_fastas_file(tmp_dir, file_type))
-    out_txt_file = gc_txt_file(out_dir, out_file=f'{out_file_prefix}.txt')
-    out_png_file = gc_png_file(out_dir, out_file=f'{out_file_prefix}.png')
+            _log_file(fasta_path_file)
+    out_txt_file = _gc_txt_file(out_dir)
+    out_png_file = _gc_png_file(out_dir)
     logging.info(f'ACTION\tcompute output files')
     cmd = [
         'python', 'analyse_GC_content.py',
-        '--chr', tmp_fastas_file(tmp_dir, 'chr'),
-        '--pls', tmp_fastas_file(tmp_dir, 'pls'),        
+        '--chr', _chr_pls_fasta_path_file(tmp_dir, 'chr'),
+        '--pls', _chr_pls_fasta_path_file(tmp_dir, 'pls'),        
         '--out', out_txt_file,
         '--vplot', out_png_file
     ]
@@ -554,25 +543,22 @@ def create_GC_content_probabilities_file(
        samples_df (DataFrame): samples dataframe
 
     Returns:
-       None, creates files gc_proba_file(out_dir, sample) for each sample
+       None, creates files _gc_proba_file(out_dir, sample) for each sample
     """
     logging.info(f'ACTION\tcompute GC content probabilities files')
     for sample in samples_df.index:
-        gfa_file = tmp_gfa_file(tmp_dir, sample)
-        gcp_file = gc_proba_file(out_dir, sample)
+        gfa_file = _gfa_file(tmp_dir, sample)
+        gc_proba_file = _gc_proba_file(out_dir, sample)
         cmd = [
             'python', 'get_gc_probs.py',
             '-ag', gfa_file,
-            '-outfile', gcp_file,
+            '-outfile', gc_proba_file,
             '-gcint', gc_intervals_file
         ]
         _run_cmd(cmd)
-        _log_file(gcp_file)
+        _log_file(gc_proba_file)
 
-def create_seeds_parameters_file(
-        out_dir, tmp_dir, samples_df,
-        db_file, out_file_name=SEEDS_PARAMETERS_FILE
-):
+def create_seeds_parameters_file(out_dir, tmp_dir, samples_df, db_file):
     """
     Creates a file containing the parameters defining seeds
 
@@ -581,31 +567,32 @@ def create_seeds_parameters_file(
        tmp_dir (str): path to temporary directory
        samples_df (DataFrame): samples dataframe
        db_file (str): path to plasmid genes database file
-       out_file_name (str): name of output file
 
     Returns:
-       None, creates file seeds_parameters_file(out_dir, out_file_name)
+       None, creates file _seeds_parameters_file(out_dir, out_file_name)
     """
     logging.info(f'ACTION\tcompute seeds parameters')    
     map_pls_genes_to_contigs(
         tmp_dir, tmp_dir, samples_df, db_file
     )
-    with open(tmp_seeds_input_file(tmp_dir), 'w') as out_file:
+    seeds_input_file = _seeds_input_file(tmp_dir)
+    with open(seeds_input_file, 'w') as out_file:
         for sample in samples_df.index:
-            mappings_file = genes_mappings_file(tmp_dir, sample)
-            gt_file = _get_ground_truth(samples_df, sample)
-            gfa_fasta_file = tmp_gfa_fasta_file(tmp_dir, sample)
+            mappings_file = _genes_mappings_file(tmp_dir, sample)
+            ground_truth_file = _get_ground_truth(samples_df, sample)
+            gfa_fasta_file = _gfa_fasta_file(tmp_dir, sample)
             out_file.write(
-                f'{sample},{gfa_fasta_file},{mappings_file},{gt_file}\n'
+                f'{sample},{gfa_fasta_file},{mappings_file},{ground_truth_file}\n'
             )
-    _log_file(tmp_seeds_input_file(tmp_dir))
+    _log_file(seeds_input_file)
+    seeds_parameters_file = _seeds_parameters_file(out_dir)
     cmd = [
         'python', 'analyse_seed_eligibility.py',
-        '--paths', tmp_seeds_input_file(tmp_dir),
-        '--out', seeds_parameters_file(out_dir, out_file_name)
+        '--paths', seeds_input_file,
+        '--out', seeds_parameters_file
     ]
     _run_cmd(cmd)
-    _log_file(seeds_parameters_file(out_dir, out_file_name))
+    _log_file(seeds_parameters_file)
 
 
 def main():
@@ -655,7 +642,7 @@ def main():
     if args.cmd == 'pls_genes_db':
         samples_df = read_samples(args.input_file)
         files2clean = [
-            pls_genes_db_file(args.out_dir)
+            _pls_genes_db_file(args.out_dir)
         ]
         _clean_files(files2clean)
         _create_directory([args.out_dir,args.tmp_dir])
@@ -666,7 +653,7 @@ def main():
     elif args.cmd == 'map_genes_to_ctgs':
         samples_df = read_samples(args.input_file)
         files2clean = [
-            genes_mappings_file(args.out_dir, sample)
+            _genes_mappings_file(args.out_dir, sample)
             for sample in samples_df.index
         ]
         _clean_files(files2clean)
@@ -681,7 +668,7 @@ def main():
     elif args.cmd == 'ground_truth':
         samples_df = read_samples(args.input_file)
         files2clean = [
-            ground_truth_file(args.out_dir, sample)
+            _ground_truth_file(args.out_dir, sample)
             for sample in samples_df.index
         ]
         _clean_files(files2clean)
@@ -695,7 +682,7 @@ def main():
 
     elif args.cmd == 'seeds':
         samples_df = read_samples(args.input_file)
-        files2clean = [seeds_parameters_file(args.out_dir)]
+        files2clean = [_seeds_parameters_file(args.out_dir)]
         _clean_files(files2clean)
         _create_directory([args.out_dir,args.tmp_dir])
         create_tmp_unzipped_gfa_fasta_files(
@@ -709,8 +696,8 @@ def main():
     elif args.cmd == 'gc_intervals':
         samples_df = read_samples(args.input_file)
         files2clean = [
-            gc_txt_file(args.out_dir),
-            gc_png_file(args.out_dir)
+            _gc_txt_file(args.out_dir),
+            _gc_png_file(args.out_dir)
         ]
         _clean_files(files2clean)
         _create_directory([args.out_dir,args.tmp_dir])
@@ -721,7 +708,7 @@ def main():
     elif args.cmd == 'gc_probabilities':
         samples_df = read_samples(args.input_file)
         files2clean = [
-            gc_proba_file(args.out_dir, sample)
+            _gc_proba_file(args.out_dir, sample)
             for sample in samples_df.index
         ]
         _clean_files(files2clean)
@@ -734,10 +721,10 @@ def main():
     elif args.cmd == 'tuning':
         samples_df = read_samples(args.input_file)
         files2clean = [
-            pls_genes_db_file(args.out_dir),
-            seeds_parameters_file(args.out_dir),
-            gc_txt_file(args.out_dir),
-            gc_png_file(args.out_dir)
+            _pls_genes_db_file(args.out_dir),
+            _seeds_parameters_file(args.out_dir),
+            _gc_txt_file(args.out_dir),
+            _gc_png_file(args.out_dir)
         ]
         _clean_files(files2clean)
         _create_directory([args.out_dir,args.tmp_dir])
@@ -749,7 +736,7 @@ def main():
         )
         create_seeds_parameters_file(
             args.out_dir, args.tmp_dir, samples_df,
-            pls_genes_db_file(args.out_dir)
+            _pls_genes_db_file(args.out_dir)
         )
         create_GC_content_intervals_file(
             args.out_dir, args.tmp_dir, samples_df
