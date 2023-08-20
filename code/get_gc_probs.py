@@ -81,17 +81,10 @@ if __name__ == "__main__":
 	#Parsing arguments
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-ag", help="Path to assembly graph file")
-	parser.add_argument("-outdir", help="Path to output dir")
 	parser.add_argument("-outfile", help="Name of output file")
 	parser.add_argument("-gcint", default = None, help="Path to GC interval file")
 
 	args = parser.parse_args()
-
-	output_dir = args.outdir
-	output_file = args.outfile
-	if not os.path.exists(output_dir):
-		os.makedirs(output_dir)
-
 
 	assembly_file = args.ag
 	gcint_file = args.gcint
@@ -103,7 +96,7 @@ if __name__ == "__main__":
 	else:
 		probs = [0, 0.4,  0.45, 0.5, 0.55, 0.6, 1]
 
-	gc_file = open(os.path.join(output_dir, output_file), "w")
+	gc_file = open(args.outfile, "w")
 	gc_file.write('CTG')
 	for i in range(0, len(probs)-1):
 		gc_file.write('\t'+str(probs[i])+'-'+str(probs[i+1]))
