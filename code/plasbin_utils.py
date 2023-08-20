@@ -12,29 +12,30 @@ python plasbin_utils.py pls_genes_db --input_file input_file --out_dir out_dir -
   sample: sample name
   pls_fasta: gzipped FASTA plasmids file
   where in FASTA files, the header of entries are GenBank accession
-- output_directory: directory where the plasmid genes database written:
+- out_dir: directory where the plasmid genes database written:
   pls.genes.fasta
-- tmp_directory: temporary directory, not deleted
+- tmp_dir: temporary directory, not deleted
 
 Mapping plasmid genes to samples contigs 
 python plasbin_utils.py map_genes_to_ctgs --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --db_file pls_db_file
 - input_file: CSV file with one line per sample and 2 required fields:
   sample: sample name
   gfa: gzipped GFA file
-- output_directory: directory where the mapping files are written
+- out_dir: directory where the mapping files are written
   <sample>.genes_mappings.txt
-- tmp_directory: temporary directory, not deleted
+- tmp_dir: temporary directory, not deleted
 - pls_db_file: path to plasmid genes database file
 
 Computing ground truth for samples
-python plasbin_utils.py ground_truth --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --pid_threshold p --cov_threshold c
+python plasbin_utils.py ground_truth --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --out_file out_file --pid_threshold p --cov_threshold c
 - input_file: CSV file with one line per sample and 3 required fields:
   sample: sample name
   gfa: gzipped GFA file
   pls_fasta: gzipped FASTA plasmids file
-- output_directory: directory where the ground truth files are written
+- out_dir: directory where the ground truth files are written
   <sample>.ground_truth.tsv
-- tmp_directory: temporary directory, not deleted
+- tmp_dir: temporary directory, not deleted
+- out_file: path to new dataset file with ground truth files added
 - p: percent identity threshold to define a mapping to a plasmid (default=0.95)
 - c: coverage threshold to accept a blast hit  (default=0.8)
 
@@ -43,9 +44,9 @@ python plasbin_utils.py gc_probabilities --input_file input_file --out_dir out_d
 - input_file: CSV file with one line per sample and 2 required fields:
   sample: sample name
   gfa: gzipped GFA file
-- output_directory: directory where the GC probabilities files are written
+- out_dir: directory where the GC probabilities files are written
   <sample>.gc.tsv
-- tmp_directory: temporary directory, not deleted
+- tmp_dir: temporary directory, not deleted
 - gc_intervals_file: GC intervals file
 
 Computing GC intervals from tuning samples
@@ -54,34 +55,35 @@ python plasbin_utils.py gc_intervals --input_file input_file --out_dir out_dir -
   sample: sample name
   chr_fasta: gzipped chromosome FASTA file
   pls_fasta: gzipped FASTA plasmids file
-- output_directory: directory where the GC intervals files are written
+- out_dir: directory where the GC intervals files are written
   gc.txt, gc.png
-- tmp_directory: temporary directory, not deleted
+- tmp_dir: temporary directory, not deleted
 
 Computing seeds parameters
-python plasbin_utils.py seeds --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --db_file pls_db_file --gt_dir gt_dir
-- input_file: CSV file with one line per sample and 2 required fields:
+python plasbin_utils.py seeds --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --db_file pls_db_file
+- input_file: CSV file with one line per sample and 3 required fields:
   sample: sample name
   gfa: gzipped GFA file
-- output_directory: directory where the seeds parameters file is written
+  ground_truth: ground truth file
+- out_dir: directory where the seeds parameters file is written
   seeds.txt
-- tmp_directory: temporary directory, not deleted
+- tmp_dir: temporary directory, not deleted
 - pls_db_file: path to plasmid genes database file
-- gt_dir: directory where ground truth files <sample>.ground_truth.tsv are located
 
 python plasbin_tuning.py tuning --input_file input_file --out_dir output_directory --tmp_dir tmp_directory 
-- input_file: CSV file with one line per sample and 4 required fields:
+- input_file: CSV file with one line per sample and 5 required fields:
   sample: sample name
   gfa: gzipped GFA file
   chr_fasta: gzipped chromosome FASTA file
   pls_fasta: gzipped FASTA plasmids file
+  ground_truth: path to ground truth file
   where in FASTA files, the header of entries are GenBank accession
-- output_directory: directory where the tuning files are written:
+- output_dir: directory where the tuning files are written:
   pls.genes.fasta: plasmids genes database
   gc.txt: GC content per sample
   gc.png: GC content violin plot
   seeds.txt: seed parameters
-- tmp_directory: temporary directory, not deleted
+- tmp_dir: temporary directory, not deleted
 """
 
 """
@@ -159,6 +161,11 @@ def _get_ground_truth(samples_df, sample):
         )
 def _set_ground_truth(samples_df, sample, gt_file):
     samples_df.at[sample,'ground_truth'] = gt_file
+
+def _write_samples_df(samples_df, out_file):
+    samples_df.to_csv(
+        out_file, sep=',', header=True, index=True, index_label='sample'
+    )
 
 # Auxiliary functions
 
@@ -309,7 +316,6 @@ def create_tmp_unzipped_gfa_fasta_files(tmp_dir, samples_df):
             )
         _log_file(tmp_gfa_fasta_file(tmp_dir, sample))
 
-
 def _compute_ground_truth(out_dir, tmp_dir, sample, pid_threshold, cov_threshold):
     """
     Computes the ground truth file for a sample
@@ -378,7 +384,8 @@ def _compute_ground_truth(out_dir, tmp_dir, sample, pid_threshold, cov_threshold
                     )
 
 def create_ground_truth_files(
-        out_dir, tmp_dir, samples_df, pid_threshold=0.95, cov_threshold=0.8
+        out_dir, tmp_dir, samples_df, out_file,
+        pid_threshold=0.95, cov_threshold=0.8
 ):
     """
     Creates a TSV ground truth file per sample
@@ -387,6 +394,9 @@ def create_ground_truth_files(
        out_dir (str): path to output directory
        tmp_dir (str): path to temporary directory
        samples_df (DataFrame): samples dataframe
+       out_file (str): name of dataset file augmeted with ground truth files
+       pid_threshold (float): percent identity threshold to define a true psitive mapping
+       cov_threshold (float): coverage threshold to consider a hit 
 
     Returns:
        None, creates files ground_truth_file(out_dir, sample) for each sample  
@@ -407,7 +417,6 @@ def create_ground_truth_files(
             '-out', pls_blastdb
         ]
         _run_cmd(cmd1)
-        _log_file(pls_blastdb)        
         logging.info(f'ACTION\tmap {gfa_fasta_file} to {pls_blastdb}')        
         cmd2 = [
             'blastn', '-task', 'megablast',
@@ -426,6 +435,9 @@ def create_ground_truth_files(
             samples_df, sample, ground_truth_file(out_dir, sample)
         )
         _log_file(ground_truth_file(out_dir, sample))
+        _set_ground_truth(samples_df, sample, ground_truth_file(out_dir, sample))
+    _write_samples_df(samples_df, out_file)
+    _log_file(out_file)
     
 def create_pls_genes_db(
         out_dir, tmp_dir, samples_df, out_file_name=PLS_GENES_DB_FILE
@@ -559,7 +571,7 @@ def create_GC_content_probabilities_file(
 
 def create_seeds_parameters_file(
         out_dir, tmp_dir, samples_df,
-        db_file, gt_dir, out_file_name=SEEDS_PARAMETERS_FILE
+        db_file, out_file_name=SEEDS_PARAMETERS_FILE
 ):
     """
     Creates a file containing the parameters defining seeds
@@ -569,7 +581,6 @@ def create_seeds_parameters_file(
        tmp_dir (str): path to temporary directory
        samples_df (DataFrame): samples dataframe
        db_file (str): path to plasmid genes database file
-       gt_dir (str): directory containing groud truth files
        out_file_name (str): name of output file
 
     Returns:
@@ -582,7 +593,7 @@ def create_seeds_parameters_file(
     with open(tmp_seeds_input_file(tmp_dir), 'w') as out_file:
         for sample in samples_df.index:
             mappings_file = genes_mappings_file(tmp_dir, sample)
-            gt_file = ground_truth_file(gt_dir, sample)
+            gt_file = _get_ground_truth(samples_df, sample)
             gfa_fasta_file = tmp_gfa_fasta_file(tmp_dir, sample)
             out_file.write(
                 f'{sample},{gfa_fasta_file},{mappings_file},{gt_file}\n'
@@ -614,13 +625,13 @@ def main():
     # Computing ground truth files
     gt_parser = subparsers.add_parser('ground_truth', parents=[argparser], add_help=False)
     gt_parser.set_defaults(cmd='ground_truth')
+    gt_parser.add_argument('--out_file', type=str, help='Path to dataset file with added ground truth files')    
     gt_parser.add_argument('--pid_threshold', type=float, default=0.95, help='Percent identity threshold in [0,1]')
     gt_parser.add_argument('--cov_threshold', type=float, default=0.8, help='Percent coverage threshold in [0,1]')    
     # Computing seeds parameters
     seeds_parser = subparsers.add_parser('seeds', parents=[argparser], add_help=False)
     seeds_parser.set_defaults(cmd='seeds')
     seeds_parser.add_argument('--db_file', type=str, help='Plasmids genes database FASTA file')
-    seeds_parser.add_argument('--gt_dir', type=str, help='Directory containing ground truth files')    
     # Computing GC contents intervals
     gci_parser = subparsers.add_parser('gc_intervals', parents=[argparser], add_help=False)
     gci_parser.set_defaults(cmd='gc_intervals')
@@ -679,7 +690,7 @@ def main():
             args.tmp_dir, samples_df
         )
         create_ground_truth_files(
-            args.out_dir, args.tmp_dir, samples_df
+            args.out_dir, args.tmp_dir, samples_df, args.out_file
         )
 
     elif args.cmd == 'seeds':
@@ -692,7 +703,7 @@ def main():
         )
         create_seeds_parameters_file(
             args.out_dir, args.tmp_dir, samples_df,
-            args.db_file, args.gt_dir
+            args.db_file
         )
 
     elif args.cmd == 'gc_intervals':
@@ -727,9 +738,6 @@ def main():
             seeds_parameters_file(args.out_dir),
             gc_txt_file(args.out_dir),
             gc_png_file(args.out_dir)
-        ] + [
-            ground_truth_file(args.tmp_dir, sample)
-            for sample in samples_df.index
         ]
         _clean_files(files2clean)
         _create_directory([args.out_dir,args.tmp_dir])
@@ -739,12 +747,9 @@ def main():
         create_pls_genes_db(
             args.out_dir, args.tmp_dir, samples_df
         )
-        create_ground_truth_files(
-            args.out_dir, args.tmp_dir, samples_df
-        )
         create_seeds_parameters_file(
             args.out_dir, args.tmp_dir, samples_df,
-            pls_genes_db_file(args.out_dir), args.out_dir
+            pls_genes_db_file(args.out_dir)
         )
         create_GC_content_intervals_file(
             args.out_dir, args.tmp_dir, samples_df
