@@ -126,6 +126,7 @@ def read_samples(in_csv_file):
         logging.exception(
             f'Reading CSV dataset file {in_csv_file}'
         )
+        sys.exit(1)
 
 # Sample data access/modification functions
 def _get_sample_col(samples_df, sample, col):
@@ -135,6 +136,7 @@ def _get_sample_col(samples_df, sample, col):
         logging.exception(
             f'Reading {sample}.{col} in dataset file'
         )
+        sys.exit(1)
 def _get_gfa(samples_df, sample):
     return _get_sample_col(samples_df, sample, 'gfa')
 def _get_chr_fasta(samples_df, sample):
@@ -178,8 +180,10 @@ def _convert_file(in_file, out_file, convert_fun, exception_msg):
             _log_file(out_file)
         except:
             logging.exception(exception_msg)
+            sys.exit(1)
     else:
-        logging.warning(f'FILE {out_file} already exists')   
+        logging.warning(f'FILE {out_file} already exists')
+        sys.exit(1)
 
 def _gunzip_fasta(in_fasta_file, out_fasta_file):
     """
@@ -261,13 +265,12 @@ def _run_cmd(cmd):
     cmd_str = ' '.join(cmd)
     logging.info(f'COMMAND {cmd_str}')
     try:
-        process = subprocess.run(cmd, capture_output=True, text=True)
-        if len(process.stdout) > 0:
-            logging.info(f'STDOUT:\n{process.stdout}')
-        if len(process.stderr) > 0:
-            logging.info(f'STDERR:\n{process.stderr}')
+        process = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        logging.info(f'STDOUT:\n{process.stdout}')
+        logging.warning(f'STDERR:\n{process.stderr}')
     except subprocess.CalledProcessError as e:
         logging.exception(f'Running {cmd_str}')
+        sys.exit(1)
 
 def _read_seq_len(in_fasta_file):
     """
@@ -289,6 +292,7 @@ def _read_seq_len(in_fasta_file):
         logging.exception(
             f'Reading FASTA file {in_fasta_file}'
         )
+        sys.exit(1)
 
 def _read_seq_id_gz(in_fasta_file):
     """
@@ -310,6 +314,7 @@ def _read_seq_id_gz(in_fasta_file):
         logging.exception(
             f'Reading gzipped FASTA file {in_fasta_file}'
         )
+        sys.exit(1)
 
 # File names
 
@@ -512,6 +517,7 @@ def create_pls_genes_db(out_dir, tmp_dir, samples_df):
             _log_file(input_file)
         except:
             logging.exception(f'Creating {input_file}')
+            sys.exit(1)
     
     logging.info(f'## Compute plasmid genes database')
     logging.info(f'ACTION\tcreate plasmid GenBank accessions file')
@@ -579,6 +585,7 @@ def create_GC_content_intervals_file(out_dir, tmp_dir, samples_df):
             _log_file(input_file)
         except:
             logging.exception(f'Creating {input_file}')
+            sys.exit(1)
     
     logging.info(f'## Compute GC content intervals files')
     for file_type in ['chr','pls']:
@@ -650,7 +657,8 @@ def create_seeds_parameters_file(out_dir, tmp_dir, samples_df, db_file):
                     )
             _log_file(input_file)
         except:
-            logging.exception(f'Creating {input_file}') 
+            logging.exception(f'Creating {input_file}')
+            sys.exit(1)
     
     logging.info(f'## Compute seeds parameters file')
     logging.info(f'ACTION\tmap plasmid genes to contigs')    
