@@ -88,7 +88,6 @@ python plasbin_tuning.py tuning --input_file input_file --out_dir out_dir --tmp_
 
 """
 TODO: actually generate the GC intervals file
-TODO: better logging and exceptions
 TODO: clean temporary files
 TODO: update README.md
 """
@@ -130,6 +129,15 @@ def read_samples(in_csv_file):
 
 # Sample data access/modification functions
 def _get_sample_col(samples_df, sample, col):
+    """
+    Args:
+        samples_df (DataFrame): samples dataframe
+        sample (str): name of a sample
+        col (str): name of a column of the dataframe
+
+    Returns:
+        Value of col for sample
+    """
     try:
         return samples_df.at[sample,col]
     except:
@@ -138,17 +146,25 @@ def _get_sample_col(samples_df, sample, col):
         )
         sys.exit(1)
 def _get_gfa(samples_df, sample):
+    """ Path to gzipped GFA file """
     return _get_sample_col(samples_df, sample, 'gfa')
 def _get_chr_fasta(samples_df, sample):
+    """ Path to gzipped chromosome FASTA file """
     return _get_sample_col(samples_df, sample, 'chr_fasta')
 def _get_pls_fasta(samples_df, sample):
+    """ Path to gzipped plasmids FASTA file """
     return _get_sample_col(samples_df, sample, 'pls_fasta')
 def _get_ground_truth(samples_df, sample):
+    """ Path to ground truth file """
     return _get_sample_col(samples_df, sample, 'ground_truth')
 def _set_ground_truth(samples_df, sample, gt_file):
+    """ Set path to ground truth file for sample """
     samples_df.at[sample,'ground_truth'] = gt_file
 
 def _write_samples_df(samples_df, out_file):
+    """
+    Write samples DataFrame samples_df to CSV file out_file
+    """
     samples_df.to_csv(
         out_file, sep=',', header=True, index=True, index_label='sample'
     )
@@ -156,6 +172,7 @@ def _write_samples_df(samples_df, out_file):
 # Auxiliary functions
 
 def _log_file(in_file):
+    """ Write logging message for creating file in_file """
     if os.path.isfile(in_file):
         logging.info(f'FILE\t{in_file}')
     else:
@@ -262,6 +279,7 @@ def _create_directory(in_dir_list):
             os.makedirs(in_dir)
 
 def _run_cmd(cmd):
+    """ Run external command """
     cmd_str = ' '.join(cmd)
     logging.info(f'COMMAND {cmd_str}')
     try:
@@ -317,40 +335,41 @@ def _read_seq_id_gz(in_fasta_file):
         sys.exit(1)
 
 # File names
-
+## Samples specific file path
 def _gfa_file(in_dir, sample):
+    """ Unzipped GFA file """
     return os.path.join(in_dir, f'{sample}.gfa')
 def _gfa_fasta_file(in_dir, sample):
+    """ Unzipped FASTA file for contigs in the GFA file """
     return os.path.join(in_dir, f'{sample}.gfa.fasta')
 def _pls_fasta_file(in_dir, sample):
+    """ Gzipped plasmids FASTA file """
     return os.path.join(in_dir, f'{sample}.pls.fasta')
-def _pls_blastdb_prefix(in_dir, sample):
-    return os.path.join(in_dir, f'{sample}.pls.fasta.db')
 def _pls_mappings_file(in_dir, sample):
+    """ Mapping of sample contigs to plasmids """
     return os.path.join(in_dir, f'{sample}.pls_mappings.txt')
-def _pls_gb_file(in_dir):
-    return os.path.join(in_dir, 'pls.genbank.txt')
 def _genes_mappings_file(in_dir, sample):
+    """ Mapping of genes in plasmid genes database to sample contigs """
     return os.path.join(in_dir, f'{sample}.genes_mappings.txt')
 def _ground_truth_file(in_dir, sample):
+    """ Ground truth file """
     return os.path.join(in_dir, f'{sample}.ground_truth.tsv')
 GC_FILE_PREFIX='gc'
 def _gc_proba_file(in_dir, sample):
+    """ GC probabilities file """
     return os.path.join(in_dir, f'{sample}.{GC_FILE_PREFIX}.tsv')
-def _chr_pls_fasta_path_file(in_dir, file_type):
-    return {
-        'chr': os.path.join(in_dir, 'chr.fasta.txt'),
-        'pls': os.path.join(in_dir, 'pls.fasta.txt')
-    }[file_type]
-def _seeds_input_file(in_dir):
-    return os.path.join(in_dir, 'seeds_input.csv')
+## Datasets wide files
 def _pls_genes_db_file(in_dir):
+    """ Plasmids genes FASTA database file """
     return os.path.join(in_dir, 'pls.genes.fasta')
 def _seeds_parameters_file(in_dir):
+    """ Seeds parameters file """
     return os.path.join(in_dir, 'seeds.txt')
 def _gc_txt_file(in_dir):
+    """ GC content intervals TXT file """
     return os.path.join(in_dir, f'{GC_FILE_PREFIX}.txt')
 def _gc_png_file(in_dir):
+    """ GC content violin plot PNG file """
     return os.path.join(in_dir, f'{GC_FILE_PREFIX}.png')
 
 # Processing functions
@@ -464,7 +483,7 @@ def create_ground_truth_files(
         pls_fasta_file = _pls_fasta_file(tmp_dir, sample)
         _gunzip_fasta(_get_pls_fasta(samples_df, sample), pls_fasta_file)
         logging.info(f'ACTION\tcompute blast database for {pls_fasta_file}')
-        pls_blastdb_prefix = _pls_blastdb_prefix(tmp_dir, sample)
+        pls_blastdb_prefix = os.path.join(in_dir, f'{sample}.pls.fasta.db')
         gfa_fasta_file = _gfa_fasta_file(tmp_dir, sample)
         pls_mappings_file = _pls_mappings_file(tmp_dir, sample)
         cmd1 = [
@@ -521,7 +540,7 @@ def create_pls_genes_db(out_dir, tmp_dir, samples_df):
     
     logging.info(f'## Compute plasmid genes database')
     logging.info(f'ACTION\tcreate plasmid GenBank accessions file')
-    pls_gb_file = _pls_gb_file(tmp_dir)
+    pls_gb_file = os.path.join(tmp_dir, 'pls.genbank.txt')
     _create_input_file(samples_df, pls_gb_file)
     logging.info(f'ACTION\tprocess {pls_gb_file}')
     pls_genes_db_file = _pls_genes_db_file(out_dir)
@@ -573,6 +592,13 @@ def create_GC_content_intervals_file(out_dir, tmp_dir, samples_df):
        None, creates files _gc_txt_file(out_dir) and _gc_png_file(out_dir)
     """
 
+    def _chr_pls_fasta_path_file(in_dir, file_type):
+        """ List of paths to chromosomes/plasmids gzipped FASTA files """
+        return {
+            'chr': os.path.join(in_dir, 'chr.fasta.txt'),
+            'pls': os.path.join(in_dir, 'pls.fasta.txt')
+        }[file_type]
+    
     def _create_input_file(samples_df, input_file, file_type):
         logging.info(f'ACTION\trecord {file_type} FASTA files paths')
         try:
@@ -666,7 +692,7 @@ def create_seeds_parameters_file(out_dir, tmp_dir, samples_df, db_file):
         tmp_dir, tmp_dir, samples_df, db_file
     )
     logging.info(f'ACTION\tcreate plasmids seeds input file')    
-    seeds_input_file = _seeds_input_file(tmp_dir)
+    seeds_input_file = os.path.join(tmp_dir, 'seeds_input.csv')
     _create_input_file(samples_df, seeds_input_file)
     logging.info(f'ACTION\tcreate seeds parameters file') 
     seeds_parameters_file = _seeds_parameters_file(out_dir)
