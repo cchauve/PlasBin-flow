@@ -88,6 +88,11 @@ python plasbin_tuning.py tuning --input_file input_file --out_dir out_dir --tmp_
 
 """
 TODO: actually generate the GC intervals file
+TODO: separate module for reading FASTA files (duplicated code)
+TODO: separate module for reading GFA files, including checking format
+TODO: turn GC content and ground truth files into modules, with checking files format and callable functions
+TODO: incorporate ground truth computation into ground truth module
+TODO: check input CSV file (needed?, file exists?)
 TODO: clean temporary files
 TODO: update README.md
 """
