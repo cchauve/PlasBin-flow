@@ -679,7 +679,7 @@ def create_GC_content_probabilities_file(
             '-gcint', gc_intervals_file
         ]
         _run_cmd(cmd)
-        _set_gc_proba(samples_df, sample, gc_proba_file)        
+        _set_gc_prob(samples_df, sample, gc_proba_file)        
         _log_file(gc_proba_file)
     _write_samples_df(samples_df, out_file)
     _log_file(out_file)
