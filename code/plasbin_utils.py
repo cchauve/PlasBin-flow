@@ -47,6 +47,7 @@ python plasbin_utils.py gc_probabilities --input_file input_file --out_dir out_d
 - out_dir: directory where the GC probabilities files are written
   <sample>.gc.tsv
 - tmp_dir: temporary directory, not deleted
+- out_file: path to new dataset file with ground truth files added
 - gc_intervals_file: GC intervals file
 
 Computing GC intervals from tuning samples
@@ -166,6 +167,12 @@ def _get_ground_truth(samples_df, sample):
 def _set_ground_truth(samples_df, sample, gt_file):
     """ Set path to ground truth file for sample """
     samples_df.at[sample,'ground_truth'] = gt_file
+def _get_gc_prob(samples_df, sample):
+    """ Path to GC content probabilities file """
+    return _get_sample_col(samples_df, sample, 'gc_probabilities')
+def _set_gc_prob(samples_df, sample, gc_prob_file):
+    """ Set path to GC content probabilities file for sample """
+    samples_df.at[sample,'gc_probabilities'] = gc_prob_file
 
 def _write_samples_df(samples_df, out_file):
     """
@@ -645,7 +652,7 @@ def create_GC_content_intervals_file(out_dir, tmp_dir, samples_df):
     _log_file(out_png_file)
 
 def create_GC_content_probabilities_file(
-    out_dir, tmp_dir, gc_intervals_file, samples_df
+        out_dir, tmp_dir, gc_intervals_file, samples_df, out_file
 ): 
     """
     Creates GC content probabilities files
@@ -653,10 +660,13 @@ def create_GC_content_probabilities_file(
     Args:
        out_dir (str): path to output directory
        tmp_dir (str): path to temporary directory
+       gc_intervals_file (str): path to file with GC content intervals
        samples_df (DataFrame): samples dataframe
+       out_file (str): name of dataset file augmeted with ground truth files
 
     Returns:
        None, creates files _gc_proba_file(out_dir, sample) for each sample
+       creates out_file
     """
     logging.info(f'## GC content probabilities files')
     for sample in samples_df.index:
@@ -669,8 +679,11 @@ def create_GC_content_probabilities_file(
             '-gcint', gc_intervals_file
         ]
         _run_cmd(cmd)
+        _set_gc_proba(samples_df, sample, gc_proba_file)        
         _log_file(gc_proba_file)
-
+    _write_samples_df(samples_df, out_file)
+    _log_file(out_file)
+    
 def create_seeds_parameters_file(out_dir, tmp_dir, samples_df, db_file):
     """
     Creates a file containing the parameters defining seeds
@@ -750,6 +763,7 @@ def main():
     # Computing GC contents probabilities
     gcp_parser = subparsers.add_parser('gc_probabilities', parents=[argparser], add_help=False)
     gcp_parser.set_defaults(cmd='gc_probabilities')
+    gcp_parser.add_argument('--out_file', type=str, help='Path to dataset file with added GC probabilities files')        
     gcp_parser.add_argument('--gc_intervals', type=str, help='GC content intervals file')
     # Tuning
     tuning_parser = subparsers.add_parser('tuning', parents=[argparser], add_help=False)
@@ -840,7 +854,8 @@ def main():
         _create_directory([args.out_dir,args.tmp_dir])
         create_GC_content_probabilities_file(
             args.out_dir, args.tmp_dir,
-            args.gc_intervals, samples_df
+            args.gc_intervals, samples_df,
+            args.out_file
         )
         
     elif args.cmd == 'tuning':
