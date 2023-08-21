@@ -122,9 +122,9 @@ def read_samples(in_csv_file):
         )
         return samples_df
     except:
-        logging.exception(
-            f'Reading CSV dataset file {in_csv_file}'
-        )
+        msg = f'Reading CSV dataset file {in_csv_file}'
+        logging.exception(msg)
+        print(f'ERROR\t{msg}', file=sys.stderr)
         sys.exit(1)
 
 # Sample data access/modification functions
@@ -141,10 +141,11 @@ def _get_sample_col(samples_df, sample, col):
     try:
         return samples_df.at[sample,col]
     except:
-        logging.exception(
-            f'Reading {sample}.{col} in dataset file'
-        )
+        msg = f'Reading {sample}.{col} in dataset file'
+        logging.exception(msg)
+        print(f'ERROR\t{msg}', file=sys.stderr)
         sys.exit(1)
+        
 def _get_gfa(samples_df, sample):
     """ Path to gzipped GFA file """
     return _get_sample_col(samples_df, sample, 'gfa')
@@ -177,6 +178,8 @@ def _log_file(in_file):
         logging.info(f'FILE\t{in_file}')
     else:
         logging.error(f'FILE\t{in_file} is missing')
+        print(f'ERROR\t{in_file} is missing', file=sys.stderr)
+        sys.exit(1)
 
 def _convert_file(in_file, out_file, convert_fun, exception_msg):
     """
@@ -197,10 +200,10 @@ def _convert_file(in_file, out_file, convert_fun, exception_msg):
             _log_file(out_file)
         except:
             logging.exception(exception_msg)
+            print(f'ERROR\t{exception_msg}', file=sys.stderr)
             sys.exit(1)
     else:
         logging.warning(f'FILE {out_file} already exists')
-        sys.exit(1)
 
 def _gunzip_fasta(in_fasta_file, out_fasta_file):
     """
@@ -288,6 +291,7 @@ def _run_cmd(cmd):
         logging.warning(f'STDERR:\n{process.stderr}')
     except subprocess.CalledProcessError as e:
         logging.exception(f'Running {cmd_str}')
+        print(f'ERROR\tRunning {cmd_str}', file=sys.stderr)
         sys.exit(1)
 
 def _read_seq_len(in_fasta_file):
@@ -307,9 +311,9 @@ def _read_seq_len(in_fasta_file):
                 seq_len[record.id] = len(record.seq)
         return seq_len
     except:
-        logging.exception(
-            f'Reading FASTA file {in_fasta_file}'
-        )
+        msg = f'Reading FASTA file {in_fasta_file}'
+        logging.exception(msg)
+        print(f'ERROR\t{msg}', file=sys.stderr)
         sys.exit(1)
 
 def _read_seq_id_gz(in_fasta_file):
@@ -329,9 +333,9 @@ def _read_seq_id_gz(in_fasta_file):
                 seq_id_list.append(record.id)
         return seq_id_list
     except:
-        logging.exception(
-            f'Reading gzipped FASTA file {in_fasta_file}'
-        )
+        msg = f'Reading gzipped FASTA file {in_fasta_file}'
+        logging.exception(msg)
+        print(f'ERROR\t{msg}', file=sys.stderr)
         sys.exit(1)
 
 # File names
@@ -483,7 +487,7 @@ def create_ground_truth_files(
         pls_fasta_file = _pls_fasta_file(tmp_dir, sample)
         _gunzip_fasta(_get_pls_fasta(samples_df, sample), pls_fasta_file)
         logging.info(f'ACTION\tcompute blast database for {pls_fasta_file}')
-        pls_blastdb_prefix = os.path.join(in_dir, f'{sample}.pls.fasta.db')
+        pls_blastdb_prefix = os.path.join(tmp_dir, f'{sample}.pls.fasta.db')
         gfa_fasta_file = _gfa_fasta_file(tmp_dir, sample)
         pls_mappings_file = _pls_mappings_file(tmp_dir, sample)
         cmd1 = [
@@ -535,7 +539,9 @@ def create_pls_genes_db(out_dir, tmp_dir, samples_df):
                         out_file.write(f'{seq_id}\n')
             _log_file(input_file)
         except:
-            logging.exception(f'Creating {input_file}')
+            msg = f'Creating {input_file}'
+            logging.exception(msg)
+            print(f'ERROR\t{msg}', file=sys.stderr)
             sys.exit(1)
     
     logging.info(f'## Compute plasmid genes database')
@@ -610,7 +616,9 @@ def create_GC_content_intervals_file(out_dir, tmp_dir, samples_df):
                     )
             _log_file(input_file)
         except:
-            logging.exception(f'Creating {input_file}')
+            msg = f'Creating {input_file}' 
+            logging.exception(msg)
+            print(f'ERROR\t{msg}', file=sys.stderr)
             sys.exit(1)
     
     logging.info(f'## Compute GC content intervals files')
@@ -683,7 +691,9 @@ def create_seeds_parameters_file(out_dir, tmp_dir, samples_df, db_file):
                     )
             _log_file(input_file)
         except:
-            logging.exception(f'Creating {input_file}')
+            msg = f'Creating {input_file}'
+            logging.exception(msg)
+            print(f'ERROR\t{msg}', file=sys.stderr)
             sys.exit(1)
     
     logging.info(f'## Compute seeds parameters file')
