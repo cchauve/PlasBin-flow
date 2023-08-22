@@ -27,7 +27,7 @@ python plasbin_utils.py map_genes_to_ctgs --input_file input_file --out_dir out_
 - pls_db_file: path to plasmid genes database file
 
 Computing ground truth for samples
-python plasbin_utils.py ground_truth --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --out_file out_file --pid_threshold p --cov_threshold c
+python plasbin_utils.py ground_truth --input_file input_file --out_dir out_dir --tmp_dir tmp_dir [--out_file out_file --pid_threshold p --cov_threshold c]
 - input_file: CSV file with one line per sample and 3 required fields:
   sample: sample name
   gfa: gzipped GFA file
@@ -35,9 +35,9 @@ python plasbin_utils.py ground_truth --input_file input_file --out_dir out_dir -
 - out_dir: directory where the ground truth files are written
   <sample>.ground_truth.tsv
 - tmp_dir: temporary directory, not deleted
-- out_file: path to new dataset file with ground truth files added
-- p: percent identity threshold to define a mapping to a plasmid (default=0.95)
-- c: coverage threshold to accept a blast hit  (default=0.8)
+- out_file: [optional] path to new dataset file with ground truth files added
+- p: [optional] percent identity threshold to define a mapping to a plasmid (default=0.95)
+- c: [optional] coverage threshold to accept a blast hit  (default=0.8)
 
 Computing GC content probabilities for samples
 python plasbin_utils.py gc_probabilities --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --gc_intervals gc_intervals_file
@@ -47,7 +47,7 @@ python plasbin_utils.py gc_probabilities --input_file input_file --out_dir out_d
 - out_dir: directory where the GC probabilities files are written
   <sample>.gc.tsv
 - tmp_dir: temporary directory, not deleted
-- out_file: path to new dataset file with ground truth files added
+- out_file: [optional] path to new dataset file with ground truth files added
 - gc_intervals_file: GC intervals file
 
 Computing GC intervals from tuning samples
@@ -142,10 +142,16 @@ def _get_sample_col(samples_df, sample, col):
         col (str): name of a column of the dataframe
 
     Returns:
-        Value of col for sample
+        Value of field col for sample
     """
     try:
-        return samples_df.at[sample,col]
+        val = samples_df.at[sample,col]
+        if pd.isnull(val):
+            raise Exception(
+                f'Missing entry {col} for sample {sample}'
+            )
+        else:
+            return val
     except:
         msg = f'Reading {sample}.{col} in dataset file'
         logging.exception(msg)
@@ -173,6 +179,12 @@ def _get_gc_prob(samples_df, sample):
 def _set_gc_prob(samples_df, sample, gc_prob_file):
     """ Set path to GC content probabilities file for sample """
     samples_df.at[sample,'gc_probabilities'] = gc_prob_file
+def _get_genes2ctgs_mappings(samples_df, sample):
+    """ Path to genes to contigs mappings file """
+    return _get_sample_col(samples_df, sample, 'genes2ctgs_mappings')
+def _set_genes2ctgs_prob(samples_df, sample, mappings_file):
+    """ Set path to genes to contigs mappings file """
+    samples_df.at[sample,'genes2ctgs_mappings'] = mappings_file
 
 def _write_samples_df(samples_df, out_file):
     """
@@ -476,7 +488,7 @@ def _compute_ground_truth(out_dir, tmp_dir, sample, pid_threshold, cov_threshold
                     )
 
 def create_ground_truth_files(
-        out_dir, tmp_dir, samples_df, out_file,
+        out_dir, tmp_dir, samples_df,
         pid_threshold=0.95, cov_threshold=0.8
 ):
     """
@@ -486,8 +498,7 @@ def create_ground_truth_files(
        out_dir (str): path to output directory
        tmp_dir (str): path to temporary directory
        samples_df (DataFrame): samples dataframe
-       out_file (str): name of dataset file augmeted with ground truth files
-       pid_threshold (float): percent identity threshold to define a true psitive mapping
+       pid_threshold (float): percent identity threshold to define a true positive mapping
        cov_threshold (float): coverage threshold to consider a hit 
 
     Returns:
@@ -526,8 +537,6 @@ def create_ground_truth_files(
         ground_truth_file = _ground_truth_file(out_dir, sample)
         _set_ground_truth(samples_df, sample, ground_truth_file)
         _log_file(ground_truth_file)
-    _write_samples_df(samples_df, out_file)
-    _log_file(out_file)
     
 def create_pls_genes_db(out_dir, tmp_dir, samples_df):
     """
@@ -594,6 +603,7 @@ def map_pls_genes_to_contigs(out_dir, tmp_dir, samples_df, db_file):
             '-a', _gfa_file(tmp_dir, sample)
         ]
         _run_cmd(cmd)
+        _set_genes2ctgs_prob(samples_df, sample, genes_mappings_file)
         _log_file(genes_mappings_file)
         
 def create_GC_content_intervals_file(out_dir, tmp_dir, samples_df):
@@ -651,8 +661,8 @@ def create_GC_content_intervals_file(out_dir, tmp_dir, samples_df):
     _log_file(out_txt_file)
     _log_file(out_png_file)
 
-def create_GC_content_probabilities_file(
-        out_dir, tmp_dir, gc_intervals_file, samples_df, out_file
+def create_GC_content_probabilities_files(
+        out_dir, tmp_dir, gc_intervals_file, samples_df
 ): 
     """
     Creates GC content probabilities files
@@ -662,11 +672,9 @@ def create_GC_content_probabilities_file(
        tmp_dir (str): path to temporary directory
        gc_intervals_file (str): path to file with GC content intervals
        samples_df (DataFrame): samples dataframe
-       out_file (str): name of dataset file augmeted with ground truth files
 
     Returns:
        None, creates files _gc_proba_file(out_dir, sample) for each sample
-       creates out_file
     """
     logging.info(f'## GC content probabilities files')
     for sample in samples_df.index:
@@ -681,8 +689,6 @@ def create_GC_content_probabilities_file(
         _run_cmd(cmd)
         _set_gc_prob(samples_df, sample, gc_proba_file)        
         _log_file(gc_proba_file)
-    _write_samples_df(samples_df, out_file)
-    _log_file(out_file)
     
 def create_seeds_parameters_file(out_dir, tmp_dir, samples_df, db_file):
     """
@@ -768,6 +774,12 @@ def main():
     # Tuning
     tuning_parser = subparsers.add_parser('tuning', parents=[argparser], add_help=False)
     tuning_parser.set_defaults(cmd='tuning')
+    # Preprocessing
+    preprocessing_parser = subparsers.add_parser('preprocessing', parents=[argparser], add_help=False)
+    preprocessing_parser.set_defaults(cmd='preprocessing')
+    preprocessing_parser.add_argument('--db_file', type=str, help='Plasmids genes database FASTA file')    
+    preprocessing_parser.add_argument('--gc_intervals', type=str, help='GC content intervals file')
+    preprocessing_parser.add_argument('--out_file', type=str, help='Path to augmented dataset file')        
 
     args = argparser.parse_args()
 
@@ -801,7 +813,8 @@ def main():
             args.tmp_dir, samples_df
         )
         map_pls_genes_to_contigs(
-            args.out_dir, args.tmp_dir, samples_df, args.db_file
+            args.out_dir, args.tmp_dir, samples_df,
+            args.db_file
         )
 
     elif args.cmd == 'ground_truth':
@@ -816,9 +829,12 @@ def main():
             args.tmp_dir, samples_df
         )
         create_ground_truth_files(
-            args.out_dir, args.tmp_dir, samples_df, args.out_file
+            args.out_dir, args.tmp_dir, samples_df
         )
-
+        if args.out_file:
+            _write_samples_df(samples_df, args.out_file)
+            _log_file(args.out_file)
+            
     elif args.cmd == 'seeds':
         samples_df = read_samples(args.input_file)
         files2clean = [_seeds_parameters_file(args.out_dir)]
@@ -852,11 +868,14 @@ def main():
         ]
         _clean_files(files2clean)
         _create_directory([args.out_dir,args.tmp_dir])
-        create_GC_content_probabilities_file(
+        create_GC_content_probabilities_files(
             args.out_dir, args.tmp_dir,
-            args.gc_intervals, samples_df,
-            args.out_file
+            args.gc_intervals, samples_df
         )
+        if args.out_file:
+            _write_samples_df(samples_df, args.out_file)
+            _log_file(args.out_file)
+
         
     elif args.cmd == 'tuning':
         samples_df = read_samples(args.input_file)
@@ -881,6 +900,31 @@ def main():
         create_GC_content_intervals_file(
             args.out_dir, args.tmp_dir, samples_df
         )
+
+    elif args.cmd == 'preprocessing':
+        samples_df = read_samples(args.input_file)
+        files2clean = [
+            _genes_mappings_file(args.out_dir, sample)
+            for sample in samples_df.index
+        ] + [
+            _gc_proba_file(args.out_dir, sample)
+            for sample in samples_df.index
+        ]
+        _clean_files(files2clean)
+        _create_directory([args.out_dir,args.tmp_dir])
+        create_tmp_data_files(
+            args.tmp_dir, samples_df
+        )
+        map_pls_genes_to_contigs(
+            args.out_dir, args.tmp_dir, samples_df,
+            args.db_file
+        )
+        create_GC_content_probabilities_files(
+            args.out_dir, args.tmp_dir,
+            args.gc_intervals, samples_df
+        )
+        _write_samples_df(samples_df, args.out_file)
+        _log_file(args.out_file)
         
 if __name__ == "__main__":
     main()
