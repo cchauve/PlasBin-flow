@@ -83,6 +83,7 @@ def seed_by_param(gdt, lt, ctg_details):
 def compute_seeds_parameters_file(input_csv_file, out_file):
         #Reading and storing input data for reference samples
         colnames = ['sample','assembly','mapping','ground_truth']
+        PATHS_DF = pd.read_csv(input_csv_file)
         PATHS_DF.columns.values[[0, 1, 2, 3]] = colnames
         
         all_ctgs_dict = {}	#Dictionary with contig ids as keys and a dictionary of attributes as value
@@ -207,8 +208,6 @@ def compute_seeds_parameters_file(input_csv_file, out_file):
         len_obj = list(obj_df.max(axis='columns'))
 
         #Listing all combinations with max objective value
-        out_file = Path(OUT_FILE)
-        out_file.parent.mkdir(parents=True, exist_ok=True)
         with open(out_file, "w") as out:
 	        out.write("GD\tLength\n")
 	        for i in range(len(gd_obj)):

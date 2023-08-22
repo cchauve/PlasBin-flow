@@ -542,8 +542,8 @@ def create_GC_content_probabilities_files(
         gc_proba_file = _gc_proba_file(out_dir, sample)
         compute_gc_probabilities_file(
             _gfa_file(tmp_dir, sample),
-            gc_proba_file,
-            gc_intervals_file
+            gc_intervals_file,
+            gc_proba_file            
         )
         _set_gc_prob(samples_df, sample, gc_proba_file)        
         _log_file(gc_proba_file)
@@ -588,12 +588,7 @@ def create_seeds_parameters_file(out_dir, tmp_dir, samples_df, db_file):
     _create_input_file(samples_df, seeds_input_file)
     logging.info(f'ACTION\tcreate seeds parameters file') 
     seeds_parameters_file = _seeds_parameters_file(out_dir)
-    cmd = [
-        'python', 'analyse_seed_eligibility.py',
-        '--paths', seeds_input_file,
-        '--out', seeds_parameters_file
-    ]
-    _run_cmd(cmd)
+    compute_seeds_parameters_file(seeds_input_file, seeds_parameters_file)
     _log_file(seeds_parameters_file)
 
 

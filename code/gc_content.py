@@ -74,7 +74,7 @@ def compute_gc_intervals_files(
     # Converting to dataframe
     seq_df = pd.DataFrame.from_dict(seq_dict).T
     seq_df.index.name='id'
-    seq_df.to_csv(out_file)
+    seq_df.to_csv(out_txt_file)
     second_df = pd.DataFrame(seq_df.to_dict())
     # Violinplot from dataframe
     fig, ax = plt.subplots(figsize=(10,8))
