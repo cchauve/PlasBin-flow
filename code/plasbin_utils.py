@@ -131,6 +131,13 @@ from gc_content import (
 )
 from ground_truth import compute_ground_truth_file
 from seeds import compute_seeds_parameters_file
+from gfa_fasta_utils import (
+    gunzip_GFA,
+    gunzip_FASTA,
+    write_GFA_to_FASTA,
+    read_FASTA_len,
+    read_FASTA_id
+)
 
 # Logging
 
@@ -234,96 +241,6 @@ def _write_samples_df(samples_df, out_file):
 
 # Auxiliary functions
 
-def _convert_file(in_file, out_file, convert_fun, exception_msg):
-    """
-    Convert in_file into out_file, logging a warning if the file already exists
-
-    Args:
-       in_file (str): path to input file
-       out_file (str): path to output file
-       convert_fun (function): function of 2 parameters in_file, out_file
-       exception_msg (str): message to log in case of an exception
-
-    Returns:
-       Creates out_file or log a warning if it already exists
-    """
-    if not os.path.isfile(out_file):
-        try:
-            convert_fun(in_file, out_file)
-            _log_file(out_file)
-        except:
-            logging.exception(exception_msg)
-            print(f'ERROR\t{exception_msg}', file=sys.stderr)
-            sys.exit(1)
-    else:
-        logging.warning(f'FILE {out_file} already exists')
-
-def _gunzip_fasta(in_fasta_file, out_fasta_file):
-    """
-    Gunzip a FASTA file
-
-    Args:
-       in_fasta_file (str): path to input gzipped FASTA file
-       out_fasta_file (str): path to output FASTA file
-
-    Returns:
-       Creates out_fasta_file or log a warning if it already exists
-    """
-    def _convert_fun(in_fasta_file, out_fasta_file):
-        records = []
-        with gzip.open(in_fasta_file, 'rt') as handle:
-            for record in SeqIO.parse(handle, 'fasta'):
-                records.append(record)
-            with open(out_fasta_file, 'w') as out_file:
-                SeqIO.write(records, out_file, 'fasta')
-    _convert_file(
-        in_fasta_file, out_fasta_file, _convert_fun,
-        f'Decompressing FASTA file {in_fasta_file} into {out_fasta_file}'
-    )
-
-def _gunzip_gfa(in_gfa_file, out_gfa_file):
-    """
-    Gunzip a GFA file
-
-    Args:
-       in_gfa_file (str): path to input gzipped GFA file
-       out_gfa_file (str): path to output GFA file
-
-    Returns:
-       Creates out_gfa_file or log a warning if it already exists
-    """
-    def _convert_fun(in_gfa_file, out_gfa_file):
-        with gzip.open(in_gfa_file) as in_file, open(out_gfa_file, 'wb') as out_file:
-            shutil.copyfileobj(in_file, out_file)
-    _convert_file(
-        in_gfa_file, out_gfa_file, _convert_fun,
-        f'Decompressing GFA file {in_gfa_file} into {out_gfa_file}'
-    )
-        
-def _gfa2fasta(in_gfa_file, out_fasta_file):
-    """
-    Convert an unzipped GFA file into an unzipped FASTA file
-
-    Args:
-       in_gfa_file (str): path to input gzipped GFA file
-       out_fasta_file (str): path to output FASTA file
-
-    Returns:
-       Creates out_fasta_file or log a warning if it already exists
-    """
-    def _convert_fun(in_gfa_file, out_fasta_file):
-        with open(in_gfa_file, 'r') as in_file, open(out_fasta_file, 'w') as out_file:
-            for line in in_file.readlines():
-                line_split = line.strip().split('\t')
-                if line[0] == 'S':
-                    out_file.write(
-                        f'>{line_split[1]}\n{line_split[2]}\n'
-                    )
-    _convert_file(
-        in_gfa_file, out_fasta_file, _convert_fun,
-        f'Converting {in_gfa_file} to {out_fasta_file}'
-    )
-
 def _clean_files(files2clean):
     for in_file in files2clean:
         if os.path.isfile(in_file):
@@ -346,50 +263,6 @@ def _run_cmd(cmd):
     except subprocess.CalledProcessError as e:
         logging.exception(f'Running {cmd_str}')
         print(f'ERROR\tRunning {cmd_str}', file=sys.stderr)
-        sys.exit(1)
-
-def _read_seq_len(in_fasta_file):
-    """
-    Read contigs length from a FASTA file
-
-    Args:
-        in_fasta_file (str): path to (unzipped) FASTA file
-
-    Returns:
-        (Dictionary): contig id -> contig length
-    """
-    try:
-        seq_len = {}
-        with open(in_fasta_file, 'r') as f:
-            for record in SeqIO.parse(f, 'fasta'):
-                seq_len[record.id] = len(record.seq)
-        return seq_len
-    except:
-        msg = f'Reading FASTA file {in_fasta_file}'
-        logging.exception(msg)
-        print(f'ERROR\t{msg}', file=sys.stderr)
-        sys.exit(1)
-
-def _read_seq_id_gz(in_fasta_file):
-    """
-    Read contigs id from a gzipped FASTA file
-
-    Args:
-        in_fasta_file (str): path to gzipped FASTA file
-
-    Returns:
-        (List): contigs id
-    """
-    try:
-        seq_id_list = []
-        with gzip.open(in_fasta_file, 'rt') as handle:
-            for record in SeqIO.parse(handle, 'fasta'):
-                seq_id_list.append(record.id)
-        return seq_id_list
-    except:
-        msg = f'Reading gzipped FASTA file {in_fasta_file}'
-        logging.exception(msg)
-        print(f'ERROR\t{msg}', file=sys.stderr)
         sys.exit(1)
 
 # File names
@@ -447,8 +320,11 @@ def create_tmp_data_files(tmp_dir, samples_df):
     for sample in samples_df.index:
         logging.info(f'ACTION\tcopy assembly files for sample {sample}')
         gfa_file = _gfa_file(tmp_dir, sample)
-        _gunzip_gfa(_get_gfa(samples_df,sample), gfa_file)
-        _gfa2fasta(gfa_file, _gfa_fasta_file(tmp_dir, sample))
+        gunzip_GFA(_get_gfa(samples_df,sample), gfa_file)
+        write_GFA_to_FASTA(
+            gfa_file, _gfa_fasta_file(tmp_dir, sample),
+            in_gzipped=False, out_gzipped=False
+        )
 
 def create_ground_truth_files(
         out_dir, tmp_dir, samples_df,
@@ -471,7 +347,7 @@ def create_ground_truth_files(
     for sample in samples_df.index:
         logging.info(f'ACTION\tground truth for {sample}')
         pls_fasta_file = _pls_fasta_file(tmp_dir, sample)
-        _gunzip_fasta(_get_pls_fasta(samples_df, sample), pls_fasta_file)
+        gunzip_FASTA(_get_pls_fasta(samples_df, sample), pls_fasta_file)
         logging.info(f'ACTION\tcompute blast database for {pls_fasta_file}')
         pls_blastdb_prefix = os.path.join(tmp_dir, f'{sample}.pls.fasta.db')
         gfa_fasta_file = _gfa_fasta_file(tmp_dir, sample)
@@ -495,11 +371,11 @@ def create_ground_truth_files(
         _log_file(pls_mappings_file)
         logging.info(f'ACTION\tcompute ground truth file')                
         ground_truth_file = _ground_truth_file(out_dir, sample)
-        compute_ground_truth(
+        compute_ground_truth_file(
             out_dir, tmp_dir, sample,
             pls_mappings_file,
-            _read_seq_len(_gfa_fasta_file(tmp_dir, sample)),
-            _read_seq_len(_pls_fasta_file(tmp_dir, sample)),
+            read_FASTA_len(_gfa_fasta_file(tmp_dir, sample), gzipped=False),
+            read_FASTA_len(_pls_fasta_file(tmp_dir, sample), gzipped=False),
             pid_threshold, cov_threshold,
             ground_truth_file 
         )
@@ -522,8 +398,9 @@ def create_pls_genes_db(out_dir, tmp_dir, samples_df):
         try:
             with open(input_file, 'w') as out_file:
                 for sample in samples_df.index:
-                    for seq_id in _read_seq_id_gz(
-                            _get_pls_fasta(samples_df, sample)
+                    for seq_id in read_FASTA_id(
+                            _get_pls_fasta(samples_df, sample),
+                            gzipped=True
                     ):
                         out_file.write(f'{seq_id}\n')
             _log_file(input_file)
