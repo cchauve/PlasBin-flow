@@ -107,6 +107,7 @@ TODO: turn GC content and ground truth files into modules, with checking files f
 TODO: incorporate ground truth computation into ground truth module
 TODO: check input CSV file (needed?, file exists?)
 TODO: clean temporary files
+TODO: YAML files for tuning/(pre)processing parameters
 TODO: update README.md
 """
 
@@ -121,6 +122,31 @@ import logging
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
+
+import create_db as cd
+import map_genes as mg
+from gc_content import (
+    compute_gc_intervals_files,
+    compute_gc_probabilities_file
+)
+from ground_truth import compute_ground_truth_file
+from seeds import compute_seeds_parameters_file
+
+# Logging
+
+def _log_redirect_output():
+    logger = logging.getLogger()
+    sys.stderr.write = logger.error
+    sys.stdout.write = logger.info
+
+def _log_file(in_file):
+    """ Write logging message for creating file in_file """
+    if os.path.isfile(in_file):
+        logging.info(f'FILE\t{in_file}')
+    else:
+        logging.error(f'FILE\t{in_file} is missing')
+        print(f'ERROR\t{in_file} is missing', file=sys.stderr)
+        sys.exit(1)
 
 # Reading input file
 
@@ -207,15 +233,6 @@ def _write_samples_df(samples_df, out_file):
     )
 
 # Auxiliary functions
-
-def _log_file(in_file):
-    """ Write logging message for creating file in_file """
-    if os.path.isfile(in_file):
-        logging.info(f'FILE\t{in_file}')
-    else:
-        logging.error(f'FILE\t{in_file} is missing')
-        print(f'ERROR\t{in_file} is missing', file=sys.stderr)
-        sys.exit(1)
 
 def _convert_file(in_file, out_file, convert_fun, exception_msg):
     """
@@ -325,6 +342,7 @@ def _run_cmd(cmd):
         process = subprocess.run(cmd, capture_output=True, text=True, check=True)
         logging.info(f'STDOUT:\n{process.stdout}')
         logging.warning(f'STDERR:\n{process.stderr}')
+        _log_redirect_output()
     except subprocess.CalledProcessError as e:
         logging.exception(f'Running {cmd_str}')
         print(f'ERROR\tRunning {cmd_str}', file=sys.stderr)
@@ -432,73 +450,6 @@ def create_tmp_data_files(tmp_dir, samples_df):
         _gunzip_gfa(_get_gfa(samples_df,sample), gfa_file)
         _gfa2fasta(gfa_file, _gfa_fasta_file(tmp_dir, sample))
 
-def _compute_ground_truth(out_dir, tmp_dir, sample, pid_threshold, cov_threshold):
-    """
-    Computes the ground truth file for a sample
-
-    Args:
-       out_dir (str): path to output directory
-       tmp_dir (str): path to temporary directory
-       sample (str): sample -> sample id
-       pid_threshold (float): percent identity threshold
-       cov_threshold (float): coverage threshold
-
-    Returns:
-      None, creates the file _ground_truth_file(out_dir, sample)
-    """
-    def _num_covered_positions(intervals):
-        intervals.sort(key = lambda x: x[0])
-        num_pos_covered,last_pos_covered = 0,0
-        for start,end in intervals:
-            if end <= last_pos_covered:
-                pass
-            else:
-                num_pos_covered += end - max(last_pos_covered + 1, start) + 1
-                last_pos_covered = end
-        return num_pos_covered
-
-    col_names = [
-        "qseqid", "sseqid", "pident", "length", "mismatch",
-        "gapopen", "qstart", "qend", "sstart", "send",
-        "evalue", "bitscore"
-    ]  # outfmt 6
-    hits = pd.read_csv(
-        _pls_mappings_file(tmp_dir, sample),
-        sep = '\t', names = col_names, dtype = str
-    )
-        
-    ctg_len = _read_seq_len(_gfa_fasta_file(tmp_dir, sample))        
-    pls_len = _read_seq_len(_pls_fasta_file(tmp_dir, sample))
-    
-    covered_sections = dict([(pred, []) for pred in ctg_len])	
-    covered_per_ref = dict()		#Covered proportion per reference plasmid
-    
-    ref_ids = hits.sseqid.unique()	#Set of reference ids in the blast output
-    
-    for ref in sorted(ref_ids):
-        covered_per_ref[ref] = {}
-        for ctg in ctg_len.keys():
-            covered_per_ref[ref][ctg] = []
-            ctg_ref_hits = hits.loc[hits.qseqid == ctg].loc[hits.sseqid == ref]
-            for index, row in ctg_ref_hits.iterrows():
-                qstart, qend = int(row[6]), int(row[7])
-                pident = float(row[2])/100
-                interval = (qstart, qend) if qstart <= qend else (qend, qstart)
-                if pident >= pid_threshold:
-                    covered_sections[ctg].append(interval)
-                    covered_per_ref[ref][ctg].append(interval)
-    with open(_ground_truth_file(out_dir, sample), "w") as out_file:
-        for ref in covered_per_ref.keys():
-            for ctg in covered_per_ref[ref]:
-                percent_mapping = _num_covered_positions(
-                    covered_per_ref[ref][ctg]
-                )/ctg_len[ctg]
-                if percent_mapping >= cov_threshold:
-                    pm = '{:.2f}'.format(percent_mapping)
-                    out_file.write(
-                        f'{ref}\t{ctg}\t{pm}\t{pls_len[ref]}\t{ctg_len[ctg]}\n'
-                    )
-
 def create_ground_truth_files(
         out_dir, tmp_dir, samples_df,
         pid_threshold=0.95, cov_threshold=0.8
@@ -543,10 +494,15 @@ def create_ground_truth_files(
         _run_cmd(cmd2)
         _log_file(pls_mappings_file)
         logging.info(f'ACTION\tcompute ground truth file')                
-        _compute_ground_truth(
-            out_dir, tmp_dir, sample, pid_threshold, cov_threshold
-        )
         ground_truth_file = _ground_truth_file(out_dir, sample)
+        compute_ground_truth(
+            out_dir, tmp_dir, sample,
+            pls_mappings_file,
+            _read_seq_len(_gfa_fasta_file(tmp_dir, sample)),
+            _read_seq_len(_pls_fasta_file(tmp_dir, sample)),
+            pid_threshold, cov_threshold,
+            ground_truth_file 
+        )
         _set_ground_truth(samples_df, sample, ground_truth_file)
         _log_file(ground_truth_file)
     
@@ -583,12 +539,25 @@ def create_pls_genes_db(out_dir, tmp_dir, samples_df):
     _create_input_file(samples_df, pls_gb_file)
     logging.info(f'ACTION\tprocess {pls_gb_file}')
     pls_genes_db_file = _pls_genes_db_file(out_dir)
-    cmd = [
-        'python', 'get_gd.py', 'create',
+    _log_redirect_output()
+    cd.create(
         pls_genes_db_file,
-        '-a', pls_gb_file
-    ]
-    _run_cmd(cmd)
+        from_accession = pls_gb_file,
+        from_genbank = cd.DEF_FROM_GENBANK,
+        from_plasmid_table = cd.DEF_FROM_PLASMID_TABLE,
+        keep_plasmids = cd.DEF_KEEP_PLASMIDS,
+        dereplicate = True,
+        from_command_line = False,
+        extend = False,
+        released_before = cd.DEF_RELEASED_BEFORE,
+        type = cd.DEF_TYPE,
+        blacklist = cd.DEF_BLACKLIST,
+        min_length = cd.DEF_MIN_LENGTH,
+        max_length = cd.DEF_MAX_LENGTH,
+        min_gene_length = cd.DEF_MIN_GENE_LENGTH,
+        num_attempts = cd.DEF_NUM_ATTEMPTS,
+        verbose = cd.DEF_VERBOSE
+    )
     _log_file(pls_genes_db_file)
 
 def map_pls_genes_to_contigs(out_dir, tmp_dir, samples_df, db_file):
@@ -608,13 +577,17 @@ def map_pls_genes_to_contigs(out_dir, tmp_dir, samples_df, db_file):
     for sample in samples_df.index:
         genes_mappings_file = _genes_mappings_file(out_dir, sample)
         logging.info(f'ACTION\tmapping {sample} to {db_file}')
-        cmd = [
-            'python', 'get_gd.py', 'map',
-            db_file,
+        _log_redirect_output()
+        mg.map(
             genes_mappings_file,
-            '-a', _gfa_file(tmp_dir, sample)
-        ]
-        _run_cmd(cmd)
+            db_file,
+            from_fasta = mg.DEF_FROM_FASTA,
+            from_gfa = _gfa_file(tmp_dir, sample),
+            clean = mg.DEF_CLEAN,
+            verbose = mg.DEF_VERBOSE,
+            makeblastdb = mg.DEF_MAKEBLASTDB_PATH,
+            blastn = mg.DEF_BLASTN_PATH
+        )
         _set_genes2ctgs_prob(samples_df, sample, genes_mappings_file)
         _log_file(genes_mappings_file)
         
@@ -662,14 +635,12 @@ def create_GC_content_intervals_file(out_dir, tmp_dir, samples_df):
     logging.info(f'ACTION\tcompute GC content intervals files')
     out_txt_file = _gc_txt_file(out_dir)
     out_png_file = _gc_png_file(out_dir)
-    cmd = [
-        'python', 'analyse_GC_content.py',
-        '--chr', _chr_pls_fasta_path_file(tmp_dir, 'chr'),
-        '--pls', _chr_pls_fasta_path_file(tmp_dir, 'pls'),        
-        '--out', out_txt_file,
-        '--vplot', out_png_file
-    ]
-    _run_cmd(cmd)
+    compute_gc_intervals_files(
+        _chr_pls_fasta_path_file(tmp_dir, 'chr'),
+        _chr_pls_fasta_path_file(tmp_dir, 'pls'),
+        out_txt_file,
+        out_png_file
+    )
     _log_file(out_txt_file)
     _log_file(out_png_file)
 
@@ -692,13 +663,11 @@ def create_GC_content_probabilities_files(
     for sample in samples_df.index:
         logging.info(f'ACTION\tcompute GC content probabilities file for sample {sample}')
         gc_proba_file = _gc_proba_file(out_dir, sample)
-        cmd = [
-            'python', 'get_gc_probs.py',
-            '-ag', _gfa_file(tmp_dir, sample),
-            '-outfile', gc_proba_file,
-            '-gcint', gc_intervals_file
-        ]
-        _run_cmd(cmd)
+        compute_gc_probabilities_file(
+            _gfa_file(tmp_dir, sample),
+            gc_proba_file,
+            gc_intervals_file
+        )
         _set_gc_prob(samples_df, sample, gc_proba_file)        
         _log_file(gc_proba_file)
     
@@ -801,6 +770,7 @@ def main():
         level=logging.INFO,
         format='%(name)s - %(levelname)s - %(message)s'
     )
+    _log_redirect_output()
 
     if args.cmd == 'pls_genes_db':
         samples_df = read_samples(args.input_file)
