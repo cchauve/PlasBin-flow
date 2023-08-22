@@ -85,6 +85,18 @@ python plasbin_tuning.py tuning --input_file input_file --out_dir out_dir --tmp_
   gc.png: GC content violin plot
   seeds.txt: seed parameters
 - tmp_dir: temporary directory, not deleted
+
+python plasbin_tuning.py preprocessing --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --pls_db pls_db --gc_intervals gc_intervals --out_file out_file
+- input_file: CSV file with one line per sample and 2 required fields:
+  sample: sample name
+  gfa: gzipped GFA file
+- output_dir: directory where the tuning files are written:
+  plasmid genes to contigs mappings (one per sample, <sample>.genes_mappings.txt)
+  GC content probabilities files  (one per sample, <sample>.gc.tsv)
+- tmp_dir: temporary directory, not deleted
+- pls_db: plasmid genes database
+- gc_intervals: GC content intervals file
+- out_file: augmented dataset CSV file, with mappings and GC probabilities files added
 """
 
 """
