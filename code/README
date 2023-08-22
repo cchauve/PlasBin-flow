@@ -1,6 +1,0 @@
-Files
-- create_db.py
-- filter_blast_mapping.py
-- map_genes.py
-are imported from HyAsP:
-https://github.com/cchauve/HyAsP
