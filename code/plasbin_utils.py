@@ -99,18 +99,6 @@ python plasbin_tuning.py preprocessing --input_file input_file --out_dir out_dir
 - out_file: augmented dataset CSV file, with mappings and GC probabilities files added
 """
 
-"""
-TODO: actually generate the GC intervals file
-TODO: separate module for reading FASTA files (duplicated code)
-TODO: separate module for reading GFA files, including checking format
-TODO: turn GC content and ground truth files into modules, with checking files format and callable functions
-TODO: incorporate ground truth computation into ground truth module
-TODO: check input CSV file (needed?, file exists?)
-TODO: clean temporary files
-TODO: YAML files for tuning/(pre)processing parameters
-TODO: update README.md
-"""
-
 import sys
 import os
 import argparse
@@ -141,10 +129,12 @@ from gfa_fasta_utils import (
 
 # Logging
 
-def _log_redirect_output():
-    logger = logging.getLogger()
-    sys.stderr.write = logger.error
-    sys.stdout.write = logger.info
+def _check_file(in_file):
+    if not os.path.isfile(in_file):
+        msg = f'{in_file} is missing'
+        logging.error(msg)
+        print(f'ERROR\t{msg}', file=sys.stderr)
+        sys.exit(1)    
 
 def _log_file(in_file):
     """ Write logging message for creating file in_file """
@@ -155,9 +145,40 @@ def _log_file(in_file):
         print(f'ERROR\t{in_file} is missing', file=sys.stderr)
         sys.exit(1)
 
+class CustomException(Exception):
+    def __init__(self, msg):
+        # Call the base class constructor with the custom message
+        super().__init__(msg)
+
 # Reading input file
 
-def read_samples(in_csv_file):
+GFA_COL = 'gfa'
+CHR_COL = 'chr_fasta'
+PLS_COL = 'pls_fasta'
+GT_COL = 'ground_truth'
+GC_COL = 'gc_probabilities'
+MAPPINGS_COL = 'genes2ctgs_mappings'
+
+def _check_files(samples_df):
+    """
+    Check that all file entries in sample_df do exist
+    Args:
+        - sample_df (DataFrame)
+    Returns:
+        - List(str): empty entries
+        - List(str): missing files
+    """
+    empty_files = []
+    missing_files = []
+    for sample,files in samples_df.iterrows():
+        for col,file_col in files.items():
+            if pd.isnull(file_col):
+                empty_files.append(f'{sample}.{col}')
+            elif not os.path.isfile(file_col):
+                missing_files.append(file_col)
+    return empty_files,missing_files
+
+def read_samples(in_csv_file, required_columns):
     """
     Reads the samples information CSV file
     
@@ -169,15 +190,33 @@ def read_samples(in_csv_file):
     """
     try:
         samples_df = pd.read_csv(
-            in_csv_file, sep = ',', header = 0, index_col = 'sample'
+            in_csv_file,
+            sep = ',',
+            header = 0,
+            index_col = 'sample',
         )
-        return samples_df
-    except:
-        msg = f'Reading CSV dataset file {in_csv_file}'
+        missing_columns = [
+            col for col in required_columns
+            if col not in samples_df.columns
+        ]
+        if len(missing_columns) > 0:
+            msg = ' '.join(missing_columns)
+            raise CustomException(f'{in_csv_file}: Missing column(s) {msg}') 
+        empty_files,missing_files = _check_files(samples_df)
+        if len(empty_files) > 0:
+            msg = ' '.join(empty_files)
+            raise CustomException(f'{in_csv_file}: Empty file entry {msg}')
+        if len(missing_files) > 0:
+            msg = ' '.join(missing_files)
+            raise CustomException(f'{in_csv_file}: Missing files {msg} ')
+    except Exception as e:
+        msg = f'Reading CSV dataset file {in_csv_file}: {e}'
         logging.exception(msg)
         print(f'ERROR\t{msg}', file=sys.stderr)
         sys.exit(1)
-
+    else:
+        return samples_df
+        
 # Sample data access/modification functions
 def _get_sample_col(samples_df, sample, col):
     """
@@ -189,47 +228,35 @@ def _get_sample_col(samples_df, sample, col):
     Returns:
         Value of field col for sample
     """
-    try:
-        val = samples_df.at[sample,col]
-        if pd.isnull(val):
-            raise Exception(
-                f'Missing entry {col} for sample {sample}'
-            )
-        else:
-            return val
-    except:
-        msg = f'Reading {sample}.{col} in dataset file'
-        logging.exception(msg)
-        print(f'ERROR\t{msg}', file=sys.stderr)
-        sys.exit(1)
+    return samples_df.at[sample,col]
         
 def _get_gfa(samples_df, sample):
     """ Path to gzipped GFA file """
-    return _get_sample_col(samples_df, sample, 'gfa')
+    return _get_sample_col(samples_df, sample, GFA_COL)
 def _get_chr_fasta(samples_df, sample):
     """ Path to gzipped chromosome FASTA file """
-    return _get_sample_col(samples_df, sample, 'chr_fasta')
+    return _get_sample_col(samples_df, sample, CHR_COL)
 def _get_pls_fasta(samples_df, sample):
     """ Path to gzipped plasmids FASTA file """
-    return _get_sample_col(samples_df, sample, 'pls_fasta')
+    return _get_sample_col(samples_df, sample, PLS_COL)
 def _get_ground_truth(samples_df, sample):
     """ Path to ground truth file """
-    return _get_sample_col(samples_df, sample, 'ground_truth')
+    return _get_sample_col(samples_df, sample, GT_COL)
 def _set_ground_truth(samples_df, sample, gt_file):
     """ Set path to ground truth file for sample """
-    samples_df.at[sample,'ground_truth'] = gt_file
+    samples_df.at[sample,GT_COL] = gt_file
 def _get_gc_prob(samples_df, sample):
     """ Path to GC content probabilities file """
-    return _get_sample_col(samples_df, sample, 'gc_probabilities')
+    return _get_sample_col(samples_df, sample, GC_COL)
 def _set_gc_prob(samples_df, sample, gc_prob_file):
     """ Set path to GC content probabilities file for sample """
-    samples_df.at[sample,'gc_probabilities'] = gc_prob_file
+    samples_df.at[sample,GC_COL] = gc_prob_file
 def _get_genes2ctgs_mappings(samples_df, sample):
     """ Path to genes to contigs mappings file """
-    return _get_sample_col(samples_df, sample, 'genes2ctgs_mappings')
+    return _get_sample_col(samples_df, sample, MAPPINGS_COL)
 def _set_genes2ctgs_prob(samples_df, sample, mappings_file):
     """ Set path to genes to contigs mappings file """
-    samples_df.at[sample,'genes2ctgs_mappings'] = mappings_file
+    samples_df.at[sample,MAPPINGS_COL] = mappings_file
 
 def _write_samples_df(samples_df, out_file):
     """
@@ -257,13 +284,13 @@ def _run_cmd(cmd):
     logging.info(f'COMMAND {cmd_str}')
     try:
         process = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        logging.info(f'STDOUT:\n{process.stdout}')
-        logging.warning(f'STDERR:\n{process.stderr}')
-        _log_redirect_output()
     except subprocess.CalledProcessError as e:
         logging.exception(f'Running {cmd_str}')
         print(f'ERROR\tRunning {cmd_str}', file=sys.stderr)
         sys.exit(1)
+    else:
+        logging.info(f'STDOUT:\n{process.stdout}')
+        logging.warning(f'STDERR:\n{process.stderr}')        
 
 # File names
 ## Samples specific file path
@@ -321,10 +348,13 @@ def create_tmp_data_files(tmp_dir, samples_df):
         logging.info(f'ACTION\tcopy assembly files for sample {sample}')
         gfa_file = _gfa_file(tmp_dir, sample)
         gunzip_GFA(_get_gfa(samples_df,sample), gfa_file)
+        _log_file(gfa_file)
+        gfa_fasta_file = _gfa_fasta_file(tmp_dir, sample)
         write_GFA_to_FASTA(
-            gfa_file, _gfa_fasta_file(tmp_dir, sample),
+            gfa_file, gfa_fasta_file,
             in_gzipped=False, out_gzipped=False
         )
+        _log_file(gfa_fasta_file)
 
 def create_ground_truth_files(
         out_dir, tmp_dir, samples_df,
@@ -416,7 +446,6 @@ def create_pls_genes_db(out_dir, tmp_dir, samples_df):
     _create_input_file(samples_df, pls_gb_file)
     logging.info(f'ACTION\tprocess {pls_gb_file}')
     pls_genes_db_file = _pls_genes_db_file(out_dir)
-    _log_redirect_output()
     cd.create(
         pls_genes_db_file,
         from_accession = pls_gb_file,
@@ -454,7 +483,6 @@ def map_pls_genes_to_contigs(out_dir, tmp_dir, samples_df, db_file):
     for sample in samples_df.index:
         genes_mappings_file = _genes_mappings_file(out_dir, sample)
         logging.info(f'ACTION\tmapping {sample} to {db_file}')
-        _log_redirect_output()
         mg.map(
             genes_mappings_file,
             db_file,
@@ -491,19 +519,13 @@ def create_GC_content_intervals_file(out_dir, tmp_dir, samples_df):
     
     def _create_input_file(samples_df, input_file, file_type):
         logging.info(f'ACTION\trecord {file_type} FASTA files paths')
-        try:
-            __get_file = {'chr': _get_chr_fasta, 'pls': _get_pls_fasta}
-            with open(input_file, 'w') as out_file:
-                for sample in samples_df.index:
-                    out_file.write(
-                        f'{__get_file[file_type](samples_df, sample)}\n'
-                    )
-            _log_file(input_file)
-        except:
-            msg = f'Creating {input_file}' 
-            logging.exception(msg)
-            print(f'ERROR\t{msg}', file=sys.stderr)
-            sys.exit(1)
+        __get_file = {'chr': _get_chr_fasta, 'pls': _get_pls_fasta}
+        with open(input_file, 'w') as out_file:
+            for sample in samples_df.index:
+                out_file.write(
+                    f'{__get_file[file_type](samples_df, sample)}\n'
+                )
+        _log_file(input_file)
     
     logging.info(f'## Compute GC content intervals files')
     for file_type in ['chr','pls']:
@@ -562,21 +584,15 @@ def create_seeds_parameters_file(out_dir, tmp_dir, samples_df, db_file):
        None, creates file _seeds_parameters_file(out_dir, out_file_name)
     """
     def _create_input_file(samples_df, input_file):
-        try:
-            with open(input_file, 'w') as out_file:
-                for sample in samples_df.index:
-                    mappings_file = _genes_mappings_file(tmp_dir, sample)
-                    gt_file = _get_ground_truth(samples_df, sample)
-                    fasta_file = _gfa_fasta_file(tmp_dir, sample)
-                    out_file.write(
-                        f'{sample},{fasta_file},{mappings_file},{gt_file}\n'
-                    )
-            _log_file(input_file)
-        except:
-            msg = f'Creating {input_file}'
-            logging.exception(msg)
-            print(f'ERROR\t{msg}', file=sys.stderr)
-            sys.exit(1)
+        with open(input_file, 'w') as out_file:
+            for sample in samples_df.index:
+                mappings_file = _genes_mappings_file(tmp_dir, sample)
+                gt_file = _get_ground_truth(samples_df, sample)
+                fasta_file = _gfa_fasta_file(tmp_dir, sample)
+                out_file.write(
+                    f'{sample},{fasta_file},{mappings_file},{gt_file}\n'
+                )
+        _log_file(input_file)
     
     logging.info(f'## Compute seeds parameters file')
     logging.info(f'ACTION\tmap plasmid genes to contigs')    
@@ -642,10 +658,11 @@ def main():
         level=logging.INFO,
         format='%(name)s - %(levelname)s - %(message)s'
     )
-    _log_redirect_output()
 
+    _check_file(args.input_file)
+    
     if args.cmd == 'pls_genes_db':
-        samples_df = read_samples(args.input_file)
+        samples_df = read_samples(args.input_file, [PLS_COL])
         files2clean = [
             _pls_genes_db_file(args.out_dir)
         ]
@@ -656,7 +673,8 @@ def main():
         )
 
     elif args.cmd == 'map_genes_to_ctgs':
-        samples_df = read_samples(args.input_file)
+        samples_df = read_samples(args.input_file, [GFA_COL])
+        _check_file(args.db_file)
         files2clean = [
             _genes_mappings_file(args.out_dir, sample)
             for sample in samples_df.index
@@ -672,7 +690,7 @@ def main():
         )
 
     elif args.cmd == 'ground_truth':
-        samples_df = read_samples(args.input_file)
+        samples_df = read_samples(args.input_file, [GFA_COL,PLS_COL])
         files2clean = [
             _ground_truth_file(args.out_dir, sample)
             for sample in samples_df.index
@@ -690,7 +708,8 @@ def main():
             _log_file(args.out_file)
             
     elif args.cmd == 'seeds':
-        samples_df = read_samples(args.input_file)
+        samples_df = read_samples(args.input_file, [GFA_COL,GT_COL])
+        _check_file(args.db_file)
         files2clean = [_seeds_parameters_file(args.out_dir)]
         _clean_files(files2clean)
         _create_directory([args.out_dir,args.tmp_dir])
@@ -703,7 +722,7 @@ def main():
         )
 
     elif args.cmd == 'gc_intervals':
-        samples_df = read_samples(args.input_file)
+        samples_df = read_samples(args.input_file, [PLS_COL,CHR_COL])
         files2clean = [
             _gc_txt_file(args.out_dir),
             _gc_png_file(args.out_dir)
@@ -715,7 +734,8 @@ def main():
         )
 
     elif args.cmd == 'gc_probabilities':
-        samples_df = read_samples(args.input_file)
+        samples_df = read_samples(args.input_file, [GFA_COL])
+        _check_file(args.gc_intervals)
         files2clean = [
             _gc_proba_file(args.out_dir, sample)
             for sample in samples_df.index
@@ -732,7 +752,7 @@ def main():
 
         
     elif args.cmd == 'tuning':
-        samples_df = read_samples(args.input_file)
+        samples_df = read_samples(args.input_file, [GFA_COL,PLS_COL,CHR_COL,GT_COL])
         files2clean = [
             _pls_genes_db_file(args.out_dir),
             _seeds_parameters_file(args.out_dir),
@@ -756,7 +776,9 @@ def main():
         )
 
     elif args.cmd == 'preprocessing':
-        samples_df = read_samples(args.input_file)
+        samples_df = read_samples(args.input_file, [GFA_COL])
+        _check_file(args.db_file)
+        _check_file(args.gc_intervals)
         files2clean = [
             _genes_mappings_file(args.out_dir, sample)
             for sample in samples_df.index
