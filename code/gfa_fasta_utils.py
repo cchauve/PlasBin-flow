@@ -170,52 +170,41 @@ GFA_TO_KEY = 'To'
 GFA_TO_ORIENT_KEY = 'ToOrient'
 GFA_OVERLAP_KEY = 'Overlap'
 
-# Attributes types as defined in http://gfa-spec.github.io/GFA-spec/GFA1.html
-GFA_DEFAULT_TYPES = {
-    GFA_SEQ_KEY: lambda x: str(x),
-    'LN': lambda x: int(x),
-    'RC': lambda x: int(x),
-    'FC': lambda x: int(x),
-    'KC': lambda x: int(x),
-    'SH': lambda x: str(x),
-    'UR': lambda x: str(x),
-    GFA_FROM_KEY: lambda x: str(x),
-    GFA_FROM_ORIENT_KEY: lambda x: str(x),
-    GFA_TO_KEY: lambda x: str(x),
-    GFA_TO_ORIENT_KEY: lambda x: str(x),
-    GFA_OVERLAP_KEY: lambda x: str(x),
-    'MQ': lambda x: int(x),
-    'MN': lambda x: int(x),
-    'ID': lambda x: str(x)
+# Conversionto of GFA attributes.
+# Missing: B, J
+GFA_ATTRIBUTE_TYPE = {
+    'i': lambda x: int(x),
+    'f': lambda x: float(x),
+    'Z': lambda x: str(x),
+    'A': lambda x: str(x),
+    'H': lambda x: bytes(x)
 }
-        
-def __add_attributes(attributes_data, attributes_fun):
+
+def __add_attributes(attributes_data, attributes_list):
     """
     Creates a dictionary of attributes for a contig/link
 
     Args:
         - attributes_data (List): list of attributes in format str(key:type:value)
-        - attributes_fun (Dictionary): attribute key (str) -> conversion/processing function
+        - attributes_list (List(str)): list of attribute keys to read
 
     Returns:
        - (Dictionary) attribute key: attribute value (None if missing attribute)
     """
-    attributes_list = list(attributes_fun.keys())
     attributes_dict = {att_key: None for att_key in attributes_list}
     for att_data in attributes_data:
-        att_key = att_data.split(':')[0]
-        att_val = att_data.split(':')[2]
+        att_key,att_type,att_val = att_data.split(':')
         if att_key in attributes_list:
-            attributes_dict[att_key] = attributes_fun[att_key](att_val)
+            attributes_dict[att_key] = GFA_ATTRIBUTE_TYPE[att_type](att_val)
     return attributes_dict
 
-def read_GFA_ctgs(in_file_path, attributes_fun, gzipped=False):
+def read_GFA_ctgs(in_file_path, attributes_list, gzipped=False):
     """
     Read contigs and their attributes from a GFA files
 
     Args:
         - in_file_path (str): path to GFA file to read
-        - attributes_fun (Dictionary): attribute key (str) -> conversion/processing function
+        - attributes_list (List(str)): list of attribute keys to read
         - gzipped (bool): True if gzipped GFA file
 
     Returns:
@@ -230,18 +219,18 @@ def read_GFA_ctgs(in_file_path, attributes_fun, gzipped=False):
             ctg_data = line.strip().split('\t')
             ctg_id,ctg_seq = ctg_data[1],ctg_data[2]
             result[ctg_id] = __add_attributes(
-                [f'{GFA_SEQ_KEY}::{ctg_seq}'] + ctg_data[3:],
-                attributes_fun
+                [f'{GFA_SEQ_KEY}:Z:{ctg_seq}'] + ctg_data[3:],
+                attributes_list
             )
     return result
 
-def read_GFA_links(in_file_path, attributes_fun, gzipped=False):
+def read_GFA_links(in_file_path, attributes_list, gzipped=False):
     """
     Read links and their attributes from a GFA files
 
     Args:
         - in_file_path (str): path to GFA file to read
-        - attributes_fun (Dictionary): attribute key (str) -> conversion/processing function
+        - attributes_list (List(str)): list of attribute keys to read
         - gzipped (bool): True if gzipped GFA file
 
     Returns:
@@ -264,18 +253,18 @@ def read_GFA_links(in_file_path, attributes_fun, gzipped=False):
             overlap = ctg_data[5]
             result[ctg_from].append(
                 __add_attributes([
-                    f'{GFA_TO_KEY}::{ctg_to}',
-                    f'{GFA_FROM_ORIENT_KEY}::{ctg_from_orient}',
-                    f'{GFA_TO_ORIENT_KEY}::{ctg_to_orient}',
-                    f'{GFA_OVERLAP_KEY}::{overlap}'
-                ] + ctg_data[6:], attributes_fun)
+                    f'{GFA_TO_KEY}:Z:{ctg_to}',
+                    f'{GFA_FROM_ORIENT_KEY}:A:{ctg_from_orient}',
+                    f'{GFA_TO_ORIENT_KEY}:A:{ctg_to_orient}',
+                    f'{GFA_OVERLAP_KEY}:Z:{overlap}'
+                ] + ctg_data[6:], attributes_list)
             )
     return result
 
 def write_GFA_to_FASTA(in_GFA_file, out_FASTA_file, in_gzipped, out_gzipped):
     GFA_ctg_seqs = read_GFA_ctgs(
         in_GFA_file,
-        attributes_fun={GFA_SEQ_KEY: GFA_DEFAULT_TYPES[GFA_SEQ_KEY]},
+        attributes_list=[GFA_SEQ_KEY],
         gzipped=in_gzipped
     )
     ctg_records = [
