@@ -171,7 +171,7 @@ GFA_TO_ORIENT_KEY = 'ToOrient'
 GFA_OVERLAP_KEY = 'Overlap'
 
 # Conversionto of GFA attributes.
-# Missing: B, J
+# Missing attributes: B, J
 GFA_ATTRIBUTE_TYPE = {
     'i': lambda x: int(x),
     'f': lambda x: float(x),
