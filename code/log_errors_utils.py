@@ -1,6 +1,7 @@
 import sys
 import os
 import logging
+import subprocess
 
 def check_file(in_file):
     if not os.path.isfile(in_file):
