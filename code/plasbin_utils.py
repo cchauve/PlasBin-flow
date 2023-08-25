@@ -588,7 +588,7 @@ def _read_input(cmd, input_file):
     samples_df = read_samples(input_file, required_columns[cmd])
     return samples_df
 
-def _init(cmd, samples_df, out_dir, tmp_dir):
+def _clean_output_files(cmd, samples_df, out_dir, tmp_dir):
     samples_list = samples_df.index
     files2clean = {
         'pls_genes_db': [_pls_genes_db_file(out_dir)],
@@ -616,10 +616,10 @@ def _init(cmd, samples_df, out_dir, tmp_dir):
         ],
         'preprocessing': [
             _genes_mappings_file(out_dir, sample)
-            for sample in samples_df.index
+            for sample in samples_list
         ] + [
             _gc_proba_file(out_dir, sample)
-            for sample in samples_df.index
+            for sample in samples_list
         ]
     }
     clean_files(files2clean[cmd])
@@ -627,7 +627,7 @@ def _init(cmd, samples_df, out_dir, tmp_dir):
 def main(args):    
     samples_df = _read_input(args.cmd, args.input_file)
     create_directory([args.out_dir,args.tmp_dir])
-    _init(args.cmd, samples_df, args.out_dir, args.tmp_dir)
+    _clean_output_files(args.cmd, samples_df, args.out_dir, args.tmp_dir)
     
     if args.cmd == 'pls_genes_db':
         create_pls_genes_db(
