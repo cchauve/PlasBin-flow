@@ -131,7 +131,9 @@ from log_errors_utils import (
     CustomException,
     clean_files,
     create_directory,
-    run_cmd
+    run_cmd,
+    process_error,
+    process_exception
 )
 
 # Reading input file
@@ -194,10 +196,7 @@ def read_samples(in_csv_file, required_columns):
             msg = ' '.join(missing_files)
             raise CustomException(f'{in_csv_file}: Missing files {msg} ')
     except Exception as e:
-        msg = f'Reading CSV dataset file {in_csv_file}: {e}'
-        logging.exception(msg)
-        print(f'ERROR\t{msg}', file=sys.stderr)
-        sys.exit(1)
+        process_exception(f'Reading CSV dataset file {in_csv_file}: {e}')
     else:
         return samples_df
         
@@ -334,6 +333,9 @@ def create_ground_truth_files(
 
     Returns:
        None, creates files _ground_truth_file(out_dir, sample) for each sample  
+
+    Assumptions:
+       makeblastdb and blastn are in the default path
     """
     logging.info(f'## Compute ground truth and create new dataset CSV file')
     for sample in samples_df.index:
@@ -387,21 +389,20 @@ def create_pls_genes_db(out_dir, tmp_dir, samples_df):
        None, creates file _pls_genes_db_file(out_dir, out_file_name)
     """
     def _create_input_file(samples_df, input_file):
-        try:
-            with open(input_file, 'w') as out_file:
-                for sample in samples_df.index:
-                    for seq_id in read_FASTA_id(
-                            _get_pls_fasta(samples_df, sample),
-                            gzipped=True
-                    ):
-                        out_file.write(f'{seq_id}\n')
-            log_file(input_file)
-        except:
-            msg = f'Creating {input_file}'
-            logging.exception(msg)
-            print(f'ERROR\t{msg}', file=sys.stderr)
-            sys.exit(1)
-    
+        with open(input_file, 'w') as out_file:
+            for sample in samples_df.index:
+                pls_fasta_file = _get_pls_fasta(samples_df, sample)
+                try:
+                    pls_ids = read_FASTA_id(pls_fasta_file, gzipped=True)
+                except Exception as e:
+                    process_exception(
+                        f'Reading plasmids FASTA file {pls_fasta_file}: {e}'
+                    )                    
+                else:
+                    pls_ids_str = '\n'.join(pls_ids)
+                    out_file.write(f'{pls_ids_str}\n')
+        log_file(input_file)
+
     logging.info(f'## Compute plasmid genes database')
     logging.info(f'ACTION\tcreate plasmid GenBank accessions file')
     pls_gb_file = os.path.join(tmp_dir, 'pls.genbank.txt')
@@ -440,6 +441,9 @@ def map_pls_genes_to_contigs(out_dir, tmp_dir, samples_df, db_file):
 
     Returns:
        None, creates files _genes_mappings_file(out_dir, sample)nfor each sample
+
+    Assumptions:
+       makeblastdb and blastn are in the default path
     """
     logging.info(f'## Mapping sample contigs to plasmid genes database')
     for sample in samples_df.index:
@@ -450,7 +454,7 @@ def map_pls_genes_to_contigs(out_dir, tmp_dir, samples_df, db_file):
             db_file,
             from_fasta = mg.DEF_FROM_FASTA,
             from_gfa = _gfa_file(tmp_dir, sample),
-            clean = mg.DEF_CLEAN,
+            clean = True,
             verbose = mg.DEF_VERBOSE,
             makeblastdb = mg.DEF_MAKEBLASTDB_PATH,
             blastn = mg.DEF_BLASTN_PATH

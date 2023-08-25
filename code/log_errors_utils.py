@@ -3,26 +3,31 @@ import os
 import logging
 import subprocess
 
+class CustomException(Exception):
+    def __init__(self, msg):
+        # Call the base class constructor with the custom message
+        super().__init__(msg)
+
+def process_exception(msg):
+    logging.exception(msg)
+    print(f'ERROR\t{msg}', file=sys.stderr)
+    sys.exit(1)
+
+def process_error(msg):
+    logging.error(msg)
+    print(f'ERROR\t{msg}', file=sys.stderr)
+    sys.exit(1)
+
 def check_file(in_file):
     if not os.path.isfile(in_file):
-        msg = f'{in_file} is missing'
-        logging.error(msg)
-        print(f'ERROR\t{msg}', file=sys.stderr)
-        sys.exit(1)
+        process_error(f'{in_file} is missing')
 
 def log_file(in_file):
     """ Write logging message for creating file in_file """
     if os.path.isfile(in_file):
         logging.info(f'FILE\t{in_file}')
     else:
-        logging.error(f'FILE\t{in_file} is missing')
-        print(f'ERROR\t{in_file} is missing', file=sys.stderr)
-        sys.exit(1)
-
-class CustomException(Exception):
-    def __init__(self, msg):
-        # Call the base class constructor with the custom message
-        super().__init__(msg)
+        process_error(f'File\t{in_file} is missing')
 
 def clean_files(files2clean):
     for in_file in files2clean:
@@ -41,9 +46,8 @@ def run_cmd(cmd):
     try:
         process = subprocess.run(cmd, capture_output=True, text=True, check=True)
     except subprocess.CalledProcessError as e:
-        logging.exception(f'Running {cmd_str}')
-        print(f'ERROR\tRunning {cmd_str}', file=sys.stderr)
-        sys.exit(1)
+        msg = f'Running {cmd_str}: {e}'
+        process_exception(msg)
     else:
         logging.info(f'STDOUT:\n{process.stdout}')
         logging.warning(f'STDERR:\n{process.stderr}')      
