@@ -111,7 +111,7 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
 import create_db as cd
-import map_genes as mg
+
 from gc_content import (
     compute_gc_intervals_files,
     compute_gc_probabilities_file
@@ -343,22 +343,22 @@ def create_ground_truth_files(
         pls_blastdb_prefix = os.path.join(tmp_dir, f'{sample}.pls.fasta.db')
         gfa_fasta_file = _gfa_fasta_file(tmp_dir, sample)
         pls_mappings_file = _pls_mappings_file(tmp_dir, sample)
-        cmd1 = [
+        cmd_makeblastdb = [
             'makeblastdb',
             '-in', pls_fasta_file,
             '-dbtype', 'nucl',
             '-out', pls_blastdb_prefix
         ]
-        run_cmd(cmd1)
+        _ = run_cmd(cmd_makeblastdb)
         logging.info(f'ACTION\tmap {gfa_fasta_file} to {pls_blastdb_prefix}')        
-        cmd2 = [
+        cmd_megablast = [
             'blastn', '-task', 'megablast',
             '-query', gfa_fasta_file,
             '-db', pls_blastdb_prefix,
             '-out', pls_mappings_file,
             '-outfmt', '6'
         ]
-        run_cmd(cmd2)
+        _ = run_cmd(cmd_megablast)
         log_file(pls_mappings_file)
         logging.info(f'ACTION\tcompute ground truth file')                
         ground_truth_file = _ground_truth_file(out_dir, sample)
@@ -408,22 +408,7 @@ def create_pls_genes_db(out_dir, tmp_dir, samples_df):
     pls_genes_db_file = _pls_genes_db_file(out_dir)
     cd.create(
         pls_genes_db_file,
-        from_accession = pls_gb_file,
-        from_genbank = cd.DEF_FROM_GENBANK,
-        from_plasmid_table = cd.DEF_FROM_PLASMID_TABLE,
-        keep_plasmids = cd.DEF_KEEP_PLASMIDS,
-        dereplicate = True,
-        from_command_line = False,
-        extend = False,
-        released_before = cd.DEF_RELEASED_BEFORE,
-        type = cd.DEF_TYPE,
-        blacklist = cd.DEF_BLACKLIST,
-        min_length = cd.DEF_MIN_LENGTH,
-        max_length = cd.DEF_MAX_LENGTH,
-        min_gene_length = cd.DEF_MIN_GENE_LENGTH,
-        num_attempts = cd.DEF_NUM_ATTEMPTS,
-        verbose = cd.DEF_VERBOSE
-    )
+        pls_gb_file)
     log_file(pls_genes_db_file)
 
 def map_pls_genes_to_contigs(out_dir, tmp_dir, samples_df, db_file):
@@ -443,20 +428,27 @@ def map_pls_genes_to_contigs(out_dir, tmp_dir, samples_df, db_file):
        makeblastdb and blastn are in the default path
     """
     logging.info(f'## Mapping sample contigs to plasmid genes database')
+    logging.info(f'ACTION\tcompute blast database for {db_file}')
+    genes_blastdb_prefix = f'{db_file}.db'
+    cmd_makeblastdb = [
+        'makeblastdb',
+        '-in', db_file,
+        '-dbtype', 'nucl',
+        '-out', genes_blastdb_prefix
+    ]
+    _ = run_cmd(cmd_makeblastdb)
     for sample in samples_df.index:
         genes_mappings_file = _genes_mappings_file(out_dir, sample)
-        logging.info(f'ACTION\tmapping {sample} to {db_file}')
-        mg.map(
-            genes_mappings_file,
-            db_file,
-            from_fasta = mg.DEF_FROM_FASTA,
-            from_gfa = _gfa_file(tmp_dir, sample),
-            clean = True,
-            verbose = mg.DEF_VERBOSE,
-            makeblastdb = mg.DEF_MAKEBLASTDB_PATH,
-            blastn = mg.DEF_BLASTN_PATH
-        )
-        _set_genes2ctgs_prob(samples_df, sample, genes_mappings_file)
+        gfa_fasta_file = _gfa_fasta_file(tmp_dir, sample)
+        logging.info(f'ACTION\tmap {gfa_fasta_file} to {genes_blastdb_prefix}')        
+        cmd_megablast = [
+            'blastn', '-task', 'megablast',
+            '-query', gfa_fasta_file,
+            '-db', genes_blastdb_prefix,
+            '-out', genes_mappings_file,
+            '-outfmt', '6'
+        ]
+        _ = run_cmd(cmd_megablast)
         log_file(genes_mappings_file)
         
 def create_GC_content_intervals_file(out_dir, tmp_dir, samples_df):

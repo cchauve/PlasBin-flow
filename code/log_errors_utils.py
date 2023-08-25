@@ -50,4 +50,20 @@ def run_cmd(cmd):
         process_exception(msg)
     else:
         logging.info(f'STDOUT:\n{process.stdout}')
-        logging.warning(f'STDERR:\n{process.stderr}')      
+        logging.warning(f'STDERR:\n{process.stderr}')
+        return process.returncode
+
+def run_cmd_redirect(cmd, out_file_name):
+    """ Run external command """
+    cmd_str = ' '.join(cmd)
+    logging.info(f'COMMAND {cmd_str} > {out_file_name}')
+    try:
+        process = subprocess.run(cmd, capture_output=True, text=True, check=True)
+    except subprocess.CalledProcessError as e:
+        msg = f'Running {cmd_str}: {e}'
+        process_exception(msg)
+    else:
+        with open(out_file_name, 'w') as out_file:
+            out_file.write(process.stdout)
+        logging.warning(f'STDERR:\n{process.stderr}')
+        return process.returncode
