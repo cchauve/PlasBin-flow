@@ -624,6 +624,50 @@ def _clean_output_files(cmd, samples_df, out_dir, tmp_dir):
     }
     clean_files(files2clean[cmd])
 
+def _read_arguments():
+    argparser = argparse.ArgumentParser(description='PlasBin-flow utils')
+    argparser.add_argument('--input_file', type=str, help='Samples CSV file')
+    argparser.add_argument('--out_dir', type=str, help='Output directory')    
+    argparser.add_argument('--tmp_dir', type=str, help='Temporary directory')
+    argparser.add_argument('--log_file', type=str, default='plasbin_utils.log', help='Log file')
+    subparsers = argparser.add_subparsers(title='commands')
+    # Creating a plasmid genes database
+    db_parser = subparsers.add_parser('pls_genes_db', parents=[argparser], add_help=False)
+    db_parser.set_defaults(cmd='pls_genes_db')
+    # Map plasmid genes to samples contigs
+    g2c_parser = subparsers.add_parser('map_genes_to_ctgs', parents=[argparser], add_help=False)
+    g2c_parser.set_defaults(cmd='map_genes_to_ctgs')
+    g2c_parser.add_argument('--db_file', type=str, help='Plasmids genes database FASTA file')
+    # Computing ground truth files
+    gt_parser = subparsers.add_parser('ground_truth', parents=[argparser], add_help=False)
+    gt_parser.set_defaults(cmd='ground_truth')
+    gt_parser.add_argument('--out_file', type=str, help='Path to dataset file with added ground truth files')    
+    gt_parser.add_argument('--pid_threshold', type=float, default=0.95, help='Percent identity threshold in [0,1]')
+    gt_parser.add_argument('--cov_threshold', type=float, default=0.8, help='Percent coverage threshold in [0,1]')    
+    # Computing seeds parameters
+    seeds_parser = subparsers.add_parser('seeds', parents=[argparser], add_help=False)
+    seeds_parser.set_defaults(cmd='seeds')
+    seeds_parser.add_argument('--db_file', type=str, help='Plasmids genes database FASTA file')
+    # Computing GC contents intervals
+    gci_parser = subparsers.add_parser('gc_intervals', parents=[argparser], add_help=False)
+    gci_parser.set_defaults(cmd='gc_intervals')
+    # Computing GC contents probabilities
+    gcp_parser = subparsers.add_parser('gc_probabilities', parents=[argparser], add_help=False)
+    gcp_parser.set_defaults(cmd='gc_probabilities')
+    gcp_parser.add_argument('--out_file', type=str, help='Path to dataset file with added GC probabilities files')        
+    gcp_parser.add_argument('--gc_intervals', type=str, help='GC content intervals file')
+    # Tuning
+    tuning_parser = subparsers.add_parser('tuning', parents=[argparser], add_help=False)
+    tuning_parser.set_defaults(cmd='tuning')
+    # Preprocessing
+    preprocessing_parser = subparsers.add_parser('preprocessing', parents=[argparser], add_help=False)
+    preprocessing_parser.set_defaults(cmd='preprocessing')
+    preprocessing_parser.add_argument('--db_file', type=str, help='Plasmids genes database FASTA file')    
+    preprocessing_parser.add_argument('--gc_intervals', type=str, help='GC content intervals file')
+    preprocessing_parser.add_argument('--out_file', type=str, help='Path to augmented dataset file')        
+
+    return argparser.parse_args()
+
 def main(args):    
     samples_df = _read_input(args.cmd, args.input_file)
     create_directory([args.out_dir,args.tmp_dir])
@@ -707,49 +751,9 @@ def main(args):
         log_file(args.out_file)
         
 if __name__ == "__main__":
-    argparser = argparse.ArgumentParser(description='PlasBin-flow utils')
-    argparser.add_argument('--input_file', type=str, help='Samples CSV file')
-    argparser.add_argument('--out_dir', type=str, help='Output directory')    
-    argparser.add_argument('--tmp_dir', type=str, help='Temporary directory')
-    argparser.add_argument('--log_file', type=str, default='plasbin_utils.log', help='Log file')
-    subparsers = argparser.add_subparsers(title='commands')
-    # Creating a plasmid genes database
-    db_parser = subparsers.add_parser('pls_genes_db', parents=[argparser], add_help=False)
-    db_parser.set_defaults(cmd='pls_genes_db')
-    # Map plasmid genes to samples contigs
-    g2c_parser = subparsers.add_parser('map_genes_to_ctgs', parents=[argparser], add_help=False)
-    g2c_parser.set_defaults(cmd='map_genes_to_ctgs')
-    g2c_parser.add_argument('--db_file', type=str, help='Plasmids genes database FASTA file')
-    # Computing ground truth files
-    gt_parser = subparsers.add_parser('ground_truth', parents=[argparser], add_help=False)
-    gt_parser.set_defaults(cmd='ground_truth')
-    gt_parser.add_argument('--out_file', type=str, help='Path to dataset file with added ground truth files')    
-    gt_parser.add_argument('--pid_threshold', type=float, default=0.95, help='Percent identity threshold in [0,1]')
-    gt_parser.add_argument('--cov_threshold', type=float, default=0.8, help='Percent coverage threshold in [0,1]')    
-    # Computing seeds parameters
-    seeds_parser = subparsers.add_parser('seeds', parents=[argparser], add_help=False)
-    seeds_parser.set_defaults(cmd='seeds')
-    seeds_parser.add_argument('--db_file', type=str, help='Plasmids genes database FASTA file')
-    # Computing GC contents intervals
-    gci_parser = subparsers.add_parser('gc_intervals', parents=[argparser], add_help=False)
-    gci_parser.set_defaults(cmd='gc_intervals')
-    # Computing GC contents probabilities
-    gcp_parser = subparsers.add_parser('gc_probabilities', parents=[argparser], add_help=False)
-    gcp_parser.set_defaults(cmd='gc_probabilities')
-    gcp_parser.add_argument('--out_file', type=str, help='Path to dataset file with added GC probabilities files')        
-    gcp_parser.add_argument('--gc_intervals', type=str, help='GC content intervals file')
-    # Tuning
-    tuning_parser = subparsers.add_parser('tuning', parents=[argparser], add_help=False)
-    tuning_parser.set_defaults(cmd='tuning')
-    # Preprocessing
-    preprocessing_parser = subparsers.add_parser('preprocessing', parents=[argparser], add_help=False)
-    preprocessing_parser.set_defaults(cmd='preprocessing')
-    preprocessing_parser.add_argument('--db_file', type=str, help='Plasmids genes database FASTA file')    
-    preprocessing_parser.add_argument('--gc_intervals', type=str, help='GC content intervals file')
-    preprocessing_parser.add_argument('--out_file', type=str, help='Path to augmented dataset file')        
-
-    args = argparser.parse_args()
-        
+    
+    args = _read_arguments()
+    
     logging.basicConfig(
         filename=args.log_file,
         filemode='w',
