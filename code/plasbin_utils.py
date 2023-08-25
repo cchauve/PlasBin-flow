@@ -144,7 +144,7 @@ GT_COL = 'ground_truth'
 GC_COL = 'gc_probabilities'
 MAPPINGS_COL = 'genes2ctgs_mappings'
 
-def _check_input_files(samples_df):
+def check_input_files(samples_df):
     """
     Check that all file entries in sample_df do exist
     Args:
@@ -187,7 +187,7 @@ def read_samples(in_csv_file, required_columns):
         if len(missing_columns) > 0:
             msg = ' '.join(missing_columns)
             raise CustomException(f'{in_csv_file}: Missing column(s) {msg}') 
-        empty_files,missing_files = _check_input_files(samples_df)
+        empty_files,missing_files = check_input_files(samples_df)
         if len(empty_files) > 0:
             msg = ' '.join(empty_files)
             raise CustomException(f'{in_csv_file}: Empty file entry {msg}')
@@ -573,20 +573,8 @@ def create_seeds_parameters_file(out_dir, tmp_dir, samples_df, db_file):
 
 # Main
 
-def _read_input(args):
-    check_file(args.input_file)
-    input_files2check = {
-        'pls_genes_db': [],
-        'map_genes_to_ctgs': [args.db_file],
-        'ground_truth': [],
-        'seeds': [args.db_file],
-        'gc_intervals': [],
-        'gc_probabilities': [args.gc_intervals],
-        'tuning': [],
-        'preprocessing': [args.db_file,args.gc_intervals]
-    }
-    for in_file in [args.input_file] + input_files2check[args.cmd]:
-        check_file(in_file)
+def _read_input(cmd, input_file):
+    check_file(input_file)
     required_columns = {
         'pls_genes_db': [PLS_COL],
         'map_genes_to_ctgs': [GFA_COL],
@@ -597,55 +585,56 @@ def _read_input(args):
         'tuning': [GFA_COL,PLS_COL,CHR_COL,GT_COL],
         'preprocessing': [GFA_COL]
     }
-    samples_df = read_samples(args.input_file, required_columns[args.cmd])
+    samples_df = read_samples(input_file, required_columns[cmd])
     return samples_df
 
-def _init(args, samples_df):
+def _init(cmd, samples_df, out_dir, tmp_dir):
     samples_list = samples_df.index
     files2clean = {
-        'pls_genes_db': [_pls_genes_db_file(args.out_dir)],
+        'pls_genes_db': [_pls_genes_db_file(out_dir)],
         'map_genes_to_ctgs': [
-            _genes_mappings_file(args.out_dir, sample)
+            _genes_mappings_file(out_dir, sample)
             for sample in samples_list
         ],
         'ground_truth': [
-            _ground_truth_file(args.out_dir, sample)
+            _ground_truth_file(out_dir, sample)
             for sample in samples_list
         ],
-        'seeds': [_seeds_parameters_file(args.out_dir)],
+        'seeds': [_seeds_parameters_file(out_dir)],
         'gc_intervals': [
-            _gc_txt_file(args.out_dir), _gc_png_file(args.out_dir)
+            _gc_txt_file(out_dir), _gc_png_file(out_dir)
         ],
         'gc_probabilities': [
-            _gc_proba_file(args.out_dir, sample)
+            _gc_proba_file(out_dir, sample)
             for sample in samples_list
         ],
         'tuning': [
-            _pls_genes_db_file(args.out_dir),
-            _seeds_parameters_file(args.out_dir),
-            _gc_txt_file(args.out_dir),
-            _gc_png_file(args.out_dir)
+            _pls_genes_db_file(out_dir),
+            _seeds_parameters_file(out_dir),
+            _gc_txt_file(out_dir),
+            _gc_png_file(out_dir)
         ],
         'preprocessing': [
-            _genes_mappings_file(args.out_dir, sample)
+            _genes_mappings_file(out_dir, sample)
             for sample in samples_df.index
         ] + [
-            _gc_proba_file(args.out_dir, sample)
+            _gc_proba_file(out_dir, sample)
             for sample in samples_df.index
         ]
     }
-    clean_files(files2clean[args.cmd])
-    create_directory([args.out_dir,args.tmp_dir])
+    clean_files(files2clean[cmd])
 
 def main(args):    
-    samples_df = _read_input(args)
-    _init(args, samples_df)
+    samples_df = _read_input(args.cmd, args.input_file)
+    create_directory([args.out_dir,args.tmp_dir])
+    _init(args.cmd, samples_df, args.out_dir, args.tmp_dir)
     
     if args.cmd == 'pls_genes_db':
         create_pls_genes_db(
             args.out_dir, args.tmp_dir, samples_df
         )
     elif args.cmd == 'map_genes_to_ctgs':
+        check_file(args.db_file)
         create_tmp_data_files(
             args.tmp_dir, samples_df
         )
@@ -664,6 +653,7 @@ def main(args):
             _write_samples_df(samples_df, args.out_file)
             log_file(args.out_file)            
     elif args.cmd == 'seeds':
+        check_file(args.db_file)
         create_tmp_data_files(
             args.tmp_dir, samples_df
         )
@@ -677,6 +667,7 @@ def main(args):
         )
 
     elif args.cmd == 'gc_probabilities':
+        check_file(args.gc_intervals)
         create_GC_content_probabilities_files(
             args.out_dir, args.tmp_dir,
             args.gc_intervals, samples_df
@@ -699,6 +690,8 @@ def main(args):
             args.out_dir, args.tmp_dir, samples_df
         )
     elif args.cmd == 'preprocessing':
+        check_file(args.db_file)
+        check_file(args.gc_intervals)
         create_tmp_data_files(
             args.tmp_dir, samples_df
         )
