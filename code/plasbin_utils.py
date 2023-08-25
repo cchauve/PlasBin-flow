@@ -126,34 +126,14 @@ from gfa_fasta_utils import (
     read_FASTA_len,
     read_FASTA_id
 )
-from error_handling import (
-    _check_file,
-    _log_file,
-    CustomException
+from log_errors_utils import (
+    check_file,
+    log_file,
+    CustomException,
+    clean_files,
+    create_directory,
+    run_cmd
 )
-
-# # Logging
-
-# def _check_file(in_file):
-#     if not os.path.isfile(in_file):
-#         msg = f'{in_file} is missing'
-#         logging.error(msg)
-#         print(f'ERROR\t{msg}', file=sys.stderr)
-#         sys.exit(1)    
-
-# def _log_file(in_file):
-#     """ Write logging message for creating file in_file """
-#     if os.path.isfile(in_file):
-#         logging.info(f'FILE\t{in_file}')
-#     else:
-#         logging.error(f'FILE\t{in_file} is missing')
-#         print(f'ERROR\t{in_file} is missing', file=sys.stderr)
-#         sys.exit(1)
-
-# class CustomException(Exception):
-#     def __init__(self, msg):
-#         # Call the base class constructor with the custom message
-#         super().__init__(msg)
 
 # Reading input file
 
@@ -164,7 +144,7 @@ GT_COL = 'ground_truth'
 GC_COL = 'gc_probabilities'
 MAPPINGS_COL = 'genes2ctgs_mappings'
 
-def _check_files(samples_df):
+def _check_input_files(samples_df):
     """
     Check that all file entries in sample_df do exist
     Args:
@@ -207,7 +187,7 @@ def read_samples(in_csv_file, required_columns):
         if len(missing_columns) > 0:
             msg = ' '.join(missing_columns)
             raise CustomException(f'{in_csv_file}: Missing column(s) {msg}') 
-        empty_files,missing_files = _check_files(samples_df)
+        empty_files,missing_files = _check_input_files(samples_df)
         if len(empty_files) > 0:
             msg = ' '.join(empty_files)
             raise CustomException(f'{in_csv_file}: Empty file entry {msg}')
@@ -273,29 +253,7 @@ def _write_samples_df(samples_df, out_file):
 
 # Auxiliary functions
 
-def _clean_files(files2clean):
-    for in_file in files2clean:
-        if os.path.isfile(in_file):
-            os.remove(in_file)
-        
-def _create_directory(in_dir_list):
-    for in_dir in in_dir_list:
-        if not os.path.exists(in_dir):
-            os.makedirs(in_dir)
-
-def _run_cmd(cmd):
-    """ Run external command """
-    cmd_str = ' '.join(cmd)
-    logging.info(f'COMMAND {cmd_str}')
-    try:
-        process = subprocess.run(cmd, capture_output=True, text=True, check=True)
-    except subprocess.CalledProcessError as e:
-        logging.exception(f'Running {cmd_str}')
-        print(f'ERROR\tRunning {cmd_str}', file=sys.stderr)
-        sys.exit(1)
-    else:
-        logging.info(f'STDOUT:\n{process.stdout}')
-        logging.warning(f'STDERR:\n{process.stderr}')        
+  
 
 # File names
 ## Samples specific file path
@@ -353,13 +311,13 @@ def create_tmp_data_files(tmp_dir, samples_df):
         logging.info(f'ACTION\tcopy assembly files for sample {sample}')
         gfa_file = _gfa_file(tmp_dir, sample)
         gunzip_GFA(_get_gfa(samples_df,sample), gfa_file)
-        _log_file(gfa_file)
+        log_file(gfa_file)
         gfa_fasta_file = _gfa_fasta_file(tmp_dir, sample)
         write_GFA_to_FASTA(
             gfa_file, gfa_fasta_file,
             in_gzipped=False, out_gzipped=False
         )
-        _log_file(gfa_fasta_file)
+        log_file(gfa_fasta_file)
 
 def create_ground_truth_files(
         out_dir, tmp_dir, samples_df,
@@ -393,7 +351,7 @@ def create_ground_truth_files(
             '-dbtype', 'nucl',
             '-out', pls_blastdb_prefix
         ]
-        _run_cmd(cmd1)
+        run_cmd(cmd1)
         logging.info(f'ACTION\tmap {gfa_fasta_file} to {pls_blastdb_prefix}')        
         cmd2 = [
             'blastn', '-task', 'megablast',
@@ -402,8 +360,8 @@ def create_ground_truth_files(
             '-out', pls_mappings_file,
             '-outfmt', '6'
         ]
-        _run_cmd(cmd2)
-        _log_file(pls_mappings_file)
+        run_cmd(cmd2)
+        log_file(pls_mappings_file)
         logging.info(f'ACTION\tcompute ground truth file')                
         ground_truth_file = _ground_truth_file(out_dir, sample)
         compute_ground_truth_file(
@@ -415,7 +373,7 @@ def create_ground_truth_files(
             ground_truth_file 
         )
         _set_ground_truth(samples_df, sample, ground_truth_file)
-        _log_file(ground_truth_file)
+        log_file(ground_truth_file)
     
 def create_pls_genes_db(out_dir, tmp_dir, samples_df):
     """
@@ -438,7 +396,7 @@ def create_pls_genes_db(out_dir, tmp_dir, samples_df):
                             gzipped=True
                     ):
                         out_file.write(f'{seq_id}\n')
-            _log_file(input_file)
+            log_file(input_file)
         except:
             msg = f'Creating {input_file}'
             logging.exception(msg)
@@ -469,7 +427,7 @@ def create_pls_genes_db(out_dir, tmp_dir, samples_df):
         num_attempts = cd.DEF_NUM_ATTEMPTS,
         verbose = cd.DEF_VERBOSE
     )
-    _log_file(pls_genes_db_file)
+    log_file(pls_genes_db_file)
 
 def map_pls_genes_to_contigs(out_dir, tmp_dir, samples_df, db_file):
     """
@@ -499,7 +457,7 @@ def map_pls_genes_to_contigs(out_dir, tmp_dir, samples_df, db_file):
             blastn = mg.DEF_BLASTN_PATH
         )
         _set_genes2ctgs_prob(samples_df, sample, genes_mappings_file)
-        _log_file(genes_mappings_file)
+        log_file(genes_mappings_file)
         
 def create_GC_content_intervals_file(out_dir, tmp_dir, samples_df):
     """
@@ -530,7 +488,7 @@ def create_GC_content_intervals_file(out_dir, tmp_dir, samples_df):
                 out_file.write(
                     f'{__get_file[file_type](samples_df, sample)}\n'
                 )
-        _log_file(input_file)
+        log_file(input_file)
     
     logging.info(f'## Compute GC content intervals files')
     for file_type in ['chr','pls']:
@@ -545,8 +503,8 @@ def create_GC_content_intervals_file(out_dir, tmp_dir, samples_df):
         out_txt_file,
         out_png_file
     )
-    _log_file(out_txt_file)
-    _log_file(out_png_file)
+    log_file(out_txt_file)
+    log_file(out_png_file)
 
 def create_GC_content_probabilities_files(
         out_dir, tmp_dir, gc_intervals_file, samples_df
@@ -573,7 +531,7 @@ def create_GC_content_probabilities_files(
             gc_proba_file            
         )
         _set_gc_prob(samples_df, sample, gc_proba_file)        
-        _log_file(gc_proba_file)
+        log_file(gc_proba_file)
     
 def create_seeds_parameters_file(out_dir, tmp_dir, samples_df, db_file):
     """
@@ -597,7 +555,7 @@ def create_seeds_parameters_file(out_dir, tmp_dir, samples_df, db_file):
                 out_file.write(
                     f'{sample},{fasta_file},{mappings_file},{gt_file}\n'
                 )
-        _log_file(input_file)
+        log_file(input_file)
     
     logging.info(f'## Compute seeds parameters file')
     logging.info(f'ACTION\tmap plasmid genes to contigs')    
@@ -610,32 +568,84 @@ def create_seeds_parameters_file(out_dir, tmp_dir, samples_df, db_file):
     logging.info(f'ACTION\tcreate seeds parameters file') 
     seeds_parameters_file = _seeds_parameters_file(out_dir)
     compute_seeds_parameters_file(seeds_input_file, seeds_parameters_file)
-    _log_file(seeds_parameters_file)
+    log_file(seeds_parameters_file)
 
 
-def main(args):
-    _check_file(args.input_file)
+# Main
+
+def _read_input(args):
+    check_file(args.input_file)
+    input_files2check = {
+        'pls_genes_db': [],
+        'map_genes_to_ctgs': [args.db_file],
+        'ground_truth': [],
+        'seeds': [args.db_file],
+        'gc_intervals': [],
+        'gc_probabilities': [args.gc_intervals],
+        'tuning': [],
+        'preprocessing': [args.db_file,args.gc_intervals]
+    }
+    for in_file in [args.input_file] + input_files2check[args.cmd]:
+        check_file(in_file)
+    required_columns = {
+        'pls_genes_db': [PLS_COL],
+        'map_genes_to_ctgs': [GFA_COL],
+        'ground_truth': [GFA_COL,PLS_COL],
+        'seeds': [GFA_COL,GT_COL],
+        'gc_intervals': [PLS_COL,CHR_COL],
+        'gc_probabilities': [GFA_COL],
+        'tuning': [GFA_COL,PLS_COL,CHR_COL,GT_COL],
+        'preprocessing': [GFA_COL]
+    }
+    samples_df = read_samples(args.input_file, required_columns[args.cmd])
+    return samples_df
+
+def _init(args, samples_df):
+    samples_list = samples_df.index
+    files2clean = {
+        'pls_genes_db': [_pls_genes_db_file(args.out_dir)],
+        'map_genes_to_ctgs': [
+            _genes_mappings_file(args.out_dir, sample)
+            for sample in samples_list
+        ],
+        'ground_truth': [
+            _ground_truth_file(args.out_dir, sample)
+            for sample in samples_list
+        ],
+        'seeds': [_seeds_parameters_file(args.out_dir)],
+        'gc_intervals': [
+            _gc_txt_file(args.out_dir), _gc_png_file(args.out_dir)
+        ],
+        'gc_probabilities': [
+            _gc_proba_file(args.out_dir, sample)
+            for sample in samples_list
+        ],
+        'tuning': [
+            _pls_genes_db_file(args.out_dir),
+            _seeds_parameters_file(args.out_dir),
+            _gc_txt_file(args.out_dir),
+            _gc_png_file(args.out_dir)
+        ],
+        'preprocessing': [
+            _genes_mappings_file(args.out_dir, sample)
+            for sample in samples_df.index
+        ] + [
+            _gc_proba_file(args.out_dir, sample)
+            for sample in samples_df.index
+        ]
+    }
+    clean_files(files2clean[args.cmd])
+    create_directory([args.out_dir,args.tmp_dir])
+
+def main(args):    
+    samples_df = _read_input(args)
+    _init(args, samples_df)
     
     if args.cmd == 'pls_genes_db':
-        samples_df = read_samples(args.input_file, [PLS_COL])
-        files2clean = [
-            _pls_genes_db_file(args.out_dir)
-        ]
-        _clean_files(files2clean)
-        _create_directory([args.out_dir,args.tmp_dir])
         create_pls_genes_db(
             args.out_dir, args.tmp_dir, samples_df
         )
-
     elif args.cmd == 'map_genes_to_ctgs':
-        samples_df = read_samples(args.input_file, [GFA_COL])
-        _check_file(args.db_file)
-        files2clean = [
-            _genes_mappings_file(args.out_dir, sample)
-            for sample in samples_df.index
-        ]
-        _clean_files(files2clean)
-        _create_directory([args.out_dir,args.tmp_dir])
         create_tmp_data_files(
             args.tmp_dir, samples_df
         )
@@ -643,15 +653,7 @@ def main(args):
             args.out_dir, args.tmp_dir, samples_df,
             args.db_file
         )
-
     elif args.cmd == 'ground_truth':
-        samples_df = read_samples(args.input_file, [GFA_COL,PLS_COL])
-        files2clean = [
-            _ground_truth_file(args.out_dir, sample)
-            for sample in samples_df.index
-        ]
-        _clean_files(files2clean)
-        _create_directory([args.out_dir,args.tmp_dir])
         create_tmp_data_files(
             args.tmp_dir, samples_df
         )
@@ -660,14 +662,8 @@ def main(args):
         )
         if args.out_file:
             _write_samples_df(samples_df, args.out_file)
-            _log_file(args.out_file)
-            
+            log_file(args.out_file)            
     elif args.cmd == 'seeds':
-        samples_df = read_samples(args.input_file, [GFA_COL,GT_COL])
-        _check_file(args.db_file)
-        files2clean = [_seeds_parameters_file(args.out_dir)]
-        _clean_files(files2clean)
-        _create_directory([args.out_dir,args.tmp_dir])
         create_tmp_data_files(
             args.tmp_dir, samples_df
         )
@@ -675,47 +671,20 @@ def main(args):
             args.out_dir, args.tmp_dir, samples_df,
             args.db_file
         )
-
     elif args.cmd == 'gc_intervals':
-        samples_df = read_samples(args.input_file, [PLS_COL,CHR_COL])
-        files2clean = [
-            _gc_txt_file(args.out_dir),
-            _gc_png_file(args.out_dir)
-        ]
-        _clean_files(files2clean)
-        _create_directory([args.out_dir,args.tmp_dir])
         create_GC_content_intervals_file(
             args.out_dir, args.tmp_dir, samples_df
         )
 
     elif args.cmd == 'gc_probabilities':
-        samples_df = read_samples(args.input_file, [GFA_COL])
-        _check_file(args.gc_intervals)
-        files2clean = [
-            _gc_proba_file(args.out_dir, sample)
-            for sample in samples_df.index
-        ]
-        _clean_files(files2clean)
-        _create_directory([args.out_dir,args.tmp_dir])
         create_GC_content_probabilities_files(
             args.out_dir, args.tmp_dir,
             args.gc_intervals, samples_df
         )
         if args.out_file:
             _write_samples_df(samples_df, args.out_file)
-            _log_file(args.out_file)
-
-        
+            log_file(args.out_file)
     elif args.cmd == 'tuning':
-        samples_df = read_samples(args.input_file, [GFA_COL,PLS_COL,CHR_COL,GT_COL])
-        files2clean = [
-            _pls_genes_db_file(args.out_dir),
-            _seeds_parameters_file(args.out_dir),
-            _gc_txt_file(args.out_dir),
-            _gc_png_file(args.out_dir)
-        ]
-        _clean_files(files2clean)
-        _create_directory([args.out_dir,args.tmp_dir])
         create_tmp_data_files(
             args.tmp_dir, samples_df
         )
@@ -729,20 +698,7 @@ def main(args):
         create_GC_content_intervals_file(
             args.out_dir, args.tmp_dir, samples_df
         )
-
     elif args.cmd == 'preprocessing':
-        samples_df = read_samples(args.input_file, [GFA_COL])
-        _check_file(args.db_file)
-        _check_file(args.gc_intervals)
-        files2clean = [
-            _genes_mappings_file(args.out_dir, sample)
-            for sample in samples_df.index
-        ] + [
-            _gc_proba_file(args.out_dir, sample)
-            for sample in samples_df.index
-        ]
-        _clean_files(files2clean)
-        _create_directory([args.out_dir,args.tmp_dir])
         create_tmp_data_files(
             args.tmp_dir, samples_df
         )
@@ -755,7 +711,7 @@ def main(args):
             args.gc_intervals, samples_df
         )
         _write_samples_df(samples_df, args.out_file)
-        _log_file(args.out_file)
+        log_file(args.out_file)
         
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser(description='PlasBin-flow utils')
