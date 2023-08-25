@@ -249,11 +249,8 @@ def _write_samples_df(samples_df, out_file):
         out_file, sep=',', header=True, index=True, index_label='sample'
     )
 
-# Auxiliary functions
-
-  
-
 # File names
+
 ## Samples specific file path
 def _gfa_file(in_dir, sample):
     """ Unzipped GFA file """
