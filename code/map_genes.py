@@ -78,7 +78,7 @@ def map_genes_gfa(genes_file, assembly_file, mapping_file, clean = DEF_CLEAN, ve
 
     if clean:
         call('rm %s' % ' '.join([contigs_file, blast_db + '.nhr', blast_db + '.nin', blast_db + '.nsq']), shell = True)
-        call('rm %s' % ' '.join([blast_db + '.ndb', blast_db + '.njs', blast_db + '.not', blast_db + '.ntf', blast_db + '.nto']), shell = True)
+        call('rm %s' % ' '.join([blast_db + '.ndb', blast_db + '.not', blast_db + '.ntf', blast_db + '.nto']), shell = True)
 
 
 # print configuration of mapping genes to contigs
