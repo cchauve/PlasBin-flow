@@ -59,6 +59,7 @@ python plasbin_utils.py gc_intervals --input_file input_file --out_dir out_dir -
 - out_dir: directory where the GC intervals files are written
   gc.txt, gc.png
 - tmp_dir: temporary directory, not deleted
+- n_gcints: number of GC content intervals between 0 and 1, default value: 6
 
 Computing seeds parameters
 python plasbin_utils.py seeds --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --db_file pls_db_file
@@ -85,6 +86,7 @@ python plasbin_tuning.py tuning --input_file input_file --out_dir out_dir --tmp_
   gc.png: GC content violin plot
   seeds.txt: seed parameters
 - tmp_dir: temporary directory, not deleted
+- n_gcints: number of GC content intervals between 0 and 1, default value: 6
 
 python plasbin_tuning.py preprocessing --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --pls_db pls_db --gc_intervals gc_intervals --out_file out_file
 - input_file: CSV file with one line per sample and 2 required fields:
@@ -106,12 +108,13 @@ import shutil
 import gzip
 import pandas as pd
 import logging
+import glob
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
 import create_db as cd
-import map_genes as mg
+
 from gc_content import (
     compute_gc_intervals_files,
     compute_gc_probabilities_file
@@ -281,14 +284,55 @@ def _pls_genes_db_file(in_dir):
 def _seeds_parameters_file(in_dir):
     """ Seeds parameters file """
     return os.path.join(in_dir, 'seeds.txt')
-def _gc_txt_file(in_dir):
+def _gc_csv_file(in_dir):
     """ GC content intervals TXT file """
-    return os.path.join(in_dir, f'{GC_FILE_PREFIX}.txt')
+    return os.path.join(in_dir, f'{GC_FILE_PREFIX}.csv')
 def _gc_png_file(in_dir):
     """ GC content violin plot PNG file """
     return os.path.join(in_dir, f'{GC_FILE_PREFIX}.png')
+def _gc_intervals_file(in_dir):
+    """ GC content intervals TXT file """
+    return os.path.join(in_dir, f'{GC_FILE_PREFIX}.txt')
 
 # Processing functions
+
+def _run_blast(query_file, db_file, mappings_file):
+    """
+    Blast query_file against db_file into mapping_file
+    Args:
+        - query_file (str): path to a FASTA file
+        - db_file (str): path to a FASTA file
+        - mappings_file (str): pth to the result file
+    Returns:
+        Creates mappings_file
+    Assumptions:
+       makeblastdb and blastn are in the default path
+    """
+    db_prefix = f'{db_file}.db'
+    logging.info(f'ACTION\tcompute blast database for {db_file}: {db_prefix}')
+    cmd_makeblastdb = [
+        'makeblastdb',
+        '-in', db_file,
+        '-dbtype', 'nucl',
+        '-out', db_prefix
+    ]
+    _ = run_cmd(cmd_makeblastdb)
+    logging.info(f'ACTION\tmap {query_file} to {db_prefix}')        
+    cmd_megablast = [
+        'blastn', '-task', 'megablast',
+        '-query', query_file,
+        '-db', db_prefix,
+        '-out', mappings_file,
+        '-outfmt', '6'
+    ]
+    _ = run_cmd(cmd_megablast)
+    log_file(mappings_file)
+    db_files = glob.glob(f'{db_prefix}.n*')
+    for file_to_clean in db_files:
+        try:
+            os.remove(file_to_clean)
+        except Exception as e:
+            process_exception('Removing BLAST file {file_to_clean}: (e)')
 
 def create_tmp_data_files(tmp_dir, samples_df):
     """
@@ -337,29 +381,12 @@ def create_ground_truth_files(
     logging.info(f'## Compute ground truth and create new dataset CSV file')
     for sample in samples_df.index:
         logging.info(f'ACTION\tground truth for {sample}')
+        logging.info(f'ACTION\tMapping contigs to plasmids')
         pls_fasta_file = _pls_fasta_file(tmp_dir, sample)
         gunzip_FASTA(_get_pls_fasta(samples_df, sample), pls_fasta_file)
-        logging.info(f'ACTION\tcompute blast database for {pls_fasta_file}')
-        pls_blastdb_prefix = os.path.join(tmp_dir, f'{sample}.pls.fasta.db')
         gfa_fasta_file = _gfa_fasta_file(tmp_dir, sample)
         pls_mappings_file = _pls_mappings_file(tmp_dir, sample)
-        cmd1 = [
-            'makeblastdb',
-            '-in', pls_fasta_file,
-            '-dbtype', 'nucl',
-            '-out', pls_blastdb_prefix
-        ]
-        run_cmd(cmd1)
-        logging.info(f'ACTION\tmap {gfa_fasta_file} to {pls_blastdb_prefix}')        
-        cmd2 = [
-            'blastn', '-task', 'megablast',
-            '-query', gfa_fasta_file,
-            '-db', pls_blastdb_prefix,
-            '-out', pls_mappings_file,
-            '-outfmt', '6'
-        ]
-        run_cmd(cmd2)
-        log_file(pls_mappings_file)
+        _run_blast(gfa_fasta_file, pls_fasta_file, pls_mappings_file)
         logging.info(f'ACTION\tcompute ground truth file')                
         ground_truth_file = _ground_truth_file(out_dir, sample)
         compute_ground_truth_file(
@@ -408,22 +435,7 @@ def create_pls_genes_db(out_dir, tmp_dir, samples_df):
     pls_genes_db_file = _pls_genes_db_file(out_dir)
     cd.create(
         pls_genes_db_file,
-        from_accession = pls_gb_file,
-        from_genbank = cd.DEF_FROM_GENBANK,
-        from_plasmid_table = cd.DEF_FROM_PLASMID_TABLE,
-        keep_plasmids = cd.DEF_KEEP_PLASMIDS,
-        dereplicate = True,
-        from_command_line = False,
-        extend = False,
-        released_before = cd.DEF_RELEASED_BEFORE,
-        type = cd.DEF_TYPE,
-        blacklist = cd.DEF_BLACKLIST,
-        min_length = cd.DEF_MIN_LENGTH,
-        max_length = cd.DEF_MAX_LENGTH,
-        min_gene_length = cd.DEF_MIN_GENE_LENGTH,
-        num_attempts = cd.DEF_NUM_ATTEMPTS,
-        verbose = cd.DEF_VERBOSE
-    )
+        pls_gb_file)
     log_file(pls_genes_db_file)
 
 def map_pls_genes_to_contigs(out_dir, tmp_dir, samples_df, db_file):
@@ -438,28 +450,15 @@ def map_pls_genes_to_contigs(out_dir, tmp_dir, samples_df, db_file):
 
     Returns:
        None, creates files _genes_mappings_file(out_dir, sample)nfor each sample
-
-    Assumptions:
-       makeblastdb and blastn are in the default path
     """
-    logging.info(f'## Mapping sample contigs to plasmid genes database')
+    logging.info(f'## Mapping plasmid genes database to sample contigs')
     for sample in samples_df.index:
+        logging.info(f'Sample {sample}')
         genes_mappings_file = _genes_mappings_file(out_dir, sample)
-        logging.info(f'ACTION\tmapping {sample} to {db_file}')
-        mg.map(
-            genes_mappings_file,
-            db_file,
-            from_fasta = mg.DEF_FROM_FASTA,
-            from_gfa = _gfa_file(tmp_dir, sample),
-            clean = True,
-            verbose = mg.DEF_VERBOSE,
-            makeblastdb = mg.DEF_MAKEBLASTDB_PATH,
-            blastn = mg.DEF_BLASTN_PATH
-        )
-        _set_genes2ctgs_prob(samples_df, sample, genes_mappings_file)
-        log_file(genes_mappings_file)
+        gfa_fasta_file = _gfa_fasta_file(tmp_dir, sample)
+        _run_blast(db_file, gfa_fasta_file, genes_mappings_file)
         
-def create_GC_content_intervals_file(out_dir, tmp_dir, samples_df):
+def create_GC_content_intervals_file(out_dir, tmp_dir, samples_df, n_gcints):
     """
     Creates GC content intervals files
 
@@ -468,9 +467,10 @@ def create_GC_content_intervals_file(out_dir, tmp_dir, samples_df):
        tmp_dir (str): path to temporary directory
        samples_df (DataFrame): samples dataframe
        out_file_prefix (str): prefix of output file names
+       n_gcints (int): number of intervals
 
     Returns:
-       None, creates files _gc_txt_file(out_dir) and _gc_png_file(out_dir)
+       None, creates files _gc_csv_file(out_dir) and _gc_png_file(out_dir)
     """
 
     def _chr_pls_fasta_path_file(in_dir, file_type):
@@ -494,17 +494,21 @@ def create_GC_content_intervals_file(out_dir, tmp_dir, samples_df):
     for file_type in ['chr','pls']:
         input_file = _chr_pls_fasta_path_file(tmp_dir, file_type)
         _create_input_file(samples_df, input_file, file_type)
-    logging.info(f'ACTION\tcompute GC content intervals files')
-    out_txt_file = _gc_txt_file(out_dir)
+    out_csv_file = _gc_csv_file(out_dir)
     out_png_file = _gc_png_file(out_dir)
+    out_intervals_file = _gc_intervals_file(out_dir)
+    logging.info(f'ACTION\tcompute GC content intervals files {out_intervals_file}')
     compute_gc_intervals_files(
         _chr_pls_fasta_path_file(tmp_dir, 'chr'),
         _chr_pls_fasta_path_file(tmp_dir, 'pls'),
-        out_txt_file,
-        out_png_file
+        out_csv_file,
+        out_png_file,
+        out_intervals_file,
+        n_gcints
     )
-    log_file(out_txt_file)
+    log_file(out_csv_file)
     log_file(out_png_file)
+    log_file(out_intervals_file)
 
 def create_GC_content_probabilities_files(
         out_dir, tmp_dir, gc_intervals_file, samples_df
@@ -602,7 +606,9 @@ def _clean_output_files(cmd, samples_df, out_dir, tmp_dir):
         ],
         'seeds': [_seeds_parameters_file(out_dir)],
         'gc_intervals': [
-            _gc_txt_file(out_dir), _gc_png_file(out_dir)
+            _gc_csv_file(out_dir),
+            _gc_png_file(out_dir),
+            _gc_intervals_file(out_dir)
         ],
         'gc_probabilities': [
             _gc_proba_file(out_dir, sample)
@@ -611,8 +617,9 @@ def _clean_output_files(cmd, samples_df, out_dir, tmp_dir):
         'tuning': [
             _pls_genes_db_file(out_dir),
             _seeds_parameters_file(out_dir),
-            _gc_txt_file(out_dir),
-            _gc_png_file(out_dir)
+            _gc_csv_file(out_dir),
+            _gc_png_file(out_dir),
+            _gc_intervals_file(out_dir)
         ],
         'preprocessing': [
             _genes_mappings_file(out_dir, sample)
@@ -651,6 +658,7 @@ def _read_arguments():
     # Computing GC contents intervals
     gci_parser = subparsers.add_parser('gc_intervals', parents=[argparser], add_help=False)
     gci_parser.set_defaults(cmd='gc_intervals')
+    gci_parser.add_argument('--n_gcints', type=int, default=6, help='Number of GC content intervals between 0 and 1')
     # Computing GC contents probabilities
     gcp_parser = subparsers.add_parser('gc_probabilities', parents=[argparser], add_help=False)
     gcp_parser.set_defaults(cmd='gc_probabilities')
@@ -659,6 +667,7 @@ def _read_arguments():
     # Tuning
     tuning_parser = subparsers.add_parser('tuning', parents=[argparser], add_help=False)
     tuning_parser.set_defaults(cmd='tuning')
+    tuning_parser.add_argument('--n_gcints', type=int, default=6, help='Number of GC content intervals between 0 and 1')
     # Preprocessing
     preprocessing_parser = subparsers.add_parser('preprocessing', parents=[argparser], add_help=False)
     preprocessing_parser.set_defaults(cmd='preprocessing')
@@ -707,7 +716,8 @@ def main(args):
         )
     elif args.cmd == 'gc_intervals':
         create_GC_content_intervals_file(
-            args.out_dir, args.tmp_dir, samples_df
+            args.out_dir, args.tmp_dir,
+            samples_df, args.n_gcints
         )
 
     elif args.cmd == 'gc_probabilities':
@@ -731,7 +741,8 @@ def main(args):
             _pls_genes_db_file(args.out_dir)
         )
         create_GC_content_intervals_file(
-            args.out_dir, args.tmp_dir, samples_df
+            args.out_dir, args.tmp_dir,
+            samples_df, args.n_gcints
         )
     elif args.cmd == 'preprocessing':
         check_file(args.db_file)
