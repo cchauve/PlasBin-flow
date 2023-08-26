@@ -89,7 +89,6 @@ def compute_seeds_parameters_file(input_csv_file, out_file):
         all_ctgs_dict = {}	#Dictionary with contig ids as keys and a dictionary of attributes as value
         all_pls_dict = {}	#Dictionary with plasmid ids as keys and a dictionary of attributes as value
         
-        print("Reading input")
         for index, row in PATHS_DF.iterrows():
 	        sample, assembly_file, gene_map_file, gt_file = row[0], row[1], row[2], row[3]
                 
@@ -172,7 +171,6 @@ def compute_seeds_parameters_file(input_csv_file, out_file):
 	        for lt in LEN_THRESHOLDS:
 		        false_seeds_dict[gdt][lt] = len(all_ctgs_df[(all_ctgs_df['type'] == 'chromosome') & (all_ctgs_df['gd'] >= gdt) & (all_ctgs_df['length'] >= lt)])
         false_seeds_df = pd.DataFrame.from_dict(false_seeds_dict)
-        print("\nFalse seeds recorded.")
 
         '''	
         Computing number of plasmids with and without seed contigs
@@ -189,7 +187,6 @@ def compute_seeds_parameters_file(input_csv_file, out_file):
 		        pls_with_seeds_dict[gdt][lt] = len(seeds_df[seeds_df[str(lt)+'_'+str(gdt)] >= 1])
         pls_no_seeds_df = pd.DataFrame.from_dict(pls_no_seeds_dict)
         pls_with_seeds_df = pd.DataFrame.from_dict(pls_with_seeds_dict)
-        print("\nSeeded plasmids recorded.")
 
         '''	
         Choosing seed parameters
