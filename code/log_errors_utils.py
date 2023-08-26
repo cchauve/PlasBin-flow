@@ -50,7 +50,8 @@ def run_cmd(cmd):
         process_exception(msg)
     else:
         logging.info(f'STDOUT:\n{process.stdout}')
-        logging.warning(f'STDERR:\n{process.stderr}')
+        if len(process.stderr) > 0:
+            logging.warning(f'STDERR:\n{process.stderr}')
         return process.returncode
 
 def run_cmd_redirect(cmd, out_file_name):
