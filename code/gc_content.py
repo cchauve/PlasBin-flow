@@ -40,7 +40,7 @@ def read_fastas(seq_dict, fasta_paths, mol_type):
     return seq_dict
 
 def compute_gc_intervals_files(
-        chr_paths_file, pls_paths_file, out_txt_file, out_png_file
+        chr_paths_file, pls_paths_file, out_csv_file, out_png_file, out_intervals_file, n_gcints
 ):
     '''
     Reads fasta sequences of plasmids and chromosomes in the reference database
@@ -50,11 +50,13 @@ def compute_gc_intervals_files(
     Args:
         - chr_paths_file (str): path to file containing the list of paths of chromosome FASTA files
         - pls_paths_file (str): path to file containing the list of paths of plasmids FASTA files
-        - out_txt_file (str): written text file containing GC content of chromosomes and plasmids
+        - out_csv_file (str): written tCSV file containing GC content of chromosomes and plasmids
         - out_png_file (str): written PNG file containing violin plot of GC content of chromosomes and plasmids
-    
+        - out_intervals_file (str): written text file containing the endpoints of GC content intervals in ascending order
+        - n_gcints (int): number of GC content intervals between 0 and 1
+
     Returns:
-        None, creates files out_txt_file and out_png_file
+        None, creates files out_csv_file, out_png_file, out_intervals_file
     '''
 
     '''
@@ -74,8 +76,17 @@ def compute_gc_intervals_files(
     # Converting to dataframe
     seq_df = pd.DataFrame.from_dict(seq_dict).T
     seq_df.index.name='id'
-    seq_df.to_csv(out_txt_file)
+    seq_df.to_csv(out_csv_file)
     second_df = pd.DataFrame(seq_df.to_dict())
+    # Determining intervals from dataframe
+    pls_df = seq_df[seq_df['type'] == 'plasmid']
+    max_gc = pls_df['gc_percent'].max()
+    min_gc = pls_df['gc_percent'].min()
+    gc_bin_size = (max_gc - min_gc) / (n_gcints-2)
+    gc_endpoints = (np.linspace(min_gc - gc_bin_size/2, max_gc + gc_bin_size/2, n_gcints - 1))
+    with open(out_intervals_file, "w") as f:
+        intervals_str = '\n'.join([str(x) for x in gc_endpoints])
+        f.write(f'0\n{intervals_str}\n1\n')
     # Violinplot from dataframe
     fig, ax = plt.subplots(figsize=(10,8))
     plt.suptitle('GC distribution')
@@ -167,7 +178,7 @@ def compute_gc_probabilities_file(gfa_file, gc_intervals_file, out_file):
     gc_file = open(out_file, "w")
     gc_file.write('CTG')
     for i in range(0, len(probs)-1):
-        gc_file.write('\t'+str(probs[i])+'-'+str(probs[i+1]))
+        gc_file.write(f'\t{probs[i]}-{probs[i+1]}')
     gc_file.write('\n')
 
     contigs_dict = {}
@@ -187,5 +198,5 @@ def compute_gc_probabilities_file(gfa_file, gc_intervals_file, out_file):
             total += gp2
             gp_array.append(gp2)
         for gp in gp_array:
-            gc_file.write("\t"+str(gp / total))
+            gc_file.write(f'\t{gp / total}')
         gc_file.write("\n")
