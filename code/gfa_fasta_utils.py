@@ -70,7 +70,7 @@ def gunzip_FASTA(in_file_path, out_file_path):
 
 def read_FASTA_ctgs(in_file_path, record_fun, gzipped=False):
     """
-    Read FASTA file, processing each sequence
+    Read FASTA file, processing each entry
 
     Args:
         - in_file_path (str): path of FASTA file to read
@@ -83,13 +83,13 @@ def read_FASTA_ctgs(in_file_path, record_fun, gzipped=False):
     return {
         id: record_fun(record)
         for id,record in SeqIO.to_dict(
-                SeqIO.parse(
-                    __open_file_read(
-                        in_file_path,
-                        gzipped
-                    ),
-                    'fasta'
-                )
+            SeqIO.parse(
+                __open_file_read(
+                    in_file_path,
+                    gzipped
+                ),
+                'fasta'
+            )
         ).items()
     }
 
@@ -157,7 +157,7 @@ def gunzip_GFA(in_file_path, out_file_path):
        out_file_path (str): path to output GFA file
 
     Returns:
-       Creates oGFA file out_file_path
+       Creates GFA file out_file_path
     """
     with gzip.open(in_file_path) as in_file, open(out_file_path, 'wb') as out_file:
         shutil.copyfileobj(in_file, out_file)
@@ -242,7 +242,7 @@ def __assert_attributes_list(attributes_list):
         attributes_list == ['all'] or 'all' not in attributes_list
     ), f'incorrect GFA attributes list {attributes_list}'
 
-def read_GFA_ctgs(in_file_path, attributes_list, gzipped=False):
+def read_GFA_ctgs(in_file_path, attributes_list, gzipped=False, ctg_fun=lambda x: x):
     """
     Read contigs and their attributes from a GFA files
 
@@ -251,9 +251,13 @@ def read_GFA_ctgs(in_file_path, attributes_list, gzipped=False):
         - attributes_list (List(str)): list of attribute keys to read
           ['all'] for recording all attributes
         - gzipped (bool): True if gzipped GFA file
+        - ctg_fun: function that process a contig information
 
     Returns:
-       - (Dictionary) contig id -> (Dictionary) attribute key: attribute value (None if missing attribute)
+       - (Dictionary) contig id -> ctg_fun(
+           (Dictionary) attribute key: attribute value 
+           (None if missing attribute)
+         )
          where attribute key GFA_SEQ_KEY is for the contig sequence
     Assumption: 
        - every contig has an associated id and sequence (not checked)
@@ -264,9 +268,11 @@ def read_GFA_ctgs(in_file_path, attributes_list, gzipped=False):
         for line in [x for x in in_file.readlines() if x[0]=='S']:
             ctg_data = line.strip().split('\t')
             ctg_id,ctg_seq = ctg_data[1],ctg_data[2]
-            result[ctg_id] = __add_attributes(
-                [f'{GFA_SEQ_KEY}:Z:{ctg_seq}'] + ctg_data[3:],
-                attributes_list
+            result[ctg_id] = ctg_fun(
+                __add_attributes(
+                    [f'{GFA_SEQ_KEY}:Z:{ctg_seq}'] + ctg_data[3:],
+                    attributes_list
+                )
             )
     return result
 
