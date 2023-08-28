@@ -114,11 +114,14 @@ def _write_gene_density_file(ctg_gd_dict, gd_out_file):
         Creates gd_out_file with format
         <contig id><TAB><gene density><TAB><space separated intervals <gene id>:<start>:<end>
     '''
-    with open(gd_out_file, 'w') as out_file:
-        for ctg_id,ctg_data in ctg_gd_dict.items():
-            ctg_gd = ctg_data[GD_DENSITY_KEY]
-            ctg_intervals_str = _write_intervals(ctg_data[GD_INTERVALS_KEY])
-            out_file.write(f'{ctg_id}\t{ctg_gd}\t{ctg_intervals_str}\n')
+    try:
+        with open(gd_out_file, 'w') as out_file:
+            for ctg_id,ctg_data in ctg_gd_dict.items():
+                ctg_gd = ctg_data[GD_DENSITY_KEY]
+                ctg_intervals_str = _write_intervals(ctg_data[GD_INTERVALS_KEY])
+                out_file.write(f'{ctg_id}\t{ctg_gd}\t{ctg_intervals_str}\n')
+    except Exception as e:
+        process_exception(f'Writing gene density file {gd_out_file}: {e}')
 
 def compute_gene_density_file(
         gfa_file, mappings_file, gd_out_file, gfa_gzipped=True

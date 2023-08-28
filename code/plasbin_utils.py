@@ -382,7 +382,7 @@ def create_ground_truth_files(
         logging.info(f'ACTION\tcompute ground truth file')                
         ground_truth_file = _ground_truth_file(out_dir, sample)
         compute_ground_truth_file(
-            out_dir, tmp_dir, sample,
+            sample,
             pls_mappings_file,
             read_FASTA_len(_gfa_fasta_file(tmp_dir, sample), gzipped=False),
             read_FASTA_len(_pls_fasta_file(tmp_dir, sample), gzipped=False),
