@@ -3,19 +3,17 @@
 import pandas as pd
 import numpy as np
 
-from gfa_fasta_utils import (
-    read_FASTA_ctgs
-)
-from mappings_utils import (
-    read_blast_outfmt6_file,
-    compute_blast_s_intervals
+from gene_density import (
+    compute_gene_density
 )
 from ground_truth import (
     read_ground_truth_file,
     GT_PLS_KEY,
     GT_CTG_KEY
 )
-from log_errors_utils import process_exception
+from log_errors_utils import (
+    process_exception
+)
 
 LENGTH_KEY = 'length'
 GD_KEY = 'gd'
@@ -23,7 +21,6 @@ MOL_TYPE_KEY = 'mol_type'
 MOL_TYPE_CHR = 'chromosome'
 MOL_TYPE_PLS = 'plasmid'
 
-CTG_LIST_KEY = 'ctg_list'
 SAMPLE_KEY = 'sample'
 
 ''' Reading input files '''
@@ -47,29 +44,9 @@ def _process_record(record):
 def _join_sample_ctg(sample, ctg):
     return f'{sample}_{ctg}'
 
-def _read_FASTA_file(fasta_file, sample):
-    '''
-    Reads a contigs FASTA file
-
-    Args:
-        - fasta_file (str): path to unzipped FASTA file
-        - sample (str): sample name
-
-    Returns:
-       (Dictionary) <sample>_<chromosome id> -> (Dictionary)
-                    GC_COUNT_KEY -> GC content, GC_RATIO_KEY: GC content ratio, LENGTH_KEY: length
-                    GD_KEY: 0, MOL_TYPE_KEY: MOL_TYPE_CHR
-    '''
-    return read_FASTA_ctgs(
-        fasta_file, 
-        _process_record,
-        gzipped=False,
-        id_fun = lambda x: _join_sample_ctg(sample, x)
-    )
-
 ''' Computing gene density for all contigs ''' 
 
-def compute_gene_density(sample, mappings_file, ctg_len):
+def _compute_gene_density(sample, mappings_file, gfa_file, gfa_gzipped):
     '''
     Reading gene to contig mapping information
     Computes gene density for all contigs
