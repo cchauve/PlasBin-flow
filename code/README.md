@@ -23,13 +23,13 @@ The gene database creation and gene mapping steps require UNIX tools (curl and r
  
 We strongly recommand to run PlasBin-flow using a dedicated python virtual environment (see https://docs.python.org/3.9/library/venv.html).  
 
-The following python libraries are used in the scripts for tuning PlasBin-flow:
-pandas: (2.0.0)  
-matplotlib: (3.7.0)  
-seaborn: (0.12.2)  
-Bio (Seq, SeqIO, SeqRecord): (1.81)  
-scipy (special, integrate): (1.10.1)  
-numpy: (1.24.2)  
+The following python libraries are used in the scripts for tuning PlasBin-flow:\
+pandas: (2.0.0)\
+matplotlib: (3.7.0)\
+seaborn: (0.12.2)\
+Bio (Seq, SeqIO, SeqRecord): (1.81)\
+scipy (special, integrate): (1.10.1)\
+numpy: (1.24.2)
 
 ## Obtaining Gurobi license
 PlasBin-flow uses the <a href="https://www.gurobi.com/">Gurobi Solver</a>.
