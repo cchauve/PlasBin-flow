@@ -4,7 +4,8 @@ import pandas as pd
 
 from mappings_utils import (
     read_blast_outfmt6_file,
-    compute_blast_qs_intervals
+    compute_blast_qs_intervals,
+    filter_blast_outfmt6
 )
 
 GT_PLS_KEY = 'plasmid'
@@ -100,8 +101,9 @@ def compute_ground_truth_file(
       None, creates the file _ground_truth_file(out_dir, sample)
     '''
     pls_mappings_df = read_blast_outfmt6_file(
-        pls_mappings_file, order_coordinates=True, min_pident=pid_threshold*100.0
+        pls_mappings_file, order_coordinates=True
     )
+    filter_blast_outfmt6(pls_mappings_df, min_pident=pid_threshold)
     pls_intervals = compute_blast_qs_intervals(pls_mappings_df)
     true_positive_dict = compute_ground_truth(pls_intervals, ctg_len, cov_threshold)
     _write_ground_truth_file(true_positive_dict, ctg_len, pls_len, ground_truth_file)

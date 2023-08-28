@@ -38,7 +38,7 @@ python plasbin_utils.py ground_truth --input_file input_file --out_dir out_dir -
 - tmp_dir: temporary directory, not deleted
 - out_file: [optional] path to new dataset file with ground truth files added
 - p: [optional] percent identity threshold to define a mapping to a plasmid (default=0.95)
-- c: [optional] coverage threshold to accept a blast hit  (default=0.8)
+- c: [optional] contig coverage threshold to accept a blast hit  (default=0.8)
 
 Computing GC content probabilities for samples
 python plasbin_utils.py gc_probabilities --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --gc_intervals gc_intervals_file
@@ -72,6 +72,8 @@ python plasbin_utils.py gene_density --input_file input_file --out_dir out_dir -
   (one per sample, <sample>.gene_density.tsv)
 - tmp_dir: temporary directory, not deleted
 - out_file: [optional] path to new dataset file with gene density files added
+- p: [optional] percent identity threshold to define a mapping to a plasmid (default=0.95)
+- c: [optional] gene coverage threshold to accept a blast hit  (default=0.8)
 
 Computing seeds parameters
 python plasbin_utils.py seeds --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --db_file pls_db_file
@@ -392,7 +394,10 @@ def create_ground_truth_files(
         _set_ground_truth(samples_df, sample, ground_truth_file)
         log_file(ground_truth_file)
 
-def create_gene_density_files(out_dir, samples_df):
+def create_gene_density_files(
+        out_dir, samples_df,
+        pid_threshold=0.95, cov_threshold=0.8
+):
     """
     Creates a TSV gene density file per sample
 
@@ -411,7 +416,9 @@ def create_gene_density_files(out_dir, samples_df):
         mappings_file = _get_genes2ctgs_mappings(samples_df, sample)
         gd_out_file = _gene_density_file(out_dir, sample)
         compute_gene_density_file(
-            gfa_file, mappings_file, gd_out_file, gfa_gzipped=True
+            gfa_file, mappings_file, gd_out_file,
+            pid_threshold, cov_threshold,
+            gfa_gzipped=True
         )
         _set_gene_density(samples_df, sample, gd_out_file)
         log_file(gd_out_file)
@@ -676,11 +683,13 @@ def _read_arguments():
     gt_parser.set_defaults(cmd='ground_truth')
     gt_parser.add_argument('--out_file', type=str, help='Path to dataset file with added ground truth files')    
     gt_parser.add_argument('--pid_threshold', type=float, default=0.95, help='Percent identity threshold in [0,1]')
-    gt_parser.add_argument('--cov_threshold', type=float, default=0.8, help='Percent coverage threshold in [0,1]')    
+    gt_parser.add_argument('--cov_threshold', type=float, default=0.8, help='Percent contig coverage threshold in [0,1]')    
     # Computing gene density files
     gd_parser = subparsers.add_parser('gene_density', parents=[argparser], add_help=False)
     gd_parser.set_defaults(cmd='gene_density')
     gd_parser.add_argument('--out_file', type=str, help='Path to dataset file with added gene density files')    
+    gd_parser.add_argument('--pid_threshold', type=float, default=0.95, help='Percent identity threshold in [0,1]')
+    gd_parser.add_argument('--cov_threshold', type=float, default=0.8, help='Percent gene coverage threshold in [0,1]')
     # Computing seeds parameters
     seeds_parser = subparsers.add_parser('seeds', parents=[argparser], add_help=False)
     seeds_parser.set_defaults(cmd='seeds')
@@ -704,6 +713,8 @@ def _read_arguments():
     preprocessing_parser.add_argument('--db_file', type=str, help='Plasmids genes database FASTA file')    
     preprocessing_parser.add_argument('--gc_intervals', type=str, help='GC content intervals file')
     preprocessing_parser.add_argument('--out_file', type=str, help='Path to augmented dataset file')        
+    preprocessing_parser.add_argument('--pid_threshold', type=float, default=0.95, help='Percent identity threshold in [0,1]')
+    preprocessing_parser.add_argument('--cov_threshold', type=float, default=0.8, help='Percent gene coverage threshold in [0,1]')
 
     return argparser.parse_args()
 
@@ -740,7 +751,8 @@ def main(args):
             log_file(args.out_file)
     elif args.cmd == 'gene_density':
         create_gene_density_files(
-            args.out_dir, samples_df
+            args.out_dir, samples_df,
+            args.pid_threshold, args.cov_threshold
         )
         if args.out_file:
             _write_samples_df(samples_df, args.out_file)
@@ -798,7 +810,8 @@ def main(args):
             args.gc_intervals, samples_df
         )
         create_gene_density_files(
-            args.out_dir, samples_df
+            args.out_dir, samples_df,
+            args.pid_threshold, args.cov_threshold
         )
         _write_samples_df(samples_df, args.out_file)
         log_file(args.out_file)

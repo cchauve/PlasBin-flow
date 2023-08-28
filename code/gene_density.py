@@ -5,7 +5,8 @@ from gfa_fasta_utils import (
 )
 from mappings_utils import (
     read_blast_outfmt6_file,
-    compute_blast_s_intervals
+    compute_blast_s_intervals,
+    filter_blast_outfmt6
 )
 from log_errors_utils import (
     process_exception
@@ -34,13 +35,19 @@ def _read_GFA_ctg_len(gfa_file, gzipped):
         ).items()
     }
 
-def compute_gene_density(gfa_file, mappings_file, gfa_gzipped=True):
+def compute_gene_density(
+        gfa_file, mappings_file,
+        pid_threshold, cov_threshold,
+        gfa_gzipped=True
+):
     '''
     Computes gene density and covering intervals for all contigs
 
     Args:
         - gfa_file (str): path to a GFA file
         - mappings_file (str): path to a genes to contigs mappings file
+        - pid_threshold (float): min identity percentage to kep a mapping
+        - cov_threshold (float): min gene coverage to keep a mapping
         - gfa_gzipped (bool): True if GFA file is gzipped
 
     Returns:
@@ -71,6 +78,7 @@ def compute_gene_density(gfa_file, mappings_file, gfa_gzipped=True):
         return covered / ctg_len
     
     mappings_df = read_blast_outfmt6_file(mappings_file)
+    filter_blast_outfmt6(mappings_df, min_pident=pid_threshold, min_q_cov=cov_threshold)
     ctg_len = _read_GFA_ctg_len(gfa_file, gzipped=gfa_gzipped)
     ctg_intervals = compute_blast_s_intervals(mappings_df)
     ctg_gd_dict = {}
@@ -124,7 +132,9 @@ def _write_gene_density_file(ctg_gd_dict, gd_out_file):
         process_exception(f'Writing gene density file {gd_out_file}: {e}')
 
 def compute_gene_density_file(
-        gfa_file, mappings_file, gd_out_file, gfa_gzipped=True
+        gfa_file, mappings_file, gd_out_file,
+        pid_threshold, cov_threshold,
+        gfa_gzipped=True
 ):
     '''
     Computes gene density and covering intervals for all contigs, writes in a TSV file
@@ -133,12 +143,18 @@ def compute_gene_density_file(
         - gfa_file (str): path to a GFA file
         - mappings_file (str): path to a genes to contigs mappings file
         - gd_out_file (str): file where to write gene density
+        - pid_threshold (float): min identity percentage to kep a mapping
+        - cov_threshold (float): min gene coverage to keep a mapping
         - gfa_gzipped (bool): True if GFA file is gzipped
 
     Returns:
         Creates gd_out_file, format see _write_gene_density_file    
     '''
-    ctg_gd_dict = compute_gene_density(gfa_file, mappings_file, gfa_gzipped=gfa_gzipped)
+    ctg_gd_dict = compute_gene_density(
+        gfa_file, mappings_file,
+        pid_threshold, cov_threshold,
+        gfa_gzipped=gfa_gzipped
+    )
     _write_gene_density_file(ctg_gd_dict, gd_out_file)
 
 def read_gene_density_file(gd_file, read_intervals=True):
