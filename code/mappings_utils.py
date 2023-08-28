@@ -58,7 +58,7 @@ def run_blast6(query_file, db_file, mappings_file):
         except Exception as e:
             process_exception('Removing BLAST file {file_to_clean}: (e)')
 
-def read_blast_outfmt6_file(mappings_file, order_coordinates=True, min_pident=0.0, min_length=0):
+def read_blast_outfmt6_file(mappings_file, order_coordinates=True, min_pident=0.9, min_length=0):
     '''
     Reads a BLAST format 6 file
 
@@ -142,13 +142,32 @@ def compute_blast_s_intervals(mappings_df):
         mappings_df (DataFrame): mappings dataframe
 
     Returns:
-        (Dictionary): subject id -> List((query,start,end)) of intervals 
+        (Dictionary): subject id -> List((query,sstart,ssend)) of intervals 
     '''
     s_ids = sorted(mappings_df.sseqid.unique())
     s_intervals = {s_id: [] for s_id in s_ids}
     for s_id in s_ids:
         s_hits = mappings_df.loc[mappings_df.sseqid == s_id]
         for _,row in s_hits.iterrows():
-            interval = (row['qseqid'], row['qstart'], row['qend'])
+            interval = (row['qseqid'], row['sstart'], row['send'])
             s_intervals[s_id].append(interval)
     return s_intervals
+
+def compute_blast_q_intervals(mappings_df):
+    '''
+    From a mappings dataframe computes the intervals of each query covered by all subjects
+
+    Args: 
+        mappings_df (DataFrame): mappings dataframe
+
+    Returns:
+        (Dictionary): subject id -> List((subject,qstart,qend)) of intervals 
+    '''
+    q_ids = sorted(mappings_df.qseqid.unique())
+    q_intervals = {q_id: [] for q_id in q_ids}
+    for q_id in q_ids:
+        q_hits = mappings_df.loc[mappings_df.qseqid == q_id]
+        for _,row in q_hits.iterrows():
+            interval = (row['sseqid'], row['qstart'], row['qend'])
+            q_intervals[q_id].append(interval)
+    return q_intervals
