@@ -108,7 +108,6 @@ import shutil
 import gzip
 import pandas as pd
 import logging
-import glob
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
@@ -128,6 +127,7 @@ from gfa_fasta_utils import (
     read_FASTA_len,
     read_FASTA_id
 )
+from mappings_utils import run_blast6
 from log_errors_utils import (
     check_file,
     log_file,
@@ -296,44 +296,6 @@ def _gc_intervals_file(in_dir):
 
 # Processing functions
 
-def _run_blast(query_file, db_file, mappings_file):
-    """
-    Blast query_file against db_file into mapping_file
-    Args:
-        - query_file (str): path to a FASTA file
-        - db_file (str): path to a FASTA file
-        - mappings_file (str): pth to the result file
-    Returns:
-        Creates mappings_file
-    Assumptions:
-       makeblastdb and blastn are in the default path
-    """
-    db_prefix = f'{db_file}.db'
-    logging.info(f'ACTION\tcompute blast database for {db_file}: {db_prefix}')
-    cmd_makeblastdb = [
-        'makeblastdb',
-        '-in', db_file,
-        '-dbtype', 'nucl',
-        '-out', db_prefix
-    ]
-    _ = run_cmd(cmd_makeblastdb)
-    logging.info(f'ACTION\tmap {query_file} to {db_prefix}')        
-    cmd_megablast = [
-        'blastn', '-task', 'megablast',
-        '-query', query_file,
-        '-db', db_prefix,
-        '-out', mappings_file,
-        '-outfmt', '6'
-    ]
-    _ = run_cmd(cmd_megablast)
-    log_file(mappings_file)
-    db_files = glob.glob(f'{db_prefix}.n*')
-    for file_to_clean in db_files:
-        try:
-            os.remove(file_to_clean)
-        except Exception as e:
-            process_exception('Removing BLAST file {file_to_clean}: (e)')
-
 def create_tmp_data_files(tmp_dir, samples_df):
     """
     Creates a ungzipped GFA and FASTA file for each sample
@@ -386,7 +348,7 @@ def create_ground_truth_files(
         gunzip_FASTA(_get_pls_fasta(samples_df, sample), pls_fasta_file)
         gfa_fasta_file = _gfa_fasta_file(tmp_dir, sample)
         pls_mappings_file = _pls_mappings_file(tmp_dir, sample)
-        _run_blast(gfa_fasta_file, pls_fasta_file, pls_mappings_file)
+        run_blast6(gfa_fasta_file, pls_fasta_file, pls_mappings_file)
         logging.info(f'ACTION\tcompute ground truth file')                
         ground_truth_file = _ground_truth_file(out_dir, sample)
         compute_ground_truth_file(
@@ -456,7 +418,7 @@ def map_pls_genes_to_contigs(out_dir, tmp_dir, samples_df, db_file):
         logging.info(f'Sample {sample}')
         genes_mappings_file = _genes_mappings_file(out_dir, sample)
         gfa_fasta_file = _gfa_fasta_file(tmp_dir, sample)
-        _run_blast(db_file, gfa_fasta_file, genes_mappings_file)
+        run_blast6(db_file, gfa_fasta_file, genes_mappings_file)
         
 def create_GC_content_intervals_file(out_dir, tmp_dir, samples_df, n_gcints):
     """
