@@ -1,90 +1,81 @@
-''' Functions to manipulate seed contigs '''
-
 import pandas as pd
+from Bio import SeqIO
 import numpy as np
 
-from gene_density import (
-    compute_gene_density
-)
-from ground_truth import (
-    read_ground_truth_file,
-    GT_PLS_KEY,
-    GT_CTG_KEY
-)
-from log_errors_utils import (
-    process_exception
-)
-
-LENGTH_KEY = 'length'
-GD_KEY = 'gd'
-MOL_TYPE_KEY = 'mol_type'
-MOL_TYPE_CHR = 'chromosome'
-MOL_TYPE_PLS = 'plasmid'
-
-SAMPLE_KEY = 'sample'
-
-''' Reading input files '''
-
-def _process_record(record):
+def get_ctg_details(ctg):
     '''
-    Computes sequence statistics
-
-    Args:
-        record (BioSeqIO.record): FASDTA record
-
-    Returns:
-        (Dictionary): LENGTH_KEY: length, GD_KEY: 0.0 (gene density), MOL_TYPE_KEY: MOL_TYPE_CHR
+    Parsing entry in the fasta file and getting contig details.
+    Returns a dictionary with contig attributes as keys
     '''
+    sequence = str(ctg.seq)
+    gc_count = sequence.count('G') + sequence.count('C')
+    length = len(sequence)
     return {
-        LENGTH_KEY: len(str(record.seq)),
-        GD_KEY: 0.0,
-        MOL_TYPE_KEY: MOL_TYPE_CHR
+        'gc_count': gc_count,
+        'length': length,
+        'gc_percent': gc_count/length,
+        'gd': 0,
+        'type': 'chromosome'
     }
 
-def _join_sample_ctg(sample, ctg):
-    return f'{sample}_{ctg}'
-
-''' Computing gene density for all contigs ''' 
-
-def _compute_gene_density(sample, mappings_file, gfa_file, gfa_gzipped):
+def parse_mapping(mapping_file):
     '''
-    Reading gene to contig mapping information
-    Computes gene density for all contigs
+    Computing the gene coverage intervals for each contig
+
+    The mapfile is to be provided in BLAST output fmt 6. It is a tab separated file.
+    Each row of the file has the following information in tab separated format
+    qseqid      query or gene sequence id (str)
+    sseqid      subject or contig sequence id (str)
+    pident      percentage of identical positions (float)
+    length      alignment or overlap length (int)
+    mismatch    number of mismatches (int)
+    gapopen     number of gap openings (int)
+    qstart      start of alignment in query (int)
+    qend        end of alignment in query (int)
+    sstart      start of alignment in subject (int)
+    send        end of alignment in subject (int)
+    evalue      expect value (float)
+    bitscore    bit score (int)
     '''
-    def _get_union(intervals):
-        '''
-        Takes the gene covering intervals for a contig and finds their union
-        The length of the union is used to compute gene coverage
-        '''
-        intervals_union = []
-        for _,begin,end in sorted(intervals):
-            if intervals_union and intervals_union[-1][1] >= begin-1:
-                intervals_union[-1][1] = max(intervals_union[-1][1],end)
+    covg_int = {}
+    with open(mapping_file, 'r') as map:
+        line = next(map)
+        while line:
+            tmp = line.split("\t")
+            ctg = tmp[1]
+            sstart, send = tmp[8], tmp[9]
+            if ctg not in covg_int:
+                covg_int[ctg] = []
+            if int(sstart) > int(send):
+                covg_int[ctg].append((int(send), int(sstart)))
             else:
-                intervals_union.append([begin,end])
-        return intervals_union
+                covg_int[ctg].append((int(sstart), int(send)))
+            line = next(map, None)
+    return covg_int
 
-    def _compute_gd(intervals_union, ctg_len):
-        '''
-        Computes gene density using list of coverage intervals and contig length
-        '''
-        covered = 0
-        for interval in intervals_union:
-            covered += interval[1] - interval[0] + 1
-        return covered / ctg_len
-    
-    mappings_df = read_blast_outfmt6_file(mappings_file)
-    ctg_intervals = compute_blast_s_intervals(mappings_df)
-    ctg_gd_dict = {}
-    for ctg_id,intervals in ctg_intervals.items():
-        intervals_union = _get_union(intervals)
-        ctg_id_sample = _join_sample_ctg(sample, ctg_id)
-        ctg_gd_dict[ctg_id_sample] = _compute_gd(intervals_union, ctg_len[ctg_id_sample])
-    return ctg_gd_dict
+def get_union(intervals):
+    '''
+    Takes the gene covering intervals for a contig and finds their union
+    The length of the union is used to compute gene coverage
+    '''
+    union = []
+    for begin,end in sorted(intervals):
+        if union and union[-1][1] >= begin-1:
+            union[-1][1] = max(union[-1][1],end)
+        else:
+            union.append([begin,end])
+    return union
 
-''' Classifying contigs as seeds according to gene density and length thresholds '''
-''' START TO CLEAN '''
+def compute_gd(union, ctg_len):
+    '''
+    Computes gene density using list of coverage intervals and contig length
+    '''
+    covered = 0
+    for interval in union:
+        covered += interval[1] - interval[0] + 1
+    return covered / ctg_len
 
+#Classifying contigs as seeds according to gene density and length thresholds
 def seed_by_param(gdt, lt, ctg_details):
     '''
     Function to classify contigs as seeds
@@ -92,6 +83,78 @@ def seed_by_param(gdt, lt, ctg_details):
     '''
     ctg_len, ctg_gd = ctg_details['length'], ctg_details['gd']
     return 1 if ctg_gd >= gdt and ctg_len >= lt else 0
+
+def read_sample_assembly(all_ctgs_dict, sample, assembly_file):
+    '''
+    Reading assembly data
+    Dictionary with key as the contig id
+    Value as a dictionary of following attributes
+    length (int), gd (float), gc_count (int), gc_percent (float), type (str)
+    '''
+    ctgs = SeqIO.parse(assembly_file,'fasta')
+    for ctg in ctgs:
+        ctg_id = f'{sample}_{ctg.id}'
+        all_ctgs_dict[ctg_id] = get_ctg_details(ctg)
+    return all_ctgs_dict
+
+def get_gene_density(all_ctgs_dict, sample, gene_map_file):
+    '''
+    Reading gene to contig mapping information
+    Computes gene density for all contigs
+    '''
+    covg_int = parse_mapping(gene_map_file)
+    for ctg in covg_int:
+        union = get_union(covg_int[ctg])
+        ctg_id = f'{sample}_{ctg}'
+        ctg_len = all_ctgs_dict[ctg_id]['length']
+        all_ctgs_dict[ctg_id]['gd'] = compute_gd(union, ctg_len)
+    return all_ctgs_dict
+
+def get_ground_truth(all_ctgs_dict, all_pls_dict, sample, gt_file):
+    '''
+    Reading ground truth file
+    Dictionary with key as the plamid id
+    Value as a dictionary of following attributes
+    sample (str), ctg_list (list)
+    '''
+    if gt_file != None:
+        with open(gt_file, 'r') as gt:
+            line = next(gt)
+            while line:
+                if line[0] != '#':
+                    #Format assumption: (tab separated with first column PLS and second column CTG)
+                    pls, ctg = line.split('\t')[0], line.split('\t')[1]
+                    ctg_id = f'{sample}_{ctg}'
+                    all_ctgs_dict[ctg_id]['type'] = 'plasmid'
+                    try:
+                        all_pls_dict[pls]['ctg_list'].append(ctg_id)
+                    except KeyError:
+                        all_pls_dict[pls] = {'ctg_list': [ctg_id], 'sample': sample}
+                    line = next(gt, None)
+    return all_ctgs_dict, all_pls_dict
+
+#Reading reference sample files and storing data
+def get_reference_data(input_csv_file):
+    '''
+    Takes csv file with addresses to assembly file,
+    gene to contig mapping file (blast output) and ground truth file.
+    Returns two dictionaries:
+    1. Key: contig id, Value: nested dictionary with length, gd and contig source (plasmid/chromosome)
+    2. Key: plasmid ids, Value: nested dictionary with sample name and list of contigs in the plasmid
+    '''
+    #Reading and storing input data for reference samples
+    colnames = ['sample','assembly','mapping','ground_truth']
+    PATHS_DF = pd.read_csv(input_csv_file)
+    PATHS_DF.columns.values[[0, 1, 2, 3]] = colnames
+    all_ctgs_dict = {}
+    all_pls_dict = {}
+
+    for index, row in PATHS_DF.iterrows():
+        sample, assembly_file, gene_map_file, gt_file = row[0], row[1], row[2], row[3]
+        all_ctgs_dict = read_sample_assembly(all_ctgs_dict, sample, assembly_file)
+        all_ctgs_dict = get_gene_density(all_ctgs_dict, sample, gene_map_file)
+        all_ctgs_dict, all_pls_dict = get_ground_truth(all_ctgs_dict, all_pls_dict, sample, gt_file)
+    return all_ctgs_dict, all_pls_dict
 
 def pls_seeds_by_thresholds(GD_THRESHOLDS, LEN_THRESHOLDS, all_ctgs_dict, all_pls_dict):
     '''
@@ -102,11 +165,11 @@ def pls_seeds_by_thresholds(GD_THRESHOLDS, LEN_THRESHOLDS, all_ctgs_dict, all_pl
     '''
     seeds_dict = {}
     for pls in all_pls_dict:
-        seeds_dict[pls] = {SAMPLE_KEY: all_pls_dict[pls][SAMPLE_KEY]}
+        seeds_dict[pls] = {'sample': all_pls_dict[pls]['sample']}
         for gdt in GD_THRESHOLDS:
             for lt in LEN_THRESHOLDS:
                 seeds_dict[pls][f'{lt}_{gdt}'] = 0
-                for ctg_id in all_pls_dict[pls][CTG_LIST_KEY]:
+                for ctg_id in all_pls_dict[pls]['ctg_list']:
                     seed_eligibility = seed_by_param(gdt, lt, all_ctgs_dict[ctg_id])
                     seeds_dict[pls][f'{lt}_{gdt}'] += seed_eligibility
     return seeds_dict
@@ -161,77 +224,14 @@ def output_best_params(pls_with_seeds_df, false_seeds_df, out_file):
     #best_params = set()
     with open(out_file, "w") as out:
         for row_name, row in obj_df.iterrows():
-            for col_name, val in row.iteritems():
+            for col_name, val in row.items():
                 if val >= max_obj:
                     #best_params.add(row_name, col_name)
                     out.write(f'{row_name}\t{col_name}\n')
 
-''' END TO CLEAN '''
-                    
-def _read_ground_truth_file(all_ctgs_dict, all_pls_dict, ground_truth_file, sample):
-    '''
-    Reading ground truth file
-    Dictionary with key as the plamid id
-    Value as a dictionary of following attributes
-    sample (str), ctg_list (list)
-    '''
-    try:
-        ground_truth_df = read_ground_truth_file(ground_truth_file)
-        for _,row in ground_truth_df.iterrows():
-            pls, ctg = row[GT_PLS_KEY], row[GT_CTG_KEY]
-            ctg_id = _join_sample_ctg(sample, ctg)
-            all_ctgs_dict[ctg_id][MOL_TYPE_KEY] = MOL_TYPE_PLS
-            if pls in all_pls_dict.keys():
-                all_pls_dict[pls][CTG_LIST_KEY].append(ctg_id)
-            else:
-                all_pls_dict[pls] = {CTG_LIST_KEY: [ctg_id], SAMPLE_KEY: sample}
-    except Exception as e:
-        process_exception(
-            f'Reading ground truth file {ground_truth_file}: {e}'
-        )
-    else:
-        return all_ctgs_dict,all_pls_dict
-
-def read_reference_data(input_csv_file):
-    '''
-    Takes csv file with addresses to assembly file,
-    gene to contig mapping file (blast output) and ground truth file.
-    Returns two dictionaries:
-    1. Key: contig id, Value: nested dictionary with length, gd and contig source (plasmid/chromosome)
-    2. Key: plasmid ids, Value: nested dictionary with sample name and list of contigs in the plasmid
-    '''
-    # Reading and storing input data for reference samples
-    try:
-        input_data_df = pd.read_csv(
-            input_csv_file,
-            sep = ',',
-            header = None,
-        )
-    except Exception as e:
-        process_exception(f'Reading CSV input file {input_csv_file}: {e}')
-    
-    all_ctgs_dict,all_pls_dict = {},{}
-    for _, row in input_data_df.iterrows():
-        sample, assembly, mappings, ground_truth = row[0], row[1], row[2], row[3]        
-        all_ctgs_dict.update(
-            _read_FASTA_file(assembly, sample)
-        )
-        ctg_len = {
-            ctg_id: all_ctgs_dict[ctg_id][LENGTH_KEY]
-            for ctg_id in all_ctgs_dict.keys()
-        }
-        ctg_gd_dict = compute_gene_density(sample, mappings, ctg_len)
-        for ctg_id,ctg_gd in ctg_gd_dict.items():
-            all_ctgs_dict[ctg_id][GD_KEY] = ctg_gd        
-        all_ctgs_dict, all_pls_dict = _read_ground_truth_file(
-            all_ctgs_dict, all_pls_dict, ground_truth, sample
-        )
-    return all_ctgs_dict,all_pls_dict
-
-
 def compute_seeds_parameters_file(input_csv_file, out_file):
     #Reads reference data files and returns two dictionaries: one with contig details and another with plasmid details
-    all_ctgs_dict, all_pls_dict = read_reference_data(input_csv_file)
+    all_ctgs_dict, all_pls_dict = get_reference_data(input_csv_file)
 
     #Ranges of thresholds
     LEN_THRESHOLDS = np.arange(50,5001,50)
