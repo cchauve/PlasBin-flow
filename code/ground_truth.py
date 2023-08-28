@@ -10,9 +10,9 @@ from mappings_utils import (
 
 GT_PLS_KEY = 'plasmid'
 GT_CTG_KEY = 'contig'
-GT_COV_KEY = 'coverage'
-GT_PLSLEN_KEY = 'plasmid_len'
-GT_CTGLEN_KEY = 'contig_len'
+GT_COV_KEY = 'contig_coverage'
+GT_PLSLEN_KEY = 'plasmid_length'
+GT_CTGLEN_KEY = 'contig_length'
 
 GT_COL_NAMES = [
     GT_PLS_KEY, GT_CTG_KEY, GT_COV_KEY, GT_PLSLEN_KEY, GT_CTGLEN_KEY

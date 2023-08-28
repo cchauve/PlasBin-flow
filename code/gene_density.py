@@ -61,11 +61,11 @@ def compute_gene_density(
         The length of the union is used to compute gene coverage
         '''
         intervals_union = []
-        for gene_id,start,end in intervals:
-            if intervals_union and intervals_union[-1][2] >= start-1:
-                intervals_union[-1][2] = max(intervals_union[-1][2],end)
+        for _,start,end in intervals:
+            if intervals_union and intervals_union[-1][1] >= start-1:
+                intervals_union[-1][1] = max(intervals_union[-1][1],end)
             else:
-                intervals_union.append([gene_id,start,end])
+                intervals_union.append([start,end])
         return intervals_union
 
     def _compute_gd(intervals_union, ctg_len):
@@ -74,7 +74,7 @@ def compute_gene_density(
         '''
         covered = 0
         for interval in intervals_union:
-            covered += interval[2] - interval[1] + 1
+            covered += interval[1] - interval[0] + 1
         return covered / ctg_len
     
     mappings_df = read_blast_outfmt6_file(mappings_file)
@@ -83,7 +83,7 @@ def compute_gene_density(
     ctg_intervals = compute_blast_s_intervals(mappings_df)
     ctg_gd_dict = {}
     for ctg_id,intervals in ctg_intervals.items():
-        sorted_intervals = sorted(intervals, key=lambda x: x[1])
+        sorted_intervals = sorted(intervals, key=lambda x: x[0])
         intervals_union = _get_union(sorted_intervals)
         ctg_gd = _compute_gd(
             intervals_union, ctg_len[ctg_id]
@@ -96,14 +96,13 @@ def compute_gene_density(
 
 def _write_intervals(intervals_list):
     return ' '.join([
-        f'{gene_id}:{start}:{end}'
-        for [gene_id,start,end] in intervals_list
+        f'{start}:{end}'
+        for [start,end] in intervals_list
     ])
 
 def _read_intervals(intervals_str):
     return [
         [
-            interval.split(':')[0],
             int(interval.split(':')[1]),
             int(interval.split(':')[2])
         ]
