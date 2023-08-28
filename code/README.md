@@ -14,7 +14,7 @@ PlasBin-flow is based on a Mixed-Integer Linear Programming (MILP) formulation f
 
 This directory contains the scripts required for tuning and executing PlasBin-flow.
 
-# Prerequisites
+## Prerequisites
 PlasBin-flow is written in python (version 3.9.11) and requires the module NetworkX (version 2.7).  
 
 It also requires the ILP solver Gurobi (Version 9.1.2+).  
@@ -24,12 +24,12 @@ The gene database creation and gene mapping steps require UNIX tools (curl and r
 We strongly recommand to run PlasBin-flow using a dedicated python virtual environment (see https://docs.python.org/3.9/library/venv.html).  
 
 The following python libraries are used in the scripts for tuning PlasBin-flow:
-pandas: (2.0.0)
-matplotlib: (3.7.0)
-seaborn: (0.12.2)
-Bio (Seq, SeqIO, SeqRecord): (1.81)
-scipy (special, integrate): (1.10.1)
-numpy: (1.24.2)
+pandas: (2.0.0)  
+matplotlib: (3.7.0)  
+seaborn: (0.12.2)  
+Bio (Seq, SeqIO, SeqRecord): (1.81)  
+scipy (special, integrate): (1.10.1)  
+numpy: (1.24.2)  
 
 ## Obtaining Gurobi license
 PlasBin-flow uses the <a href="https://www.gurobi.com/">Gurobi Solver</a>.
@@ -75,9 +75,9 @@ The length and plasmidness of contigs from reference samples are observed to dec
 ```
 python plasbin_utils.py ground_truth --input_file input_file --out_dir out_dir --tmp_dir tmp_dir [--out_file out_file --pid_threshold p --cov_threshold c]
 ```
-where `input_file` is a CSV file with one line per sample. Each line in the file requires the sample name, the path to a gzipped GFA file and the path to a gzipped FASTA file with plasmid sequences for the sample. The `out_dir` is the directory where the ground truth files are written under the name <sample>.ground_truth.tsv. The `tmp_dir` is directory created to hold temporary files. Parameters `p` and `c` can be used to provide the percent identity threshold to define a mapping to a plasmid (default=0.95) and the coverage threshold to accept a blast hit (default=0.8) respectively.
+where `input_file` is a CSV file with one line per sample. Each line in the file requires the sample name, the path to a gzipped GFA file and the path to a gzipped FASTA file with plasmid sequences for the sample. The `out_dir` is the directory where the ground truth files are written under the name <sample>.ground_truth.tsv. The `tmp_dir` is directory created to hold temporary files. Parameters `pid_threshold` and `cov_threshold` can be used to provide the percent identity threshold to define a mapping to a plasmid (default=0.95) and the coverage threshold to accept a blast hit (default=0.8) respectively.
 
-The resulting ground truth file lists contigs mapped to plasmids associated with the sample. A typical line in the ground truth (.tsv) file should contain the name or id of the plasmid in the first column and a contig that has been mapped to the plasmid in the second column. The file can contain other information as long as the first two columns contain the plasmid and contig ids respectively. 
+The resulting ground truth file lists contigs mapped to plasmids associated with the sample. A line in the ground truth TSV file should contain the name or id of the plasmid in the first column and a contig that has been mapped to the plasmid in the second column. The file can contain other information as long as the first two columns contain the plasmid and contig ids respectively. 
 ```
 #Pls_ID	Ctg_ID
 P1	C1
