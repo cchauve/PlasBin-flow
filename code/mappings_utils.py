@@ -108,7 +108,7 @@ def compute_blast_qs_intervals(mappings_df):
         mappings_df (DataFrame): mappings dataframe
 
     Returns:
-        (Dictionary): subject id -> (Dictionary) query id -> List((start,end)) of intervals 
+        (Dictionary): subject id -> (Dictionary) query id -> List((qstart,qend,sstart,ssend)) of intervals 
                       of the subject covered by the query
     '''
     s_ids = sorted(mappings_df.sseqid.unique())
@@ -130,7 +130,7 @@ def compute_blast_qs_intervals(mappings_df):
             mappings_df.qseqid == q_id
         ].loc[mappings_df.sseqid == s_id]
         for _,row in q_s_hits.iterrows():
-            interval = (row['qstart'], row['qend'])
+            interval = (row['qstart'], row['qend'], row['sstart'], row['send'])
             qs_intervals[s_id][q_id].append(interval)
     return qs_intervals
 
