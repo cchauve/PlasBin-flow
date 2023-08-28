@@ -224,7 +224,7 @@ def output_best_params(pls_with_seeds_df, false_seeds_df, out_file):
     #best_params = set()
     with open(out_file, "w") as out:
         for row_name, row in obj_df.iterrows():
-            for col_name, val in row.iteritems():
+            for col_name, val in row.items():
                 if val >= max_obj:
                     #best_params.add(row_name, col_name)
                     out.write(f'{row_name}\t{col_name}\n')
