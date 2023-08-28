@@ -63,7 +63,7 @@ python plasbin_utils.py gc_intervals --input_file input_file --out_dir out_dir -
 - n_gcints: number of GC content intervals between 0 and 1, default value: 6
 
 Computing gene density
-python plasbin_utils.py gene_density --input_file input_file --out_dir out_dir --tmp_dir tmp_dir [--out_file out_file]
+python plasbin_utils.py gene_density --input_file input_file --out_dir out_dir --tmp_dir tmp_dir [--out_file out_file --pid_threshold p --cov_threshold c]
 - input_file: CSV file with one line per sample and 3 required fields:
   sample: sample name
   gfa: gzipped GFA file
@@ -102,7 +102,7 @@ python plasbin_tuning.py tuning --input_file input_file --out_dir out_dir --tmp_
 - tmp_dir: temporary directory, not deleted
 - n_gcints: number of GC content intervals between 0 and 1, default value: 6
 
-python plasbin_tuning.py preprocessing --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --pls_db pls_db --gc_intervals gc_intervals --out_file out_file
+python plasbin_tuning.py preprocessing --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --pls_db pls_db --gc_intervals gc_intervals --out_file out_file --pid_threshold p --cov_threshold c
 - input_file: CSV file with one line per sample and 2 required fields:
   sample: sample name
   gfa: gzipped GFA file
@@ -113,6 +113,8 @@ python plasbin_tuning.py preprocessing --input_file input_file --out_dir out_dir
 - pls_db: plasmid genes database
 - gc_intervals: GC content intervals file
 - out_file: augmented dataset CSV file, with mappings and GC probabilities files added
+- p: [optional] percent identity threshold to define a mapping to a plasmid (default=0.95)
+- c: [optional] gene coverage threshold to accept a blast hit  (default=0.8)
 """
 
 import sys
