@@ -150,10 +150,13 @@ def compute_gc_intervals_files(
     min_gc = pls_df[GC_RATIO_KEY].min()
     gc_bin_size = (max_gc - min_gc) / (n_gcints-2)
     gc_endpoints = (np.linspace(min_gc - gc_bin_size/2, max_gc + gc_bin_size/2, n_gcints - 1))
-    with open(out_intervals_file, "w") as f:
-        intervals_str = '\n'.join([str(x) for x in gc_endpoints])
-        f.write(f'0\n{intervals_str}\n1\n')
-
+    try:
+        with open(out_intervals_file, "w") as f:
+            intervals_str = '\n'.join([str(x) for x in gc_endpoints])
+            f.write(f'0\n{intervals_str}\n1\n')
+    except Exception as e:
+        process_exception(f'Writing GC intervals file {out_intervals_file}: {e}')
+            
 def read_gc_intervals_file(gc_intervals_file):
     '''
     Read GC intervals file
@@ -186,21 +189,84 @@ def read_gc_intervals_file(gc_intervals_file):
     else:
         return intervals
 
-def _gprob2(n, g, p, m):
+def compute_gc_probabilities(contigs_gc, gc_intervals):
     '''
-    Compute probability of observing g GC nucleotides in a contig
-    of length n within a molecule of GC content p using pseducount m.
-    Done via logarithm to avoid overflow.
-    '''
-    def _combln(n, k):
-        ''' Compute ln of n choose k. Note than n! = gamma(n+1) '''
-        return sc.gammaln(n + 1) - sc.gammaln(k + 1) - sc.gammaln(n - k + 1)
-    alpha = m*p
-    beta = m*(1-p)
-    resultln = _combln(n, g) + sc.betaln(g + alpha, n - g + beta) - sc.betaln(alpha, beta)
-    return math.exp(resultln)
+    Computes GC probabilities for a set of contigs and GC intervals
 
-def compute_gc_probabilities_file(gfa_file, gc_intervals_file, out_file):
+    Args:
+        - contigs_gc (Dictionary): contig id -> {
+          GC_COUNT_KEY: GC count, GC_RATIO_KEY: GC content ratio, LENGTH_KEY: contig length
+          }
+        - gc_intervals (List(float)): GC intervals boundaries
+
+    Returns:
+        (Dictionary) contig id -> List(float)
+        where element in position i in the list is the probability to be in the (i+1)th interval
+    '''
+    def _gprob2(n, g, p, m):
+        '''
+        Compute probability of observing g GC nucleotides in a contig
+        of length n within a molecule of GC content p using pseducount m.
+        Done via logarithm to avoid overflow.
+        '''
+        def _combln(n, k):
+            ''' Compute ln of n choose k. Note than n! = gamma(n+1) '''
+            return sc.gammaln(n + 1) - sc.gammaln(k + 1) - sc.gammaln(n - k + 1)
+        alpha = m*p
+        beta = m*(1-p)
+        resultln = _combln(n, g) + sc.betaln(g + alpha, n - g + beta) - sc.betaln(alpha, beta)
+        return math.exp(resultln)
+    
+    m = 10
+    ctgs_gcp = {}
+    for ctg_id,ctg_data in contigs_gc.items():
+        n = ctg_data[LENGTH_KEY]
+        g = ctg_data[GC_COUNT_KEY]
+        total = 0
+        gcp_array = []
+        for i in range(0, len(gc_intervals)-1):
+            gp2 = integrate.quad(
+                lambda x: _gprob2(n,g,x,m),
+                    gc_intervals[i], gc_intervals[i+1]
+            )
+            gp2 = gp2[0]/(gc_intervals[i+1] - gc_intervals[i])
+            total += gp2
+            gcp_array.append(gp2)
+        ctgs_gcp[ctg_id] = [gcp/total for gcp in gcp_array]
+    return ctgs_gcp
+
+def _write_gc_probabilities_file(ctg_gcp_dict, gcp_out_file):
+    try:
+        with open(gcp_out_file, 'w') as out_file:
+            for ctg_id,ctg_gcp in ctg_gcp_dict.items():
+                gcp_str = '\t'.join([str(gcp) for gcp in ctg_gcp])
+                out_file.write(f'{ctg_id}\t{gcp_str}\n')
+    except Exception as e:
+        process_exception(f'Writing GC probabilities file {gcp_out_file}: {e}')
+                
+def read_gc_probabilities_file(gcp_in_file):
+    '''
+    Args:
+        gcp_in_file (str): path to a GC probabilities file
+    Returns 
+        Dictionary contig id -> list of probabilities ordered by GC interval
+    '''
+    try:
+        gcp_dict = {}
+        with open(gcp_in_file, 'r') as in_file:
+            for gcp_line in in_file.readlines():
+                ctg_data = gcp_line.rstrip().split()
+                ctg_id = ctg_data[0]
+                ctg_gcp_list = [
+                    float(x) for x in ctg_data[1:]
+                ]
+                gcp_dict[ctg_id] = ctg_gcp_list
+    except Exception as e:
+        process_exception(f'Reading GC pobabilities file {gcp_in_file}: {e}')
+    else:
+        return gcp_dict
+            
+def compute_gc_probabilities_file(gfa_file, gc_intervals_file, gcp_out_file):
     '''
     Computes probability that contigs originate from a molecule of a given GC conten ratio,
     for a given list of GC content intervals.
@@ -217,13 +283,13 @@ def compute_gc_probabilities_file(gfa_file, gc_intervals_file, out_file):
                  a molecule of GC content ratio within the interval>
     '''
     if gc_intervals_file != None:
-        probs = read_gc_intervals_file(gc_intervals_file)
+        gc_intervals = read_gc_intervals_file(gc_intervals_file)
     else:
-        probs = DEFAULT_GC_INTERVALS
+        gc_intervals = DEFAULT_GC_INTERVALS
         logging.warning('Using default GC content intervals')
 
     try:
-        contigs_dict = read_GFA_ctgs(
+        ctg_gc = read_GFA_ctgs(
             gfa_file,
             [GFA_SEQ_KEY],
             gzipped=False,
@@ -231,28 +297,7 @@ def compute_gc_probabilities_file(gfa_file, gc_intervals_file, out_file):
         )
     except Exception as e:
         process_exception(f'Reading GFA file {gfa_file}: {e}')
-        
-    with open(out_file, 'w') as gc_file:
-        gc_file.write('CTG')
-        for i in range(0, len(probs)-1):
-            gc_file.write(f'\t{probs[i]}-{probs[i+1]}')
-        gc_file.write('\n')
 
-        m = 10
-        for ctg_id,ctg_data in contigs_dict.items():
-            n = ctg_data[LENGTH_KEY]
-            g = ctg_data[GC_COUNT_KEY]
-            total = 0
-            gc_file.write(ctg_id)
-            gp_array = []
-            for i in range(0, len(probs)-1):
-                gp2 = integrate.quad(
-                    lambda x: _gprob2(n,g,x,m),
-                    probs[i], probs[i+1]
-                )
-                gp2 = gp2[0]/(probs[i+1] - probs[i])
-                total += gp2
-                gp_array.append(gp2)
-            for gp in gp_array:
-                gc_file.write(f'\t{gp / total}')
-            gc_file.write("\n")
+    ctg_gc_probabilities = compute_gc_probabilities(ctg_gc, gc_intervals)
+    _write_gc_probabilities_file(ctg_gc_probabilities, gcp_out_file)
+   
