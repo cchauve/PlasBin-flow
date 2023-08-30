@@ -52,15 +52,18 @@ python plasbin_utils.py gc_probabilities --input_file input_file --out_dir out_d
 - gc_intervals_file: GC intervals file
 
 Computing GC intervals from tuning samples
-python plasbin_utils.py gc_intervals --input_file input_file --out_dir out_dir --tmp_dir tmp_dir
+python plasbin_utils.py gc_intervals --input_file input_file --out_dir out_dir --tmp_dir tmp_dir [--n_gcints n_gcints]
 - input_file: CSV file with one line per sample and 3 required fields:
   sample: sample name
   chr_fasta: gzipped chromosome FASTA file
   pls_fasta: gzipped FASTA plasmids file
 - out_dir: directory where the GC intervals files are written
-  gc.txt, gc.png
+    gc.csv: GC content per sample
+  gc.png: GC content violin plot
+  gc.txt: GC content intervals
+  seeds.txt: seed parameters
 - tmp_dir: temporary directory, not deleted
-- n_gcints: number of GC content intervals between 0 and 1, default value: 6
+- n_gcints: [optional] number of GC content intervals between 0 and 1 (default=6)
 
 Computing gene density
 python plasbin_utils.py gene_density --input_file input_file --out_dir out_dir --tmp_dir tmp_dir [--out_file out_file --pid_threshold p --cov_threshold c]
@@ -76,7 +79,7 @@ python plasbin_utils.py gene_density --input_file input_file --out_dir out_dir -
 - c: [optional] gene coverage threshold to accept a blast hit  (default=0.8)
 
 Computing seeds parameters
-python plasbin_utils.py seeds --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --db_file pls_db_file
+python plasbin_utils.py seeds --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --pls_db pls_db 
 - input_file: CSV file with one line per sample and 3 required fields:
   sample: sample name
   gfa: gzipped GFA file
@@ -84,25 +87,29 @@ python plasbin_utils.py seeds --input_file input_file --out_dir out_dir --tmp_di
 - out_dir: directory where the seeds parameters file is written
   seeds.txt
 - tmp_dir: temporary directory, not deleted
-- pls_db_file: path to plasmid genes database file
+- pls_db: plasmid genes database
 
-python plasbin_tuning.py tuning --input_file input_file --out_dir out_dir --tmp_dir tmp_dir
+python plasbin_tuning.py tuning --input_file input_file --out_dir out_dir --tmp_dir tmp_dir [--out_file out_file --pid_threshold p --cov_threshold c --n_gcints n_gcints]
 - input_file: CSV file with one line per sample and 5 required fields:
   sample: sample name
   gfa: gzipped GFA file
   chr_fasta: gzipped chromosome FASTA file
   pls_fasta: gzipped FASTA plasmids file
-  ground_truth: path to ground truth file
   where in FASTA files, the header of entries are GenBank accession
 - output_dir: directory where the tuning files are written:
   pls.genes.fasta: plasmids genes database
-  gc.txt: GC content per sample
+  gc.csv: GC content per sample
   gc.png: GC content violin plot
+  gc.txt: GC content intervals
   seeds.txt: seed parameters
+  <sample>.ground_truth.tsv for each sample
 - tmp_dir: temporary directory, not deleted
-- n_gcints: number of GC content intervals between 0 and 1, default value: 6
+- out_file: [optional] augmented dataset CSV file, with ground truth files added
+- p: [optional] percent identity threshold to define a mapping to a plasmid (default=0.95)
+- c: [optional] gene coverage threshold to accept a blast hit  (default=0.8)
+- n_gcints: [optional] number of GC content intervals between 0 and 1 (default= 6)
 
-python plasbin_tuning.py preprocessing --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --pls_db pls_db --gc_intervals gc_intervals --out_file out_file --pid_threshold p --cov_threshold c
+python plasbin_tuning.py preprocessing --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --pls_db pls_db --gc_intervals gc_intervals --out_file out_file [--pid_threshold p --cov_threshold c]
 - input_file: CSV file with one line per sample and 2 required fields:
   sample: sample name
   gfa: gzipped GFA file
@@ -613,7 +620,7 @@ def _read_input(cmd, input_file):
         'seeds': [GFA_COL,GT_COL],
         'gc_intervals': [PLS_COL,CHR_COL],
         'gc_probabilities': [GFA_COL],
-        'tuning': [GFA_COL,PLS_COL,CHR_COL,GT_COL],
+        'tuning': [GFA_COL,PLS_COL,CHR_COL],
         'preprocessing': [GFA_COL]
     }
     samples_df = read_samples(input_file, required_columns[cmd])
@@ -708,6 +715,9 @@ def _read_arguments():
     # Tuning
     tuning_parser = subparsers.add_parser('tuning', parents=[argparser], add_help=False)
     tuning_parser.set_defaults(cmd='tuning')
+    tuning_parser.add_argument('--out_file', type=str, help='Path to dataset file with added mappings and ground truth files')    
+    tuning_parser.add_argument('--pid_threshold', type=float, default=0.95, help='Percent identity threshold in [0,1]')
+    tuning_parser.add_argument('--cov_threshold', type=float, default=0.8, help='Percent gene coverage threshold in [0,1]')
     tuning_parser.add_argument('--n_gcints', type=int, default=6, help='Number of GC content intervals between 0 and 1')
     # Preprocessing
     preprocessing_parser = subparsers.add_parser('preprocessing', parents=[argparser], add_help=False)
@@ -746,7 +756,9 @@ def main(args):
             args.tmp_dir, samples_df
         )
         create_ground_truth_files(
-            args.out_dir, args.tmp_dir, samples_df
+            args.out_dir, args.tmp_dir, samples_df,
+            pid_threshold=args.pid_threshold,
+            cov_threshold=args.cov_threshold
         )
         if args.out_file:
             _write_samples_df(samples_df, args.out_file)
@@ -754,7 +766,8 @@ def main(args):
     elif args.cmd == 'gene_density':
         create_gene_density_files(
             args.out_dir, samples_df,
-            args.pid_threshold, args.cov_threshold
+            pid_threshold=args.pid_threshold,
+            cov_threshold=args.cov_threshold
         )
         if args.out_file:
             _write_samples_df(samples_df, args.out_file)
@@ -789,6 +802,11 @@ def main(args):
         create_pls_genes_db(
             args.out_dir, args.tmp_dir, samples_df
         )
+        create_ground_truth_files(
+            args.out_dir, args.tmp_dir, samples_df,
+            pid_threshold=args.pid_threshold,
+            cov_threshold=args.cov_threshold
+        )
         create_seeds_parameters_file(
             args.out_dir, args.tmp_dir, samples_df,
             _pls_genes_db_file(args.out_dir)
@@ -797,6 +815,9 @@ def main(args):
             args.out_dir, args.tmp_dir,
             samples_df, args.n_gcints
         )
+        if args.out_file:
+            _write_samples_df(samples_df, args.out_file)
+            log_file(args.out_file)
     elif args.cmd == 'preprocessing':
         check_file(args.db_file)
         check_file(args.gc_intervals)
@@ -813,7 +834,8 @@ def main(args):
         )
         create_gene_density_files(
             args.out_dir, samples_df,
-            args.pid_threshold, args.cov_threshold
+            pid_threshold=args.pid_threshold,
+            cov_threshold=args.cov_threshold
         )
         _write_samples_df(samples_df, args.out_file)
         log_file(args.out_file)
