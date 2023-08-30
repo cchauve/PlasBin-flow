@@ -140,6 +140,8 @@ The seed parameters are the minimum length *l* and the minimum gene
 density *gd*: any contig of length at least *l* and gene density at
 least *gd* is a seed contig.
 
+**QUESTION**: default values?
+
 ### Usage
 
 **TO DO**: rename options `outdir` as `out_dir` and `outfile` as `out_file`.
@@ -191,20 +193,20 @@ python plasbin_utils.py map_genes_to_ctgs \
        --out_dir out_dir \
        --tmp_dir tmp_dir \
        --db_file pls_db_file \
-       [--out_file] out_file
+       [--out_file out_file]
 ```
 where
 
 - `input_file` is a CSV file with a header containing at least the
   fields `sample` and `gfa` where the column `sample` contains the
-  sample namea and the column `gfa` the paths to the samples gzipped
+  sample name and the column `gfa` the paths to the samples gzipped
   GFA files (one sample per line);
 - `out_dir` is the directory where the output of the mapping is
   written to a file named `<sample name>.genes_mappings.txt`.
 - `tmp_dir` is directory created to hold temporary files.
 - `pls_db_file` is the path to reference plasmid genes database file.
 - `out_file` is an optional parameter; if provided, a new CSV file
-  `out_file` is created that contains an additional column
+  `out_file` is created from `input_file` by adding a column
   `genes2ctgs_mappings` that contains the path to the file `<sample
   name>.genes_mappings.txt`.
 
@@ -217,7 +219,7 @@ python plasbin_utils.py gc_probabilities \
        --out_dir out_dir \
        --tmp_dir tmp_dir \
        --gc_intervals gc_intervals_file \
-       [--out_file] out_file       
+       [--out_file out_file]
 ```
 where the parameters `input_file`, `out_dir`, `tmp_dir` are as above
 and `gc_intervals_file` is a file that describes the GC intervals,
@@ -230,9 +232,9 @@ The file created for a sample that contains the GC content
 probabilities is names `<sample name>.gc.tsv`.
 
 Here too `out_file` is an optional parameter; if provided, a new CSV
-file `out_file` is created that contains an additional column
-`gc_probabilities` that contains the path to the file
-`<sample name>.gc.tsv`.
+file `out_file` is created from `input_file` by adding a column
+`gc_probabilities` that contains the path to the file `<sample
+name>.gc.tsv`.
 
 Finally, both preprocessing commands can be ran at once using
 ```
@@ -242,82 +244,197 @@ python plasbin_utils.py preprocessing \
        --tmp_dir tmp_dir \
        --db_file pls_db_file \       
        --gc_intervals gc_intervals_file \
-       [--out_file] out_file       
+       [--out_file out_file]
 ```
 
-**TODO** If we use mappings as input, the code needs to be modified to not add gene density files in the output file.
-
+**TODO** If we use mappings as input, the code needs to be modified to
+  not add gene density files in the output file.
 
 ## Tuning PlasBin-flow parameters
 
-PlasBin-flow requires the user to provide certain parameters in order to generate the plasmid gene mapping file, the GC content file as well as the seed parameters described above. The following scripts help in generating the input for Plasbin-flow.
+PlasBin-flow requires auxiliary data files and parameters in order to process samples:
+- reference plasmid genes database used to compute the mapping file and the gene density,
+- GC content intervals used to compute the GC content probabilities file,
+- parameters defining seeds contigs.
 
-### Creating the plasmid gene mapping file
+PlasBin-flow comes with default files/values for these (see the
+PlasBin-flow paper for a description of how these were obtained):
+- reference plasmid genes database: [genes.fasta](database/genes.fasta)
+- GC content intervals:     [gc_intervals.txt](example/input/gc_intervals.txt)
+- seed contigs parameters:  **QUESTION**: default values
+
+Alternatively, given a *reference set* of samples for which the true
+plasmids are known, the script
+[plasbin_utils.py](code/plasbin_utils.py) can be used to compute these
+parameters and auxiliary files.
 
 #### Creating a plasmid gene database
-Prior to creating a plasmid gene mapping file, a database of plasmid genes should be created from a set of reference samples with known plasmids. 
+The command
 ```
-python plasbin_utils.py pls_genes_db --input_file input_file --out_dir out_dir --tmp_dir tmp_dir
+python plasbin_utils.py pls_genes_db \
+       --input_file input_file \
+       --out_dir out_dir \
+       --tmp_dir tmp_dir
 ```
-where `input_file` is a CSV file with one line per sample. Each line in the file requires the sample name and the path to a gzipped FASTA file with plasmid sequences for the sample. The `out_dir` is the directory where the plasmid genes database will be written, named as `pls.genes.fasta`. The `tmp_dir` is directory created to hold temporary files.
-The set of genes from `pls.genes.fasta` will later be mapped onto contigs to determine the contig plasmidness. Note that if you already have a database of genes in FASTA format, the database creation step can be skipped.
+creates a reference plasmid genes database `out_dir/pls.genes.fast`. 
 
-#### Mapping genes to contigs
-In this step, the plasmid genes from the database are mapped onto contigs of a given sample.
-```
-python plasbin_utils.py map_genes_to_ctgs --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --db_file pls_db_file
-```
-where `input_file` is a CSV file with one line per sample. Each line in the file requires the sample name and the path to a gzipped GFA file for the sample. The `out_dir` is the directory where the output of the mapping is written to a file named <sample>.genes_mappings.txt. The `tmp_dir` is directory created to hold temporary files.
-The `pls_db_file` is the path to plasmid genes database file created in the previous step.
+The `file input_file` is a CSV file containing at least the following
+fields
+- `sample`: sample name,
+- `gfa`: path to the gzipped GFA file of the sample,
+- `pls_fasta`: path to a gzipped FASTA file containing the sample
+  plasmids, each entry being named by the GenBank or RefSeq accession
+  number of the plasmid.
 
-### Computing seeds parameters from reference samples
-PlasBin-flow takes two parameters as input as the contig length and plasmidness threshold to decide which contig from a given sample can be designated as seeds. Each plasmid bin output by PlasBin-flow should contain at least one seed contig. Seed parameters are decided by observing the length and plasmidness of contigs from the set of reference samples. 
+The directory `tmp_dir` is used to store temporary files and the
+resulting plasmid genes database is the FASTA file
+`out_dir/pls.genes.fasta`.
 
-#### Computing ground truth contig sets for reference samples
-The length and plasmidness of contigs from reference samples are observed to decide seed parameters. Contigs from a sample are mapped onto the plasmid sequences from the sample to generate the set of contigs belonging to a particular plasmid. 
-```
-python plasbin_utils.py ground_truth --input_file input_file --out_dir out_dir --tmp_dir tmp_dir [--out_file out_file --pid_threshold p --cov_threshold c]
-```
-where `input_file` is a CSV file with one line per sample. Each line in the file requires the sample name, the path to a gzipped GFA file and the path to a gzipped FASTA file with plasmid sequences for the sample. The `out_dir` is the directory where the ground truth files are written under the name <sample>.ground_truth.tsv. The `tmp_dir` is directory created to hold temporary files. Parameters `pid_threshold` and `cov_threshold` can be used to provide the percent identity threshold to define a mapping to a plasmid (default=0.95) and the coverage threshold to accept a blast hit (default=0.8) respectively.
+### Computing GC content intervals
 
-The resulting ground truth file lists contigs mapped to plasmids associated with the sample. A line in the ground truth TSV file should contain the name or id of the plasmid in the first column and a contig that has been mapped to the plasmid in the second column. The file can contain other information as long as the first two columns contain the plasmid and contig ids respectively. 
+The command
 ```
-#Pls_ID	Ctg_ID
-P1	C1
-P1	C2
-P2	C3
+python plasbin_utils.py gc_intervals \
+       --input_file input_file \
+       --out_dir out_dir \
+       --tmp_dir tmp_dir \
+       [--n_gcints n_gcints]
+```
+computes a GC content intervals file `out_dir/gc.txt`.
+
+The file `input_file` is a CSV file containing at least the following
+fields
+- `sample`: sample name,
+- `pls_fasta`: path to a gzipped FASTA file containing the sample
+  plasmids, one per FASTA entry,
+- `chr_fasta`: path to a gzipped FASTA file containing the sample
+  chromosomes, one per FASTA entry.
+
+The optional parameter `n_gcints` (default value 6) is the number of intervals.
+
+The command generates three files:
+- `out_dir/gc.csv`: details of the GC content of all plasmids and chromosomes;
+- `out_dir/gc.png`: violin plot of `out_dir/gc.csv`
+- `out_dir/gc.txt`: GC content `n_gcints` intervals boundaries,
+  obtained by splitting into equal range intervals the GC content
+  observed in the plasmids of the reference samples.
+
+We encourage a user too look at the provided files `out_dir/gc.csv`
+and `out_dir/gc.png` to assess the GC intervals file and modify it if
+deemed relevant.
+
+### Computing ground truth
+
+For a set of samples for which true plasmids are known, the command
+```
+python plasbin_utils.py ground_truth \
+       --input_file input_file \
+       --out_dir out_dir \
+       --tmp_dir tmp_dir \
+       [--out_file out_file] \
+       [--pid_threshold p] \
+       [--cov_threshold c]
+```
+computes, for each sample, a TSV file `out_dir/<sample
+name>.ground_truth.tsv` that records true plasmid bins. True plasmid
+bins for a sample are defined by mapping the sample contigs to the
+true plasmids, and discarding any mapping with identity below
+`pid_threshold p` (default value 0.95) and contig coverage below
+`--cov_threshold c` (default value 0.8).
+
+The file `input_file` is a CSV file containing at least the following
+fields
+- `sample`: sample name,
+- `gfa`: path to the gzipped GFA file of the sample,
+- `pls_fasta`: path to a gzipped FASTA file containing the sample
+  plasmids, one per FASTA entry.
+
+
+The resulting ground truth file `out_dir/<sample
+name>.ground_truth.tsv` lists contigs mapped to plasmids associated
+with the sample. A line in the ground truth TSV file should contain
+the name or id of the plasmid in the first column and a contig that
+has been mapped to the plasmid in the second column. The file can
+contain other information as long as the first two columns contain the
+plasmid and contig ids respectively.
+```
+#Pls_ID Ctg_ID
+P1 C1
+P1 C2
+P2 C3
+...
 ```
 
-#### Computing seed parameters 
-The ground truth files generated above are now used to decide the pair of thresholds for contig length and plasmidness for defining seed contigs.
-```
-python plasbin_utils.py seeds --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --db_file pls_db_file
-```
-where `input_file` is a CSV file with one line per sample. Each line in the file should contain the sample name, the path to a gzipped GFA file and the path to the ground truth file generated in the previous step. The `out_dir` is the directory where the seeds parameters file is written in `seeds.txt`. The `tmp_dir` is directory created to hold temporary files. The `pls_db_file` is the path to plasmid genes database file created in the database creation step.
-Each line of the `seeds.txt` file contains a pair (plasmidness, length) of thesholds separated by a tab. Each pair is considered as one of the best seed parameters for samples in reference set. 
+If the optional parameter `out_file` is provided it contains the path
+to a new CSV file obtained from `input_file` augmented by a column
+`ground_truth` that contains the path to the ground truth file
+for each sample.
 
-### Creating the GC content file
+### Computing seed contigs parameters
 
-#### Computing GC intervals from tuning samples
-The following script helps in deciding the GC content intervals for PlasBin-flow. It takes as input a list of reference chromosome and plasmid sequences and generates a violinplot of the GC content distribution for both types of sequences. The GC content intervals can then be decided by referring to the violinplots. Alternatively, we also provide a file with suggested GC content intervals according to the reference plasmid sequences.
-```
-python plasbin_utils.py gc_intervals --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --n_gcints n_gcints
-```
-where `input_file` is a CSV file with one line per sample, where each line of the file contains the sample name, the path to a gzipped chromosome FASTA file as well as the path to a gzipped FASTA plasmids file. The `out_dir` is the directory where the output is written in the files gc.csv, gc.png and gc.txt. The file gc.csv contains the details of GC content of the sequences. The image file gc.png contains violinplot that can be used to visually decide the GC content intervals. Finally, the file gc.txt contains the suggested GC content intervals in the format required by PlasBin-flow. The `n_gcints` option allows to define the number of GC content intervals between 0 and 1, with a default value of 6 intervals. The `tmp_dir` is directory created to hold temporary files.
+PlasBin-flow takes two parameters as input as the contig length and
+plasmidness threshold to decide which contig from a given sample can
+be designated as seeds. Each plasmid bin output by PlasBin-flow should
+contain at least one seed contig. Seed parameters are decided by
+observing the length and plasmidness of contigs from the set of
+reference samples, based on their mappings to true plasmids.
 
+The command
+```
+python plasbin_utils.py seeds \
+       --input_file input_file \
+       --out_dir out_dir \
+       --tmp_dir tmp_dir \
+       --db_file pls_db_file
+```
+computes a file `out_dir/seeds.txt` that contains the optimal seed
+contigs parameters.
+
+Each line of the `out_dir/seeds.txt` file contains a pair
+(plasmidness, length) of thesholds separated by a tab. Each pair is
+considered as one of the optimal seed contigs parameters for samples
+in the reference set.
+
+The file `input_file` is a CSV file containing at least the following
+fields
+- `sample`: sample name,
+- `gfa`: path to the gzipped GFA file of the sample,
+- `ground_truth`: path to the ground truth file for the sample in
+  format as described above.
+
+The file `pls_db_file` is reference plasmid genes database file.
 
 ### Tuning PlasBin-flow
-The following command generates all the files required for tuning PlasBin-flow.
-```
-python plasbin_utils.py tuning --input_file input_file --out_dir out_dir --tmp_dir tmp_dir
-``` 
-where `input_file` is a CSV file with one line per sample with 5 required fields; the sample name and paths to a gzipped GFA file, a gzipped chromosome FASTA file, a gzipped plasmids FASTA file and the path to the ground truth file. The `output_dir` is the directory where the tuning files (plasmids genes database, GC content details, GC content distribution violinplot, GC content suggested intervals and GC content seed parameters) are written under the respective names mentioned above. Temporary files are stored under `tmp_dir`.
 
-### Generating the input for PlasBin-flow
-The following command generates all the input files required for tuning PlasBin-flow.
+Finally, all parameters tuning steps (but computing ground truth
+files) can be done at once with the command
 ```
-python plasbin_utils.py preprocessing --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --pls_db pls_db --gc_intervals gc_intervals --out_file out_file
-```
-where `input_file` is a CSV file with one line per sample. Each line in the file requires the sample name and the path to a gzipped GFA file for the sample. The `output_dir` is the directory where the files to be used in PlasBin-flow are written: the plasmid genes to contigs mapping file (one per sample, <sample>.genes_mappings.txt) and the GC content probabilities file  (one per sample, <sample>.gc.tsv). The `pls_db` is the path to plasmid genes database file created in the database creation step while the `gc_intervals_file` is the GC intervals file generated in GC interval computation step.
-The `out_file` is the augmented dataset CSV file, with mapping and GC probabilities files added for each sample.
+python plasbin_utils.py tuning \
+       --input_file input_file \
+       --out_dir out_dir \
+       --tmp_dir tmp_dir \
+       [--out_file out_file] \
+       [--pid_threshold p] \
+       [--cov_threshold c] \
+       [--n_gcints n_gcints]
+``` 
+where `input_file` is a CSV file containing at least the following
+fields
+- `sample`: sample name,
+- `gfa`: path to the gzipped GFA file of the sample,
+- `pls_fasta`: path to a gzipped FASTA file containing the sample
+  plasmids, one per FASTA entry,
+- `chr_fasta`: path to a gzipped FASTA file containing the sample
+  chromosomes, one per FASTA entry.
+
+It creates the files `out_dir/gc.[txt,png,csv]`,
+`out_dir/gc_intervals.txt`, `out_dir/seeds.txt`,
+`out_dir/pls.genes.fasta`, and for each sample `out_dir/<sample
+name>.genes_mappings.txt` and `out_dir/<sample
+name>.ground_truth.tsv`.
+
+If the optional paramater `out_file` is provided it contains the path
+to a new CSV file obtained from `input_file` augmented by a column
+`ground_truth` that contains the path to the ground truth file
+for each sample.
 
