@@ -268,7 +268,7 @@ plasmids are known, the script
 [plasbin_utils.py](code/plasbin_utils.py) can be used to compute these
 parameters and auxiliary files.
 
-#### Creating a plasmid gene database
+### Creating a plasmid gene database
 The command
 ```
 python plasbin_utils.py pls_genes_db \
