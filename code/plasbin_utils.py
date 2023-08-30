@@ -264,7 +264,7 @@ def _set_gc_prob(samples_df, sample, gc_prob_file):
 def _get_genes2ctgs_mappings(samples_df, sample):
     """ Path to genes to contigs mappings file """
     return _get_sample_col(samples_df, sample, MAPPINGS_COL)
-def _set_genes2ctgs_prob(samples_df, sample, mappings_file):
+def _set_genes2ctgs_mappings(samples_df, sample, mappings_file):
     """ Set path to genes to contigs mappings file """
     samples_df.at[sample,MAPPINGS_COL] = mappings_file
 def _get_gene_density(samples_df, sample):
@@ -482,7 +482,7 @@ def map_pls_genes_to_contigs(out_dir, tmp_dir, samples_df, db_file):
         genes_mappings_file = _genes_mappings_file(out_dir, sample)
         gfa_fasta_file = _gfa_fasta_file(tmp_dir, sample)
         run_blast6(db_file, gfa_fasta_file, genes_mappings_file)
-        _set_genes2ctgs_prob(samples_df, sample, genes_mappings_file)
+        _set_genes2ctgs_mappings(samples_df, sample, genes_mappings_file)
         
 def create_GC_content_intervals_file(out_dir, tmp_dir, samples_df, n_gcints):
     """
