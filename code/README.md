@@ -172,7 +172,7 @@ Flow value			Flow value associated with the plasmid bin (used as a proxy for the
 GC bin				Index of GC content interval associated with the plasmid bin
 Contigs				Comma-separated list of contigs associated with plasmid bin along with their multiplicities
 ```
-Thus a typical line in an output file from PlasBin-flow looks as follows:
+Thus a line in an output file from PlasBin-flow is as follows:
 ```
 #Pls_ID	Flow	GC_bin		Contigs
 P1	2.5	0.4-0.45	a:2,b:3,c:2,d:1
@@ -208,6 +208,7 @@ where
   `genes2ctgs_mappings` that contains the path to the file `<sample
   name>.genes_mappings.txt`.
 
+**TODO** If we use plasmidness instead of mappings as input, add the `gene_density` command.
 
 The command to create the GC content probabilities files for a set of samples is
 ```
@@ -243,6 +244,8 @@ python plasbin_utils.py preprocessing \
        --gc_intervals gc_intervals_file \
        [--out_file] out_file       
 ```
+
+**TODO** If we use mappings as input, the code needs to be modified to not add gene density files in the output file.
 
 
 ## Tuning PlasBin-flow parameters
