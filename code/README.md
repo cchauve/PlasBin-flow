@@ -38,7 +38,7 @@ PlasBin-flow is written in python (version 3.9.11+);
   - <a href="https://scipy.org/">scipy (version 1.10.1+)</a>,
   - <a href="https://numpy.org/">numpy (version 1.24.2+)</a>.
 
-[code/plasbin_utils.py](plasbin_utils.py) also requires <a href="https://blast.ncbi.nlm.nih.gov/doc/blast-help/downloadblastdata.html">BLAST+
+[plasbin_utils.py](code/plasbin_utils.py) also requires <a href="https://blast.ncbi.nlm.nih.gov/doc/blast-help/downloadblastdata.html">BLAST+
 v2.6.0</a> (commands makeblastdb and blastn).
 
 We strongly recommand to run PlasBin-flow using a dedicated python virtual environment (see https://docs.python.org/3.9/library/venv.html).  
