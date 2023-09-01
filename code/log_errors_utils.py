@@ -48,12 +48,12 @@ def run_cmd(cmd, num_attempts=5):
     while attempt <= num_attempts:
         try:
             process = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        except attempt < num_attempts and subprocess.CalledProcessError as e:
-            msg = f'Running {cmd_str}: {e} (attempt {attempt}, retry)'
-            logging.warning(msg)
-        except attempt == num_attempts and subprocess.CalledProcessError as e:
-            msg = f'Running {cmd_str}: {e} (attempt {attempt}, abort)'
-            process_exception(msg)
+        except subprocess.CalledProcessError as e:
+            msg = f'Running {cmd_str}: {e} attempt #{attempt}'
+            if attempt < num_attempts:
+                logging.warning(f'{msg} retry')
+            else:
+                process_exception(f'{msg} abort')
         else:
             logging.info(f'STDOUT:\n{process.stdout}')
             if len(process.stderr) > 0:
