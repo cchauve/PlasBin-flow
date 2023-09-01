@@ -145,7 +145,7 @@ def create_db(
         logging.warning(f'{num_attempts_discarded} plasmids were discarded for reaching the download-attempt limit.')
 
     logging.info(f'Database comprises {num_genes} genes.')
-    _ = run_cmd(['rm', temp])
+    _ = run_cmd(['rm', '-f', temp])
 
 # print configuration of database generation
 def log_config(
