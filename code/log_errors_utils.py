@@ -39,20 +39,30 @@ def create_directory(in_dir_list):
         if not os.path.exists(in_dir):
             os.makedirs(in_dir)
 
-def run_cmd(cmd):
-    """ Run external command """
+def run_cmd(cmd, num_attempts=5):
+    """ Run external command, trying at most num_attempts=5 times  """
     cmd_str = ' '.join(cmd)
     logging.info(f'COMMAND {cmd_str}')
-    try:
-        process = subprocess.run(cmd, capture_output=True, text=True, check=True)
-    except subprocess.CalledProcessError as e:
-        msg = f'Running {cmd_str}: {e}'
-        process_exception(msg)
-    else:
-        logging.info(f'STDOUT:\n{process.stdout}')
-        if len(process.stderr) > 0:
-            logging.warning(f'STDERR:\n{process.stderr}')
-        return process.returncode
+    attempt = 1
+    process_returncode = 0
+    while attempt <= num_attempts:
+        try:
+            process = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        except attempt < num_attempts and subprocess.CalledProcessError as e:
+            msg = f'Running {cmd_str}: {e} (attempt {attempt}, retry)'
+            logging.warning(msg)
+        except attempt == num_attempts and subprocess.CalledProcessError as e:
+            msg = f'Running {cmd_str}: {e} (attempt {attempt}, abort)'
+            process_exception(msg)
+        else:
+            logging.info(f'STDOUT:\n{process.stdout}')
+            if len(process.stderr) > 0:
+                logging.warning(f'STDERR:\n{process.stderr}')
+            process_returncode = process.returncode
+        attempt += 1
+    return process_returncode
+    
+
 
 def run_cmd_redirect(cmd, out_file_name):
     """ Run external command """
