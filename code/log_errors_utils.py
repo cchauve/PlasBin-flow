@@ -51,9 +51,9 @@ def run_cmd(cmd, num_attempts=5):
         except subprocess.CalledProcessError as e:
             msg = f'Running {cmd_str}: {e} attempt #{attempt}'
             if attempt < num_attempts:
-                logging.warning(f'{msg} retry')
+                logging.warning(f'{msg}: retrying')
             else:
-                process_exception(f'{msg} abort')
+                process_exception(f'{msg}: aborting')
         else:
             logging.info(f'STDOUT:\n{process.stdout}')
             if len(process.stderr) > 0:
@@ -62,19 +62,27 @@ def run_cmd(cmd, num_attempts=5):
         attempt += 1
     return process_returncode
     
-
-
-def run_cmd_redirect(cmd, out_file_name):
-    """ Run external command """
+def run_cmd_redirect(cmd, out_file_name, num_attempts=5):
+    """ Run external command with redirection, trying at most num_attempts=5 times  """
     cmd_str = ' '.join(cmd)
     logging.info(f'COMMAND {cmd_str} > {out_file_name}')
-    try:
-        process = subprocess.run(cmd, capture_output=True, text=True, check=True)
-    except subprocess.CalledProcessError as e:
-        msg = f'Running {cmd_str}: {e}'
-        process_exception(msg)
-    else:
-        with open(out_file_name, 'w') as out_file:
-            out_file.write(process.stdout)
-        logging.warning(f'STDERR:\n{process.stderr}')
-        return process.returncode
+    attempt = 1
+    process_returncode = 0
+    while attempt <= num_attempts:
+        try:
+            process = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        except subprocess.CalledProcessError as e:
+            msg = f'Running {cmd_str}: {e} attempt #{attempt}'
+            if attempt < num_attempts:
+                logging.warning(f'{msg}: retrying')
+            else:
+                process_exception(f'{msg}: aborting')
+        else:
+            logging.info(f'STDOUT:\n{process.stdout}')
+            with open(out_file_name, 'w') as out_file:
+                out_file.write(process.stdout)
+            if len(process.stderr) > 0:
+                logging.warning(f'STDERR:\n{process.stderr}')
+            process_returncode = process.returncode
+        attempt += 1
+    return process_returncode
