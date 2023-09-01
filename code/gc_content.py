@@ -88,10 +88,13 @@ def _read_FASTA_files(fasta_file_paths, mol_type):
             (Dictionary) feature key -> feature
             feature key in {GC_COUNT_KEY, GC_RATIO_KEY, LENGTH_KEY, MOL_TYPE_KEY}
     '''
+    seq_dict = {}
     for fasta_file in fasta_file_paths:
         try:
-            seq_dict = read_FASTA_ctgs(
-                fasta_file, _process_FASTA_record, gzipped=True
+            seq_dict.update(
+                read_FASTA_ctgs(
+                    fasta_file, _process_FASTA_record, gzipped=True
+                )
             )
         except Exception as e:
             process_exception(
