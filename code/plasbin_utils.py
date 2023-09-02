@@ -17,7 +17,7 @@ python plasbin_utils.py pls_genes_db --input_file input_file --out_dir out_dir -
 - tmp_dir: temporary directory, not deleted
 
 Mapping plasmid genes to samples contigs 
-python plasbin_utils.py map_genes_to_ctgs --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --db_file pls_db_file
+python plasbin_utils.py map_genes_to_ctgs --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --db_file pls_db_file [--out_file out_file]
 - input_file: CSV file with one line per sample and 2 required fields:
   sample: sample name
   gfa: gzipped GFA file
@@ -758,10 +758,9 @@ def _cmd_gc_probabilities(args, samples_df):
     _clean_output_files(CMD_GC_PROBABILITIES, samples_df, args.out_dir, args.tmp_dir)
     check_file(args.gc_intervals)
     gc_intervals = args.gc_intervals if args.gc_intervals else None
-     args.gc_intervals:
-     create_GC_content_probabilities_files(
-         args.out_dir, args.tmp_dir, gc_intervals, samples_df
-     )
+    create_GC_content_probabilities_files(
+        args.out_dir, args.tmp_dir, gc_intervals, samples_df
+    )
 
 def _cmd_preprocessing(args, samples_df):
     """ Command to perform missing preprocessing steps """
