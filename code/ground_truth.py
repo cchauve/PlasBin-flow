@@ -1,4 +1,4 @@
-''' Functions to manipulate ground truth files '''
+""" Functions to manipulate ground truth files """
 
 import pandas as pd
 
@@ -23,7 +23,7 @@ GT_COL_TYPES = {
 }
 
 def compute_ground_truth(pls_intervals, ctg_len, cov_threshold):
-    '''
+    """
     Computes ground truth dictionary
 
     Args:
@@ -37,11 +37,11 @@ def compute_ground_truth(pls_intervals, ctg_len, cov_threshold):
     Returns:
         (Dictionary): (plasmid id, contig id) -> contig coverage by hits with plasmid
                       for true positive pairs (plasmid id, contig id)
-    '''
+    """
     def _num_covered_positions(intervals):
-        ''' 
+        """ 
         Computes the number of positions of a contig covered by a list of intervals 
-        '''
+        """
         num_pos_covered,last_pos_covered = 0,0
         for qstart,qend,_,_ in intervals:
             if qend > last_pos_covered:
@@ -85,7 +85,7 @@ def compute_ground_truth_file(
         sample, pls_mappings_file,
         ctg_len, pls_len, pid_threshold, cov_threshold,
         ground_truth_file):
-    '''
+    """
     Computes the ground truth file for a sample
 
     Args:
@@ -99,7 +99,7 @@ def compute_ground_truth_file(
 
     Returns:
       None, creates the file _ground_truth_file(out_dir, sample)
-    '''
+    """
     pls_mappings_df = read_blast_outfmt6_file(
         pls_mappings_file, order_coordinates=True
     )

@@ -236,7 +236,7 @@ requird parameters:
 - `out_dir`: directory where final results files are written;
 - `tmp_dir`: directory where temporary files are written (deleted
   unless the paramater `--keep_tmp_dir` is used);
-- `log_file`: file containing detailed log information.
+- `log_file`: optional file containing detailed log information.
 
 ### Preprocessing: Computing GC probabilities files
 
@@ -248,6 +248,7 @@ python plasbin_utils.py gc_probabilities \
        --input_file input_file \
        --out_dir out_dir \
        --tmp_dir tmp_dir \
+       [--log_file log file] \
        [--gc_intervals gc_intervals_file] \
        [--out_file out_file]
 ```
@@ -287,6 +288,7 @@ python plasbin_utils.py gene_density \
        --input_file input_file \
        --out_dir out_dir \
        --tmp_dir tmp_dir \
+       [--log_file log file] \
        [--out_file out_file] \
        [--pid_threshold p] \
        [--cov_threshold c]
@@ -310,6 +312,7 @@ python plasbin_utils.py map_genes_to_ctgs \
        --input_file input_file \
        --out_dir out_dir \
        --tmp_dir tmp_dir \
+       [--log_file log file] \
        --db_file pls_db_file \
        [--out_file out_file]
 ```
@@ -332,6 +335,7 @@ python plasbin_utils.py preprocessing \
        --input_file input_file \
        --out_dir out_dir \
        --tmp_dir tmp_dir \
+       [--log_file log file] \
        --out_file out_file \       
        --db_file pls_db_file \
        [--gc_intervals gc_intervals_file] \
@@ -368,7 +372,8 @@ The command
 python plasbin_utils.py pls_genes_db \
        --input_file input_file \
        --out_dir out_dir \
-       --tmp_dir tmp_dir
+       --tmp_dir tmp_dir \
+       [--log_file log file]
 ```
 creates a reference plasmid genes database `out_dir/pls.genes.fasta`. 
 
@@ -385,6 +390,7 @@ python plasbin_utils.py gc_intervals \
        --input_file input_file \
        --out_dir out_dir \
        --tmp_dir tmp_dir \
+       [--log_file log file] \
        [--n_gcints n_gcints]
 ```
 computes a GC content intervals file `out_dir/gc.txt`.
@@ -414,6 +420,7 @@ python plasbin_utils.py ground_truth \
        --input_file input_file \
        --out_dir out_dir \
        --tmp_dir tmp_dir \
+       [--log_file log file] \
        [--out_file out_file] \
        [--pid_threshold p] \
        [--cov_threshold c]
@@ -461,7 +468,8 @@ The command
 python plasbin_utils.py seeds \
        --input_file input_file \
        --out_dir out_dir \
-       --tmp_dir tmp_dir
+       --tmp_dir tmp_dir \
+       [--log_file log file]
 ```
 computes a file `out_dir/seeds.txt` that contains the optimal seed
 contigs parameters.
@@ -483,7 +491,8 @@ python plasbin_utils.py tuning \
        --input_file input_file \
        --out_dir out_dir \
        --tmp_dir tmp_dir \
-       --pls_db pls_db_file \
+       [--log_file log file] \
+       --db_file pls_db_file \
        [--out_file out_file] \
        [--pid_threshold p] \
        [--cov_threshold c] \

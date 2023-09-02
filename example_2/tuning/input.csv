@@ -1,0 +1,6 @@
+sample,gfa,chr_fasta,pls_fasta
+SAMN11056450,data/SAMN11056450.gfa.gz,data/SAMN11056450.chr.fasta.gz,data/SAMN11056450.pls.fasta.gz
+SAMD00491671,data/SAMD00491671.gfa.gz,data/SAMD00491671.chr.fasta.gz,data/SAMD00491671.pls.fasta.gz
+SAMD00491757,data/SAMD00491757.gfa.gz,data/SAMD00491757.chr.fasta.gz,data/SAMD00491757.pls.fasta.gz
+SAMEA8911316,data/SAMEA8911316.gfa.gz,data/SAMEA8911316.chr.fasta.gz,data/SAMEA8911316.pls.fasta.gz
+SAMN15735178,data/SAMN15735178.gfa.gz,data/SAMN15735178.chr.fasta.gz,data/SAMN15735178.pls.fasta.gz

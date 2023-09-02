@@ -603,19 +603,12 @@ def create_seeds_parameters_file(out_dir, tmp_dir, samples_df):
                 )
         log_file(input_file)
 
-    def _dev_compute_seeds_parameters_file_placeholder(in_file, out_file):
-        print('DEV: Computing seeds parameters placeholder')
-        with open(out_file, 'w') as out:
-            out.write('5000\t0.5\n')
-            
-    
     logging.info(f'## Compute seeds parameters file')
     logging.info(f'ACTION\tcreate plasmids seeds input file')    
     seeds_input_file = os.path.join(tmp_dir, 'seeds_input.csv')
     _create_input_file(samples_df, seeds_input_file)
     logging.info(f'ACTION\tcreate seeds parameters file') 
     seeds_parameters_file = _seeds_parameters_file(out_dir)
-    #_dev_compute_seeds_parameters_file_placeholder(seeds_input_file, seeds_parameters_file)
     compute_seeds_parameters_file(seeds_input_file, seeds_parameters_file)
     log_file(seeds_parameters_file)
 
