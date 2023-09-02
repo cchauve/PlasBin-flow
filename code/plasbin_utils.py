@@ -756,7 +756,8 @@ def _cmd_gene_density(args, samples_df):
 def _cmd_gc_probabilities(args, samples_df):
     """ Command to create the GC probabilities files """
     _clean_output_files(CMD_GC_PROBABILITIES, samples_df, args.out_dir, args.tmp_dir)
-    check_file(args.gc_intervals)
+    if args.gc_intervals:
+        check_file(args.gc_intervals)
     gc_intervals = args.gc_intervals if args.gc_intervals else None
     create_GC_content_probabilities_files(
         args.out_dir, args.tmp_dir, gc_intervals, samples_df
