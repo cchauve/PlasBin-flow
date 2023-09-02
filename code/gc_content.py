@@ -1,4 +1,4 @@
-''' Functions to compute GC content intervals and probabilities '''
+""" Functions to compute GC content intervals and probabilities """
 
 import os
 import matplotlib.pyplot as plt
@@ -32,7 +32,7 @@ MOL_TYPE_PLS = 'plasmid'
 DEFAULT_GC_INTERVALS = [0, 0.4,  0.45, 0.5, 0.55, 0.6, 1]
 
 def _process_sequence(sequence):
-    '''
+    """
     Computes sequence statistics
 
     Args:
@@ -40,7 +40,7 @@ def _process_sequence(sequence):
     
     Returns:
         (Dictionary): GC_COUNT_KEY -> GC content, GC_RATIO_KEY: GC content ratio, LENGTH_KEY: length
-    '''
+    """
     gc_count = sequence.count('G') + sequence.count('C')
     length = len(sequence)
     return {
@@ -50,7 +50,7 @@ def _process_sequence(sequence):
     }
 
 def _process_FASTA_record(record):
-    '''
+    """
     Parse a FASTA record
 
     Args:
@@ -58,12 +58,12 @@ def _process_FASTA_record(record):
 
     Returns:
         (Dictionary): GC count (GC_COUNT_KEY), length (LENGTH_KEY), GC ratio (GC_RATIO_KEY)
-    '''
+    """
     return _process_sequence(str(record.seq))
     
 
 def _process_GFA_ctg(attributes_dict):
-    '''
+    """
     Parse a GFA record
 
     Args:
@@ -72,11 +72,11 @@ def _process_GFA_ctg(attributes_dict):
 
     Returns:
         (Dictionary): GC count (GC_COUNT_KEY), GC ratio (GC_RATIO_KEY), length (LENGTH_KEY)
-    '''
+    """
     return _process_sequence(attributes_dict[GFA_SEQ_KEY])
 
 def _read_FASTA_files(fasta_file_paths, mol_type):
-    '''
+    """
     Read all plasmid/chromosome FASTA files, recording GC features
 
     Args:
@@ -87,11 +87,14 @@ def _read_FASTA_files(fasta_file_paths, mol_type):
         (Dictionary): sequence id ->
             (Dictionary) feature key -> feature
             feature key in {GC_COUNT_KEY, GC_RATIO_KEY, LENGTH_KEY, MOL_TYPE_KEY}
-    '''
+    """
+    seq_dict = {}
     for fasta_file in fasta_file_paths:
         try:
-            seq_dict = read_FASTA_ctgs(
-                fasta_file, _process_FASTA_record, gzipped=True
+            seq_dict.update(
+                read_FASTA_ctgs(
+                    fasta_file, _process_FASTA_record, gzipped=True
+                )
             )
         except Exception as e:
             process_exception(
@@ -105,7 +108,7 @@ def _read_FASTA_files(fasta_file_paths, mol_type):
 def compute_gc_intervals_files(
         chr_paths_file, pls_paths_file, out_csv_file, out_png_file, out_intervals_file, n_gcints
 ):
-    '''
+    """
     Reads fasta sequences of plasmids and chromosomes in the reference database
     Computes and outputs details on gc content of molecules including
     violinplot of gc content distribution
@@ -122,7 +125,7 @@ def compute_gc_intervals_files(
         None, creates files out_csv_file, out_png_file, out_intervals_file
         out_csv_file and out_png_file record GC content and ratio features
         out_intervals_file records n_gcints equally spaced intervals between the min and mac GC content ratio
-    '''
+    """
 
     # Reading and storing input data for reference samples
     # seq_dict: sequence id -> {
@@ -158,7 +161,7 @@ def compute_gc_intervals_files(
         process_exception(f'Writing GC intervals file {out_intervals_file}: {e}')
             
 def read_gc_intervals_file(gc_intervals_file):
-    '''
+    """
     Read GC intervals file
 
     Args:
@@ -166,7 +169,7 @@ def read_gc_intervals_file(gc_intervals_file):
     
     Returns:
         (List(float)): sorted list of GC intervals boundaries
-    '''
+    """
     try:
         with open(gc_intervals_file) as in_file:
             intervals = [
@@ -190,7 +193,7 @@ def read_gc_intervals_file(gc_intervals_file):
         return intervals
 
 def compute_gc_probabilities(contigs_gc, gc_intervals):
-    '''
+    """
     Computes GC probabilities for a set of contigs and GC intervals
 
     Args:
@@ -202,15 +205,15 @@ def compute_gc_probabilities(contigs_gc, gc_intervals):
     Returns:
         (Dictionary) contig id -> List(float)
         where element in position i in the list is the probability to be in the (i+1)th interval
-    '''
+    """
     def _gprob2(n, g, p, m):
-        '''
+        """
         Compute probability of observing g GC nucleotides in a contig
         of length n within a molecule of GC content p using pseducount m.
         Done via logarithm to avoid overflow.
-        '''
+        """
         def _combln(n, k):
-            ''' Compute ln of n choose k. Note than n! = gamma(n+1) '''
+            """ Compute ln of n choose k. Note than n! = gamma(n+1) """
             return sc.gammaln(n + 1) - sc.gammaln(k + 1) - sc.gammaln(n - k + 1)
         alpha = m*p
         beta = m*(1-p)
@@ -245,12 +248,12 @@ def _write_gc_probabilities_file(ctg_gcp_dict, gcp_out_file):
         process_exception(f'Writing GC probabilities file {gcp_out_file}: {e}')
                 
 def read_gc_probabilities_file(gcp_in_file):
-    '''
+    """
     Args:
         gcp_in_file (str): path to a GC probabilities file
     Returns 
         Dictionary contig id -> list of probabilities ordered by GC interval
-    '''
+    """
     try:
         gcp_dict = {}
         with open(gcp_in_file, 'r') as in_file:
@@ -266,22 +269,23 @@ def read_gc_probabilities_file(gcp_in_file):
     else:
         return gcp_dict
             
-def compute_gc_probabilities_file(gfa_file, gc_intervals_file, gcp_out_file):
-    '''
+def compute_gc_probabilities_file(gfa_file, gc_intervals_file, gcp_out_file, gfa_gzipped=True):
+    """
     Computes probability that contigs originate from a molecule of a given GC conten ratio,
     for a given list of GC content intervals.
 
     Args:
-        - gfa_file (str): path to an ungzipped GFA file
+        - gfa_file (str): path to an  GFA file
         - gc_intervals_file (str) path to a GC vontent ratio intervals file
         - out_file: output file
+        - gfa_gzipped (bool): True if input GFA file is gzipped
 
     Returns:
         creates out_file in format
         line 1: CTG<TAB><TAB-separated list of GC intervals>
         line 2+: GFA contig id<TAB><TAB-separated list of probabilities the contig oiginates from 
                  a molecule of GC content ratio within the interval>
-    '''
+    """
     if gc_intervals_file != None:
         gc_intervals = read_gc_intervals_file(gc_intervals_file)
     else:
@@ -292,7 +296,7 @@ def compute_gc_probabilities_file(gfa_file, gc_intervals_file, gcp_out_file):
         ctg_gc = read_GFA_ctgs(
             gfa_file,
             [GFA_SEQ_KEY],
-            gzipped=False,
+            gzipped=gfa_gzipped,
             ctg_fun=_process_GFA_ctg
         )
     except Exception as e:

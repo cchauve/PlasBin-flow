@@ -1,4 +1,4 @@
-''' Functions to manipulate mappings files '''
+""" Functions to manipulate mappings files """
 
 import os
 import glob
@@ -59,9 +59,9 @@ def run_blast6(query_file, db_file, mappings_file):
             process_exception('Removing BLAST file {file_to_clean}: (e)')
 
 def _df_modify_col(in_df, col_name, modif_fun):
-    '''
+    """
     Modify in_df[col_name] inplace by applying modif_fun
-    '''
+    """
     for idx,row in in_df.iterrows():
         prev_val = row[col_name]
         new_val = modif_fun(prev_val)
@@ -69,7 +69,7 @@ def _df_modify_col(in_df, col_name, modif_fun):
 
             
 def read_blast_outfmt6_file(mappings_file, order_coordinates=True):
-    '''
+    """
     Reads a BLAST format 6 file
 
     Args:
@@ -80,12 +80,12 @@ def read_blast_outfmt6_file(mappings_file, order_coordinates=True):
         (DataFrame) with columns as in BLAST format 6 
         https://www.metagenomics.wiki/tools/blast/blastn-output-format-6
         and start and end positions in increasing order
-    '''
+    """
     
     def _order_coordinates(in_df, start_col, end_col):
-        '''
+        """
         Ensures that the colums start_col,end_col are increasing
-        '''
+        """
         for idx,row in in_df.iterrows():
             start,end = row[start_col],row[end_col]
             if start>end:
@@ -122,7 +122,7 @@ def filter_blast_outfmt6(
             mappings_df.drop(mapping_index, inplace=True)
         
 def compute_blast_qs_intervals(mappings_df):
-    '''
+    """
     From a mappings dataframe computes the intervals of each subject covered by each query
 
     Args: 
@@ -131,7 +131,7 @@ def compute_blast_qs_intervals(mappings_df):
     Returns:
         (Dictionary): subject id -> (Dictionary) query id -> List((qstart,qend,sstart,ssend)) of intervals 
                       of the subject covered by the query
-    '''
+    """
     s_ids = sorted(mappings_df.sseqid.unique())
     q_ids = sorted(mappings_df.qseqid.unique())
     q_s_ids = [
@@ -156,7 +156,7 @@ def compute_blast_qs_intervals(mappings_df):
     return qs_intervals
 
 def compute_blast_s_intervals(mappings_df):
-    '''
+    """
     From a mappings dataframe computes the intervals of each subject covered by all queries
 
     Args: 
@@ -164,7 +164,7 @@ def compute_blast_s_intervals(mappings_df):
 
     Returns:
         (Dictionary): subject id -> List((query,sstart,ssend)) of intervals 
-    '''
+    """
     s_ids = sorted(mappings_df.sseqid.unique())
     s_intervals = {s_id: [] for s_id in s_ids}
     for s_id in s_ids:
@@ -175,7 +175,7 @@ def compute_blast_s_intervals(mappings_df):
     return s_intervals
 
 def compute_blast_q_intervals(mappings_df):
-    '''
+    """
     From a mappings dataframe computes the intervals of each query covered by all subjects
 
     Args: 
@@ -183,7 +183,7 @@ def compute_blast_q_intervals(mappings_df):
 
     Returns:
         (Dictionary): subject id -> List((subject,qstart,qend)) of intervals 
-    '''
+    """
     q_ids = sorted(mappings_df.qseqid.unique())
     q_intervals = {q_id: [] for q_id in q_ids}
     for q_id in q_ids:

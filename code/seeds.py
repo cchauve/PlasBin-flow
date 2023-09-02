@@ -1,250 +1,207 @@
+''' Functions to compute parameters defining seeds '''
+
+import os
 import pandas as pd
 from Bio import SeqIO
 import numpy as np
+from collections import defaultdict
 
-def get_ctg_details(ctg):
+from gfa_fasta_utils import (
+    read_GFA_len
+)
+
+from ground_truth import (
+    read_ground_truth_file
+)
+
+def _sample_ctg(sample, ctg):
+    return f'{sample}_{ctg}'
+
+def _read_sample_pls_score(sample, pls_score_file):
     '''
-    Parsing entry in the fasta file and getting contig details.
-    Returns a dictionary with contig attributes as keys
+    Reads plasmidness score file for a sample
+    Returns dictionary:
+	    Key: Contig id as sample_ctg
+	    Value: Contig plasmidness (float)
     '''
-    sequence = str(ctg.seq)
-    gc_count = sequence.count('G') + sequence.count('C')
-    length = len(sequence)
+    pls_score_df = pd.read_csv(pls_score_file, sep='\t', header=None)
+    pls_score_dict = dict(zip(pls_score_df[0], pls_score_df[1]))
     return {
-        'gc_count': gc_count,
-        'length': length,
-        'gc_percent': gc_count/length,
-        'gd': 0,
-        'type': 'chromosome'
+        _sample_ctg(sample, ctg): pls_score
+        for ctg, pls_score in pls_score_dict.items()
     }
 
-def parse_mapping(mapping_file):
+def get_pls_ctgs_list(sample, ground_truth_df):	
     '''
-    Computing the gene coverage intervals for each contig
+    Reads ground truth file for a sample
+    Returns dictionary:
+	    Key: Plasmid
+	    Value: List of contig ids of contigs belonging to plasmid
+	    Each contig id of the form sample_ctg
+    '''
+    sample_pls_ctgs = ground_truth_df.groupby('plasmid')['contig'].apply(list).to_dict()
+    for pls in sample_pls_ctgs:
+        sample_pls_ctgs[pls] = [
+            _sample_ctg(sample, ctg)
+            for ctg in sample_pls_ctgs[pls]
+        ]
+    return sample_pls_ctgs
 
-    The mapfile is to be provided in BLAST output fmt 6. It is a tab separated file.
-    Each row of the file has the following information in tab separated format
-    qseqid      query or gene sequence id (str)
-    sseqid      subject or contig sequence id (str)
-    pident      percentage of identical positions (float)
-    length      alignment or overlap length (int)
-    mismatch    number of mismatches (int)
-    gapopen     number of gap openings (int)
-    qstart      start of alignment in query (int)
-    qend        end of alignment in query (int)
-    sstart      start of alignment in subject (int)
-    send        end of alignment in subject (int)
-    evalue      expect value (float)
-    bitscore    bit score (int)
+def change_type_to_pls(sample, ground_truth_df):
     '''
-    covg_int = {}
-    with open(mapping_file, 'r') as map:
-        line = next(map)
-        while line:
-            tmp = line.split("\t")
-            ctg = tmp[1]
-            sstart, send = tmp[8], tmp[9]
-            if ctg not in covg_int:
-                covg_int[ctg] = []
-            if int(sstart) > int(send):
-                covg_int[ctg].append((int(send), int(sstart)))
-            else:
-                covg_int[ctg].append((int(sstart), int(send)))
-            line = next(map, None)
-    return covg_int
+    Function to change mol_type to 'plasmid' for 
+    contigs mapped to plasmids in the ground truth.
 
-def get_union(intervals):
+    Takes ground truth dataframe as input
+    Returns dictionary:
+	    Key: Contig id as sample_ctg
+	    Value: 'plasmid'
     '''
-    Takes the gene covering intervals for a contig and finds their union
-    The length of the union is used to compute gene coverage
-    '''
-    union = []
-    for begin,end in sorted(intervals):
-        if union and union[-1][1] >= begin-1:
-            union[-1][1] = max(union[-1][1],end)
-        else:
-            union.append([begin,end])
-    return union
-
-def compute_gd(union, ctg_len):
-    '''
-    Computes gene density using list of coverage intervals and contig length
-    '''
-    covered = 0
-    for interval in union:
-        covered += interval[1] - interval[0] + 1
-    return covered / ctg_len
+    return {
+        _sample_ctg(sample, ctg): 'plasmid'
+        for ctg in ground_truth_df['contig'].unique()
+    }
 
 #Classifying contigs as seeds according to gene density and length thresholds
-def seed_by_param(gdt, lt, ctg_details):
+def seed_by_param(PLS_SC_THR, LEN_THR, CTG_LEN, CTG_PLS_SC):
     '''
     Function to classify contigs as seeds
     according to given threshold params (gene density and length)
     '''
-    ctg_len, ctg_gd = ctg_details['length'], ctg_details['gd']
-    return 1 if ctg_gd >= gdt and ctg_len >= lt else 0
+    return 1 if CTG_PLS_SC >= PLS_SC_THR and CTG_LEN >= LEN_THR else 0	
 
-def read_sample_assembly(all_ctgs_dict, sample, assembly_file):
-    '''
-    Reading assembly data
-    Dictionary with key as the contig id
-    Value as a dictionary of following attributes
-    length (int), gd (float), gc_count (int), gc_percent (float), type (str)
-    '''
-    ctgs = SeqIO.parse(assembly_file,'fasta')
-    for ctg in ctgs:
-        ctg_id = f'{sample}_{ctg.id}'
-        all_ctgs_dict[ctg_id] = get_ctg_details(ctg)
-    return all_ctgs_dict
-
-def get_gene_density(all_ctgs_dict, sample, gene_map_file):
-    '''
-    Reading gene to contig mapping information
-    Computes gene density for all contigs
-    '''
-    covg_int = parse_mapping(gene_map_file)
-    for ctg in covg_int:
-        union = get_union(covg_int[ctg])
-        ctg_id = f'{sample}_{ctg}'
-        ctg_len = all_ctgs_dict[ctg_id]['length']
-        all_ctgs_dict[ctg_id]['gd'] = compute_gd(union, ctg_len)
-    return all_ctgs_dict
-
-def get_ground_truth(all_ctgs_dict, all_pls_dict, sample, gt_file):
-    '''
-    Reading ground truth file
-    Dictionary with key as the plamid id
-    Value as a dictionary of following attributes
-    sample (str), ctg_list (list)
-    '''
-    if gt_file != None:
-        with open(gt_file, 'r') as gt:
-            line = next(gt)
-            while line:
-                if line[0] != '#':
-                    #Format assumption: (tab separated with first column PLS and second column CTG)
-                    pls, ctg = line.split('\t')[0], line.split('\t')[1]
-                    ctg_id = f'{sample}_{ctg}'
-                    all_ctgs_dict[ctg_id]['type'] = 'plasmid'
-                    try:
-                        all_pls_dict[pls]['ctg_list'].append(ctg_id)
-                    except KeyError:
-                        all_pls_dict[pls] = {'ctg_list': [ctg_id], 'sample': sample}
-                    line = next(gt, None)
-    return all_ctgs_dict, all_pls_dict
-
-#Reading reference sample files and storing data
-def get_reference_data(input_csv_file):
-    '''
-    Takes csv file with addresses to assembly file,
-    gene to contig mapping file (blast output) and ground truth file.
-    Returns two dictionaries:
-    1. Key: contig id, Value: nested dictionary with length, gd and contig source (plasmid/chromosome)
-    2. Key: plasmid ids, Value: nested dictionary with sample name and list of contigs in the plasmid
-    '''
-    #Reading and storing input data for reference samples
-    colnames = ['sample','assembly','mapping','ground_truth']
-    PATHS_DF = pd.read_csv(input_csv_file)
-    PATHS_DF.columns.values[[0, 1, 2, 3]] = colnames
-    all_ctgs_dict = {}
-    all_pls_dict = {}
-
-    for index, row in PATHS_DF.iterrows():
-        sample, assembly_file, gene_map_file, gt_file = row[0], row[1], row[2], row[3]
-        all_ctgs_dict = read_sample_assembly(all_ctgs_dict, sample, assembly_file)
-        all_ctgs_dict = get_gene_density(all_ctgs_dict, sample, gene_map_file)
-        all_ctgs_dict, all_pls_dict = get_ground_truth(all_ctgs_dict, all_pls_dict, sample, gt_file)
-    return all_ctgs_dict, all_pls_dict
-
-def pls_seeds_by_thresholds(GD_THRESHOLDS, LEN_THRESHOLDS, all_ctgs_dict, all_pls_dict):
+def pls_seeds_by_thresholds(PLS_SC_THRESHOLDS, LEN_THRESHOLDS, CTG_DETAILS, PLS_CTGS):
     '''
     Computing number of seeds for every plasmid
-    Key: Plasmid ID
-    Value: Nested dictionary with
-    keys as theshold combinations (lt_gdt) and values as number of contigs classified as seeds using the thresholds
+    Returns dictionary:
+	    Key: Plasmid ID
+	    Value: Nested dictionary with
+		    Keys: threshold combinations (len_thr_sc_thr) 
+		    Values: number of contigs classified as seeds using the thresholds
     '''
     seeds_dict = {}
-    for pls in all_pls_dict:
-        seeds_dict[pls] = {'sample': all_pls_dict[pls]['sample']}
-        for gdt in GD_THRESHOLDS:
-            for lt in LEN_THRESHOLDS:
-                seeds_dict[pls][f'{lt}_{gdt}'] = 0
-                for ctg_id in all_pls_dict[pls]['ctg_list']:
-                    seed_eligibility = seed_by_param(gdt, lt, all_ctgs_dict[ctg_id])
-                    seeds_dict[pls][f'{lt}_{gdt}'] += seed_eligibility
-    return seeds_dict
+    for pls in PLS_CTGS:
+        seeds_dict[pls] = {}
+        for sc_thr in PLS_SC_THRESHOLDS:
+            for len_thr in LEN_THRESHOLDS:
+                seeds_dict[pls][f'{len_thr}_{sc_thr}'] = 0
+                for ctg_id in PLS_CTGS[pls]:
+                    seed_eligibility = seed_by_param(
+                        sc_thr,
+                        len_thr,
+                        CTG_DETAILS['length'][ctg_id],
+                        CTG_DETAILS['pls_score'][ctg_id]
+                    )
+                    seeds_dict[pls][f'{len_thr}_{sc_thr}'] += seed_eligibility
+    return seeds_dict	
 
-def count_false_seeds(GD_THRESHOLDS, LEN_THRESHOLDS, all_ctgs_df):
+def count_false_seeds(PLS_SC_THRESHOLDS, LEN_THRESHOLDS, CTG_DETAILS_DF):
     '''
     Computing contigs incorrectly classified as seeds
-    Key: Gene density threshold,
-    Value: Nested dictionary with length thresholds as keys and number of false seeds as value
+    Returns dictionary
+	    Key: Plasmidness score threshold,
+	    Value: Nested dictionary 
+		    Keys: length thresholds
+		    Value: number of false seeds
     '''
     false_seeds_dict = {}
-    for gdt in GD_THRESHOLDS:
-        false_seeds_dict[gdt] = {}
-        for lt in LEN_THRESHOLDS:
-            false_seeds_dict[gdt][lt] = len(
-                all_ctgs_df[
-                    (all_ctgs_df['type'] == 'chromosome') & \
-                    (all_ctgs_df['gd'] >= gdt) & \
-                    (all_ctgs_df['length'] >= lt)
+    for sc_thr in PLS_SC_THRESHOLDS:
+        false_seeds_dict[sc_thr] = {}
+        for len_thr in LEN_THRESHOLDS:
+            false_seeds_dict[sc_thr][len_thr] = len(
+                CTG_DETAILS_DF[
+                    (CTG_DETAILS_DF['mol_type'] == 'chromosome') & \
+                    (CTG_DETAILS_DF['pls_score'] >= sc_thr) & \
+                    (CTG_DETAILS_DF['length'] >= len_thr)
                 ]
             )
-    return false_seeds_dict
+    return false_seeds_dict	
 
-def count_pls_with_seeds(GD_THRESHOLDS, LEN_THRESHOLDS, seeds_df):
+def count_pls_with_seeds(PLS_SC_THRESHOLDS, LEN_THRESHOLDS, seeds_df):
     '''
     Computing number of plasmids with and without seed contigs
-    Key: Gene density threshold,
-    Value: Nested dictionary with length thresholds as keys and number of plasmids with seeds as values
+    Returns dictionary:
+	    Key: Plasmidness score threshold,
+	    Value: Nested dictionary 
+		    Keys: Length thresholds
+		    Value: number of plasmids with at least one seed
     '''
     pls_with_seeds_dict = {}
-    for gdt in GD_THRESHOLDS:
-        pls_with_seeds_dict[gdt] = {}
-        for lt in LEN_THRESHOLDS:
-            pls_with_seeds_dict[gdt][lt] = len(
-                seeds_df[seeds_df[f'{lt}_{gdt}'] >= 1]
+    for sc_thr in PLS_SC_THRESHOLDS:
+        pls_with_seeds_dict[sc_thr] = {}
+        for len_thr in LEN_THRESHOLDS:
+            pls_with_seeds_dict[sc_thr][len_thr] = len(
+                seeds_df[seeds_df[f'{len_thr}_{sc_thr}'] >= 1]
             )
     return pls_with_seeds_dict
 
 def output_best_params(pls_with_seeds_df, false_seeds_df, out_file):
     '''
-    Choosing seed parameters
-    We wish to choose seed parameters (gdt, lt) such that
+    Choosing seed parameters: plasmidness score threshold (sc_thr) and contig length (len_thr) threshold)
+    We wish to choose seed parameters such that
     Number of seeded plasmids (SP) is maximized and
     Number of false seeds (NPS) is minimized.
     So, our objective is SP-NPS.
     '''
     obj_df = pls_with_seeds_df.subtract(false_seeds_df)
-    
     max_obj = obj_df.to_numpy().max()       #Computing the maximum objective value
-    
     #Listing all combinations with max objective value
-    #best_params = set()
     with open(out_file, "w") as out:
         for row_name, row in obj_df.iterrows():
             for col_name, val in row.items():
                 if val >= max_obj:
-                    #best_params.add(row_name, col_name)
-                    out.write(f'{row_name}\t{col_name}\n')
+                    out.write(f'{row_name}\t{col_name}\n')	
 
 def compute_seeds_parameters_file(input_csv_file, out_file):
-    #Reads reference data files and returns two dictionaries: one with contig details and another with plasmid details
-    all_ctgs_dict, all_pls_dict = get_reference_data(input_csv_file)
-
-    #Ranges of thresholds
+    '''
+    Reads input csv file and creates a dataframe of file addresses 
+    '''
+    PATHS_DF = pd.read_csv(
+        input_csv_file,
+        sep=',',
+        names=[
+            'sample','assembly','pls_score','ground_truth'
+        ]
+    )
+    
+    # Dictionaries for storing contig details and list of contigs belonging to plasmids
+    CTG_DETAILS = {'length': {}, 'pls_score': {}, 'mol_type': {}}
+    PLS_CTGS = {}
+    for index, row in PATHS_DF.iterrows():
+        # Reading sample GFA file and storing contig lengths
+        sample_len_dict = read_GFA_len(
+            row['assembly'], gzipped=True, id_fun=lambda x: _sample_ctg(row['sample'], x)
+        )
+        CTG_DETAILS['length'].update(sample_len_dict)
+        # Reading and storing sample plasmidness scores
+        sample_ctgs_list = list(sample_len_dict.keys())
+        CTG_DETAILS['pls_score'].update(dict.fromkeys(sample_ctgs_list, 0))
+        CTG_DETAILS['pls_score'].update(_read_sample_pls_score(row['sample'], row['pls_score']))
+        # Reading and storing sample ground truth
+        ground_truth_df = read_ground_truth_file(row['ground_truth'])
+        PLS_CTGS.update(get_pls_ctgs_list(row['sample'], ground_truth_df))
+        # Setting molecule type (chromosome/plasmid) for contigs
+        CTG_DETAILS['mol_type'].update(dict.fromkeys(sample_ctgs_list, 'chromosome'))
+        CTG_DETAILS['mol_type'].update(change_type_to_pls(row['sample'], ground_truth_df))
+    # Ranges of thresholds
     LEN_THRESHOLDS = np.arange(50,5001,50)
-    GD_THRESHOLDS = np.arange(1, 101, 1)/100
-
-    seeds_dict = pls_seeds_by_thresholds(GD_THRESHOLDS, LEN_THRESHOLDS, all_ctgs_dict, all_pls_dict)
+    PLS_SC_THRESHOLDS = np.arange(1, 101, 1)/100
+    seeds_dict = pls_seeds_by_thresholds(PLS_SC_THRESHOLDS, LEN_THRESHOLDS, CTG_DETAILS, PLS_CTGS)
     seeds_df = pd.DataFrame.from_dict(seeds_dict).T
-    all_ctgs_df = pd.DataFrame.from_dict(all_ctgs_dict).T
-    
-    false_seeds_dict = count_false_seeds(GD_THRESHOLDS, LEN_THRESHOLDS, all_ctgs_df)
+    CTG_DETAILS_DF = pd.DataFrame.from_dict(CTG_DETAILS)
+    false_seeds_dict = count_false_seeds(PLS_SC_THRESHOLDS, LEN_THRESHOLDS, CTG_DETAILS_DF)
     false_seeds_df = pd.DataFrame.from_dict(false_seeds_dict)
-    
-    pls_with_seeds_dict = count_pls_with_seeds(GD_THRESHOLDS, LEN_THRESHOLDS, seeds_df)
+    pls_with_seeds_dict = count_pls_with_seeds(PLS_SC_THRESHOLDS, LEN_THRESHOLDS, seeds_df)
     pls_with_seeds_df = pd.DataFrame.from_dict(pls_with_seeds_dict)
-    
+    # Computing threshold pairs that maximize seeded plasmids and minimize false seeds and 
+    # Writing to output file
     output_best_params(pls_with_seeds_df, false_seeds_df, out_file)
+	
+
+
+
+
+
+
+        
+    
