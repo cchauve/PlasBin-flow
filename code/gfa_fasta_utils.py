@@ -150,7 +150,7 @@ def read_FASTA_seq(in_file_path, gzipped=False, id_fun=lambda x: x):
     """
     return read_FASTA_ctgs(
         in_file_path,
-        record_fun=lambda x: str(x.seq)
+        record_fun=lambda x: str(x.seq),
         gzipped=gzipped,
         id_fun=id_fun
     )
