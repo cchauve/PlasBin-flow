@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-# Implements command 'create' of HyAsP.
+# Modified from the code for the command 'create' of HyAsP.
+# https://github.com/cchauve/HyAsP
 #
 # Takes a list of plasmids with annotated genes and extracts all genes into a FASTA file.
 # The plasmids can be provided as GenBank accession numbers (in this case,
