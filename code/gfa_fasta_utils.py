@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Manipulating FASTA and GFA files
 """
@@ -94,32 +92,37 @@ def read_FASTA_ctgs(in_file_path, record_fun, gzipped=False, id_fun=lambda x: x)
         ).items()
     }
 
-def read_FASTA_id(in_file_path, gzipped=False):
+def read_FASTA_id(in_file_path, gzipped=False, id_fun=lambda x: x):
     """
     Computes the list of sequences id in a FASTA file
 
     Args:
         - in_file_path (str): path of FASTA file to read
         - gzipped (bool): True if file is gzipped
+        - id_fun (function) processing function for record is
 
     Returns:
         - (List(str)): list of sequence ids
     """
-    return list(
-        read_FASTA_ctgs(
-            in_file_path,
-            record_fun=lambda x: None,
-            gzipped=gzipped
-        ).keys()
-    )
+    return [
+        id_fun(ctg_id)
+        for ctg_id in list(
+                read_FASTA_ctgs(
+                    in_file_path,
+                    record_fun=lambda x: None,
+                    gzipped=gzipped
+                ).keys()
+        )
+    ]
 
-def read_FASTA_len(in_file_path, gzipped=False):
+def read_FASTA_len(in_file_path, gzipped=False, id_fun=lambda x: x):
     """
     Computes the length of entry sequences in a FASTA file
 
     Args:
         - in_file_path (str): path of FASTA file to read
         - gzipped (bool): True if file is gzipped
+        - id_fun (function) processing function for record is
 
     Returns:
         - (Dictionary): sequence id (str) -> length of sequence (int)
@@ -127,24 +130,27 @@ def read_FASTA_len(in_file_path, gzipped=False):
     return read_FASTA_ctgs(
         in_file_path,
         record_fun=lambda x: len(x.seq),
-        gzipped=gzipped
+        gzipped=gzipped,
+        id_fun=id_fun
     )
 
-def read_FASTA_seq(in_file_path, gzipped=False):
+def read_FASTA_seq(in_file_path, gzipped=False, id_fun=lambda x: x):
     """
     Computes entry sequences in a FASTA file
 
     Args:
         - in_file_path (str): path of FASTA file to read
         - gzipped (bool): True if file is gzipped
+        - id_fun (function) processing function for record is
 
     Returns:
         - (Dictionary): sequence id (str) -> sequence (str)
     """
     return read_FASTA_ctgs(
         in_file_path,
-        record_fun=lambda x: x.seq,
-        gzipped=gzipped
+        record_fun=lambda x: str(x.seq),
+        gzipped=gzipped,
+        id_fun=id_fun
     )
 
 ## Reading GFA files (contigs and links only)
@@ -315,6 +321,84 @@ def read_GFA_links(in_file_path, attributes_list, gzipped=False):
                 )
             )
     return result
+
+def read_GFA_id(in_file_path, gzipped=False, id_fun=lambda x: x):
+    """
+    Computes the list of sequences id in a FASTA file
+
+    Args:
+        - in_file_path (str): path of GFA file to read
+        - gzipped (bool): True if file is gzipped
+        - id_fun: function that process a contig id
+
+    Returns:
+        - (List(str)): list of sequence ids
+    """
+    return [
+        id_fun(ctg_id)
+        for ctg_id in list(
+                read_GFA_ctgs(
+                    in_file_path,
+                    record_fun=lambda x: None,
+                    gzipped=gzipped
+                ).keys()
+        )
+    ]
+
+def read_GFA_attribute(in_file_path, att_key, gzipped=False, id_fun=lambda x: x):
+    """
+    Computes the length of entry sequences in a FASTA file
+
+    Args:
+        - in_file_path (str): path of GFA file to read
+        - att_key (str): attribute key
+        - gzipped (bool): True if file is gzipped
+        - id_fun: function that process a contig id
+
+    Returns:
+        - (Dictionary): sequence id (str) -> attribute value
+    """
+    return  {
+        ctg_id: ctg_attributes[att_key]
+        for ctg_id,ctg_attributes in read_GFA_ctgs(
+                in_file_path, 
+                [att_key],
+                gzipped=gzipped,
+                id_fun=id_fun
+        ).items()
+    }
+
+def read_GFA_len(in_file_path, gzipped=False, id_fun=lambda x: x):
+    """
+    Computes the length of entry sequences in a FASTA file
+
+    Args:
+        - in_file_path (str): path of GFA file to read
+        - gzipped (bool): True if file is gzipped
+        - id_fun: function that process a contig id
+
+    Returns:
+        - (Dictionary): sequence id (str) -> length of sequence (int)
+    """
+    return read_GFA_attribute(
+        in_file_path, 'LN', gzipped=gzipped, id_fun=id_fun
+    )
+
+def read_GFA_seq(in_file_path, gzipped=False, id_fun=lambda x: x):
+    """
+    Computes entry sequences in a FASTA file
+
+    Args:
+        - in_file_path (str): path of FASTA file to read
+        - gzipped (bool): True if file is gzipped
+        - id_fun: function that process a contig id
+
+    Returns:
+        - (Dictionary): sequence id (str) -> sequence (str)
+    """
+    return read_GFA_attribute(
+        in_file_path, GFA_SEQ_KEY, gzipped=gzipped, id_fun=id_fun
+    )
 
 def write_GFA_to_FASTA(in_GFA_file, out_FASTA_file, in_gzipped, out_gzipped, sep=' '):
     """

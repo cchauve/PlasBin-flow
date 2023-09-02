@@ -17,7 +17,7 @@ python plasbin_utils.py pls_genes_db --input_file input_file --out_dir out_dir -
 - tmp_dir: temporary directory, not deleted
 
 Mapping plasmid genes to samples contigs 
-python plasbin_utils.py map_genes_to_ctgs --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --db_file pls_db_file
+python plasbin_utils.py map_genes_to_ctgs --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --db_file pls_db_file [--out_file out_file]
 - input_file: CSV file with one line per sample and 2 required fields:
   sample: sample name
   gfa: gzipped GFA file
@@ -41,7 +41,7 @@ python plasbin_utils.py ground_truth --input_file input_file --out_dir out_dir -
 - c: [optional] contig coverage threshold to accept a blast hit  (default=0.8)
 
 Computing GC content probabilities for samples
-python plasbin_utils.py gc_probabilities --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --gc_intervals gc_intervals_file
+python plasbin_utils.py gc_probabilities --input_file input_file --out_dir out_dir --tmp_dir tmp_dir [--gc_intervals gc_intervals_file]
 - input_file: CSV file with one line per sample and 2 required fields:
   sample: sample name
   gfa: gzipped GFA file
@@ -49,7 +49,8 @@ python plasbin_utils.py gc_probabilities --input_file input_file --out_dir out_d
   <sample>.gc.tsv
 - tmp_dir: temporary directory, not deleted
 - out_file: [optional] path to new dataset file with ground truth files added
-- gc_intervals_file: GC intervals file
+- gc_intervals_file: [Optional] GC intervals file
+  if not provided, the default GC intervals files are used (see gc_content.py)
 
 Computing GC intervals from tuning samples
 python plasbin_utils.py gc_intervals --input_file input_file --out_dir out_dir --tmp_dir tmp_dir [--n_gcints n_gcints]
@@ -112,7 +113,7 @@ python plasbin_tuning.py tuning --input_file input_file --out_dir out_dir --tmp_
 - pls_db_file: [optional] plasmid genes database
   required if input_file does not contain fields pls_score and genes2ctgs_mappings in which case the mappings and gene density files are computed
 
-python plasbin_tuning.py preprocessing --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --out_file out_file --gc_intervals gc_intervals [--pls_db pls_db_file --pid_threshold p --cov_threshold c]
+python plasbin_tuning.py preprocessing --input_file input_file --out_dir out_dir --tmp_dir tmp_dir --out_file out_file [--gc_intervals gc_intervals --pls_db pls_db_file --pid_threshold p --cov_threshold c]
 - input_file: CSV file with one line per sample and 2 required fields:
   sample: sample name
   gfa: gzipped GFA file
@@ -120,7 +121,8 @@ python plasbin_tuning.py preprocessing --input_file input_file --out_dir out_dir
   gene_density (one per sample, <sample>.gene_density.tsv)
   GC content probabilities files  (one per sample, <sample>.gc.tsv)
 - tmp_dir: temporary directory, not deleted
-- gc_intervals: GC content intervals file
+- gc_intervals: [optional] GC content intervals file
+  required if input_file does not contain a field gc_probability
 - pls_db_file: [optional] plasmid genes database
   required if input_file does not contain a field pls_score
 - p: [optional] percent identity threshold to define a mapping to a plasmid (default=0.95)
@@ -559,6 +561,7 @@ def create_GC_content_probabilities_files(
        out_dir (str): path to output directory
        tmp_dir (str): path to temporary directory
        gc_intervals_file (str): path to file with GC content intervals
+         if None, the default GC intervals are used
        samples_df (DataFrame): samples dataframe
 
     Returns:
@@ -600,19 +603,12 @@ def create_seeds_parameters_file(out_dir, tmp_dir, samples_df):
                 )
         log_file(input_file)
 
-    def _dev_compute_seeds_parameters_file_placeholder(in_file, out_file):
-        print('DEV: Computing seeds parameters placeholder')
-        with open(out_file, 'w') as out:
-            out.write('5000\t0.5\n')
-            
-    
     logging.info(f'## Compute seeds parameters file')
     logging.info(f'ACTION\tcreate plasmids seeds input file')    
     seeds_input_file = os.path.join(tmp_dir, 'seeds_input.csv')
     _create_input_file(samples_df, seeds_input_file)
     logging.info(f'ACTION\tcreate seeds parameters file') 
     seeds_parameters_file = _seeds_parameters_file(out_dir)
-    #_dev_compute_seeds_parameters_file_placeholder(seeds_input_file, seeds_parameters_file)
     compute_seeds_parameters_file(seeds_input_file, seeds_parameters_file)
     log_file(seeds_parameters_file)
 
@@ -753,9 +749,11 @@ def _cmd_gene_density(args, samples_df):
 def _cmd_gc_probabilities(args, samples_df):
     """ Command to create the GC probabilities files """
     _clean_output_files(CMD_GC_PROBABILITIES, samples_df, args.out_dir, args.tmp_dir)
-    check_file(args.gc_intervals)
+    if args.gc_intervals:
+        check_file(args.gc_intervals)
+    gc_intervals = args.gc_intervals if args.gc_intervals else None
     create_GC_content_probabilities_files(
-        args.out_dir, args.tmp_dir, args.gc_intervals, samples_df
+        args.out_dir, args.tmp_dir, gc_intervals, samples_df
     )
 
 def _cmd_preprocessing(args, samples_df):

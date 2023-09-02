@@ -1,3 +1,5 @@
+""" Handling logging, errors and running external commands """
+
 import sys
 import os
 import logging
@@ -21,11 +23,15 @@ def process_error(msg):
 def check_file(in_file):
     if not os.path.isfile(in_file):
         process_error(f'{in_file} is missing')
-
+    elif os.path.getsize(in_file) == 0:
+        logging.warning('File {in_file} is empty')
+        
 def log_file(in_file):
     """ Write logging message for creating file in_file """
-    if os.path.isfile(in_file):
+    if os.path.isfile(in_file) and os.path.getsize(in_file) > 0:
         logging.info(f'FILE\t{in_file}')
+    elif os.path.isfile(in_file) and os.path.getsize(in_file) == 0:
+        logging.warning(f'FILE\t{in_file} empty')
     else:
         process_error(f'File\t{in_file} is missing')
 
