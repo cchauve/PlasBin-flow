@@ -80,7 +80,7 @@ python plasbin_utils.py gene_density --input_file input_file --out_dir out_dir -
 
 Computing seeds parameters
 python plasbin_utils.py seeds --input_file input_file --out_dir out_dir --tmp_dir tmp_dir
-- input_file: CSV file with one line per sample and 3 required fields:
+- input_file: CSV file with one line per sample and 4 required fields:
   sample: sample name
   gfa: gzipped GFA file
   ground_truth: ground truth file
@@ -594,9 +594,9 @@ def create_seeds_parameters_file(out_dir, tmp_dir, samples_df):
             for sample in samples_df.index:
                 pls_score_file = _get_pls_score(samples_df, sample)
                 gt_file = _get_ground_truth(samples_df, sample)
-                gfa_file = _gfa_file(tmp_dir, sample)
+                gfa_file = _get_gfa(samples_df, sample)
                 out_file.write(
-                    f'{sample},fasta_file,mappings_file,{gt_file}\n'
+                    f'{sample},{gfa_file},{pls_score_file},{gt_file}\n'
                 )
         log_file(input_file)
 
@@ -612,8 +612,8 @@ def create_seeds_parameters_file(out_dir, tmp_dir, samples_df):
     _create_input_file(samples_df, seeds_input_file)
     logging.info(f'ACTION\tcreate seeds parameters file') 
     seeds_parameters_file = _seeds_parameters_file(out_dir)
-    _dev_compute_seeds_parameters_file_placeholder(seeds_input_file, seeds_parameters_file)
-    #compute_seeds_parameters_file(seeds_input_file, seeds_parameters_file)
+    #_dev_compute_seeds_parameters_file_placeholder(seeds_input_file, seeds_parameters_file)
+    compute_seeds_parameters_file(seeds_input_file, seeds_parameters_file)
     log_file(seeds_parameters_file)
 
 
