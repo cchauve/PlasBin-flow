@@ -201,6 +201,9 @@ true plasmids are known, using
 
 We describe below the relevant commands of 
 [plasbin_utils.py](code/plasbin_utils.py).
+Examples are provided in [example/tuning](example/tuning),
+[example/preprocessing](example/preprocessing) and
+[example/plasbin-flow](example/plasbin-flow).
 
 ### Dataset input file
 
