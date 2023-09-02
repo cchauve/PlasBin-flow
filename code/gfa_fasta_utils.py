@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Manipulating FASTA and GFA files
 """

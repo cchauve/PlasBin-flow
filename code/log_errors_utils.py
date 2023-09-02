@@ -1,3 +1,5 @@
+""" Handling logging, errors and running external commands """
+
 import sys
 import os
 import logging
