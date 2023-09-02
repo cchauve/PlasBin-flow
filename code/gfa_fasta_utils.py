@@ -347,6 +347,28 @@ def read_GFA_id(in_file_path, gzipped=False, id_fun=lambda x: x):
         )
     ]
 
+def read_GFA_attribute(in_file_path, att_key, gzipped=False, id_fun=lambda x: x):
+    """
+    Computes the length of entry sequences in a FASTA file
+
+    Args:
+        - in_file_path (str): path of GFA file to read
+        - att_key (str): attribute key
+        - gzipped (bool): True if file is gzipped
+        - id_fun: function that process a contig id
+
+    Returns:
+        - (Dictionary): sequence id (str) -> attribute value
+    """
+    return  {
+        id_fun(ctg_id): ctg_attributes[att_key]
+        for ctg_id,ctg_attributes in read_GFA_ctgs(
+                gfa_file, 
+                [att_key],
+                gzipped=gzipped
+        ).items()
+    }
+
 def read_GFA_len(in_file_path, gzipped=False, id_fun=lambda x: x):
     """
     Computes the length of entry sequences in a FASTA file
@@ -359,14 +381,9 @@ def read_GFA_len(in_file_path, gzipped=False, id_fun=lambda x: x):
     Returns:
         - (Dictionary): sequence id (str) -> length of sequence (int)
     """
-    return  {
-        id_fun(ctg_id): ctg_attributes['LN']
-        for ctg_id,ctg_attributes in read_GFA_ctgs(
-                gfa_file, 
-                ['LN'],
-                gzipped=gzipped
-        ).items()
-    }
+    return read_GFA_attribute(
+        in_file_path, 'LN', gzipped=gzipped, id_fun=id_fun
+    )
 
 def read_GFA_seq(in_file_path, gzipped=False, id_fun=lambda x: x):
     """
@@ -380,15 +397,9 @@ def read_GFA_seq(in_file_path, gzipped=False, id_fun=lambda x: x):
     Returns:
         - (Dictionary): sequence id (str) -> sequence (str)
     """
-    return {
-        id_fun(ctg_id): ctg_attributes[GFA_SEQ_KEY]
-        for ctg_id,ctg_attributes in read_GFA_ctgs(
-                gfa_file, 
-                [GFA_SEQ_KEY],
-                gzipped=gzipped
-        ).items()
-    }
-
+    return read_GFA_attribute(
+        in_file_path, GFA_SEQ_KEY, gzipped=gzipped, id_fun=id_fun
+    )
 
 def write_GFA_to_FASTA(in_GFA_file, out_FASTA_file, in_gzipped, out_gzipped, sep=' '):
     """
