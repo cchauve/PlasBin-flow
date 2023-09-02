@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-# Implements command 'create' of HyAsP.
+# Modified from the code for the command 'create' of HyAsP.
+# https://github.com/cchauve/HyAsP
 #
 # Takes a list of plasmids with annotated genes and extracts all genes into a FASTA file.
 # The plasmids can be provided as GenBank accession numbers (in this case,
@@ -98,7 +99,7 @@ def create_db(
                     'curl',
                     f'https://eutils.be-md.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nucleotide&id={src}&rettype=gbwithparts&retmode=text'
                 ]
-                res = run_cmd_redirect(cmd, temp)
+                res = run_cmd_redirect(cmd, temp, num_attempts=1, exit_on_error=False)
                 if res != 0:
                     logging.warning(
                         f'Download of plasmid {src} failed. Trying again.'
@@ -145,7 +146,7 @@ def create_db(
         logging.warning(f'{num_attempts_discarded} plasmids were discarded for reaching the download-attempt limit.')
 
     logging.info(f'Database comprises {num_genes} genes.')
-    _ = run_cmd(['rm', temp])
+    _ = run_cmd(['rm', '-f', temp])
 
 # print configuration of database generation
 def log_config(

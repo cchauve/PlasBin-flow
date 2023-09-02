@@ -88,10 +88,13 @@ def _read_FASTA_files(fasta_file_paths, mol_type):
             (Dictionary) feature key -> feature
             feature key in {GC_COUNT_KEY, GC_RATIO_KEY, LENGTH_KEY, MOL_TYPE_KEY}
     '''
+    seq_dict = {}
     for fasta_file in fasta_file_paths:
         try:
-            seq_dict = read_FASTA_ctgs(
-                fasta_file, _process_FASTA_record, gzipped=True
+            seq_dict.update(
+                read_FASTA_ctgs(
+                    fasta_file, _process_FASTA_record, gzipped=True
+                )
             )
         except Exception as e:
             process_exception(
@@ -266,15 +269,16 @@ def read_gc_probabilities_file(gcp_in_file):
     else:
         return gcp_dict
             
-def compute_gc_probabilities_file(gfa_file, gc_intervals_file, gcp_out_file):
+def compute_gc_probabilities_file(gfa_file, gc_intervals_file, gcp_out_file, gfa_gzipped=True):
     '''
     Computes probability that contigs originate from a molecule of a given GC conten ratio,
     for a given list of GC content intervals.
 
     Args:
-        - gfa_file (str): path to an ungzipped GFA file
+        - gfa_file (str): path to an  GFA file
         - gc_intervals_file (str) path to a GC vontent ratio intervals file
         - out_file: output file
+        - gfa_gzipped (bool): True if input GFA file is gzipped
 
     Returns:
         creates out_file in format
@@ -292,7 +296,7 @@ def compute_gc_probabilities_file(gfa_file, gc_intervals_file, gcp_out_file):
         ctg_gc = read_GFA_ctgs(
             gfa_file,
             [GFA_SEQ_KEY],
-            gzipped=False,
+            gzipped=gfa_gzipped,
             ctg_fun=_process_GFA_ctg
         )
     except Exception as e:
