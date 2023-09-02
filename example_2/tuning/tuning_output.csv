@@ -1,0 +1,6 @@
+sample,gfa,chr_fasta,pls_fasta,ground_truth,genes2ctgs_mappings,pls_score
+SAMN11056450,data/SAMN11056450.gfa.gz,data/SAMN11056450.chr.fasta.gz,data/SAMN11056450.pls.fasta.gz,output/SAMN11056450.ground_truth.tsv,output/SAMN11056450.genes_mappings.txt,output/SAMN11056450.gd.tsv
+SAMD00491671,data/SAMD00491671.gfa.gz,data/SAMD00491671.chr.fasta.gz,data/SAMD00491671.pls.fasta.gz,output/SAMD00491671.ground_truth.tsv,output/SAMD00491671.genes_mappings.txt,output/SAMD00491671.gd.tsv
+SAMD00491757,data/SAMD00491757.gfa.gz,data/SAMD00491757.chr.fasta.gz,data/SAMD00491757.pls.fasta.gz,output/SAMD00491757.ground_truth.tsv,output/SAMD00491757.genes_mappings.txt,output/SAMD00491757.gd.tsv
+SAMEA8911316,data/SAMEA8911316.gfa.gz,data/SAMEA8911316.chr.fasta.gz,data/SAMEA8911316.pls.fasta.gz,output/SAMEA8911316.ground_truth.tsv,output/SAMEA8911316.genes_mappings.txt,output/SAMEA8911316.gd.tsv
+SAMN15735178,data/SAMN15735178.gfa.gz,data/SAMN15735178.chr.fasta.gz,data/SAMN15735178.pls.fasta.gz,output/SAMN15735178.ground_truth.tsv,output/SAMN15735178.genes_mappings.txt,output/SAMN15735178.gd.tsv
