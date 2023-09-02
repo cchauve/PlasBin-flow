@@ -48,12 +48,13 @@ The main results will be the files
 - `output/seeds.txt` that contains the optimal seed contigs thresholds
   for the considered tuning dataset.
 
-Note that the GC intervals file shows very small intervals due to the
-fact the tuning was done on a very small set of very similar samples,
-where the GC content of chromosomes and plasmids is quite similar.
-The seeds parameters file `output/seeds.txt` shows many
-optimal seed parameters due to the small size of the reference plasmid
-genes database.
+Note that the GC intervals file `output/gc.txt` shows very small
+intervals due to the fact the tuning was done on a very small set of
+very similar samples, where the GC content of chromosomes and plasmids
+is quite similar, which can be seen in the files `output/gc.csv` ad
+`output/gc.png`.  The seeds parameters file `output/seeds.txt` shows
+many optimal seed parameters due to the small size of the reference
+plasmid genes database.
 
 Additionally, for each sample, the following files will be created:
 - `<sample>.genes_mappings.tsv`: mapping of reference plasmid
