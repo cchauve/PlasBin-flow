@@ -1,4 +1,4 @@
-# Tuning PlasBin-flow
+# Preprocessing samples for PlasBin-flow
 
 The file `input.csv` contains an example (composed of three
 *Campylobacter* samples) of running PlasBin-flow preprocessing.
