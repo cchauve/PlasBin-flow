@@ -363,7 +363,7 @@ def read_GFA_attribute(in_file_path, att_key, gzipped=False, id_fun=lambda x: x)
     return  {
         id_fun(ctg_id): ctg_attributes[att_key]
         for ctg_id,ctg_attributes in read_GFA_ctgs(
-                gfa_file, 
+                in_file_path, 
                 [att_key],
                 gzipped=gzipped
         ).items()
