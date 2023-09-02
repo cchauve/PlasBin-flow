@@ -7,7 +7,7 @@ import numpy as np
 from collections import defaultdict
 
 from gfa_fasta_utils import (
-    read_GFA_ctgs
+    read_GFA_len
 )
 
 from ground_truth import (
@@ -16,24 +16,6 @@ from ground_truth import (
 
 def _sample_ctg(sample, ctg):
     return f'{sample}_{ctg}'
-
-def _read_sample_assembly(sample, gfa_file):
-    '''
-    Reads gzipped GFA file for a sample
-    TODO: Currently, GFA file is taken as gunzipped file. 
-
-    Returns dictionary:
-	    Key: Contig id as sample_ctg
-	    Value: Contig length (integer)
-    '''
-    return {
-        _sample_ctg(sample, ctg_id): ctg_len['LN']
-        for ctg_id,ctg_len in read_GFA_ctgs(
-            gfa_file,
-            ['LN'],
-            gzipped=True
-        ).items()
-    }
 
 def _read_sample_pls_score(sample, pls_score_file):
     '''
@@ -187,7 +169,9 @@ def compute_seeds_parameters_file(input_csv_file, out_file):
     PLS_CTGS = {}
     for index, row in PATHS_DF.iterrows():
         # Reading sample GFA file and storing contig lengths
-        sample_len_dict = _read_sample_assembly(row['sample'], row['assembly'])
+        sample_len_dict = read_GFA_len(
+            row['assembly'], gzipped=True, id_fun=lambda x: _sample_ctg(row['sample'], ctg)
+        )
         CTG_DETAILS['length'].update(sample_len_dict)
         # Reading and storing sample plasmidness scores
         sample_ctgs_list = list(sample_len_dict.keys())

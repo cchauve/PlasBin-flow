@@ -1,7 +1,7 @@
 ''' Functions to compute the gene density of contigs '''
 
 from gfa_fasta_utils import (
-    read_GFA_ctgs
+    read_GFA_len
 )
 from mappings_utils import (
     read_blast_outfmt6_file,
@@ -14,26 +14,6 @@ from log_errors_utils import (
 
 GD_INTERVALS_KEY = 'intervals'
 GD_DENSITY_KEY = 'gd'
-
-def _read_GFA_ctg_len(gfa_file, gzipped):
-    '''
-    Read contigs length from a GFA file
-
-    Args:
-        - GFA_file (str): path to GFA file
-        - gzipped (bool): True if GFA file is gzipped
-
-    Returns:
-       (Dictionary) contig id -> contig length
-    '''
-    return {
-        ctg_id: ctg_attributes['LN']
-        for ctg_id,ctg_attributes in read_GFA_ctgs(
-                gfa_file, 
-                ['LN'],
-                gzipped=gzipped
-        ).items()
-    }
 
 def compute_gene_density(
         gfa_file, mappings_file,
@@ -79,7 +59,7 @@ def compute_gene_density(
     
     mappings_df = read_blast_outfmt6_file(mappings_file)
     filter_blast_outfmt6(mappings_df, min_pident=pid_threshold, min_q_cov=cov_threshold)
-    ctg_len = _read_GFA_ctg_len(gfa_file, gzipped=gfa_gzipped)
+    ctg_len = read_GFA_len(gfa_file, gzipped=gfa_gzipped)
     ctg_intervals = compute_blast_s_intervals(mappings_df)
     ctg_gd_dict = {
         ctg_id: 0
