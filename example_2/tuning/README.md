@@ -17,7 +17,7 @@ python ../../code/plasbin_utils.py tuning \
        --out_file      tuning_output.csv \
        --pid_threshold 0.9 \
        --cov_threshold 0.9 \
-       --n_gcints      n_gcints 5
+       --n_gcints      5
 ```
 
 The optional parameters `pid_threshold 0.9` is non-default (default
