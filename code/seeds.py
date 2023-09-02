@@ -1,4 +1,4 @@
-''' Functions to compute parameters defining seeds '''
+""" Functions to compute parameters defining seeds """
 
 import os
 import pandas as pd
@@ -18,12 +18,12 @@ def _sample_ctg(sample, ctg):
     return f'{sample}_{ctg}'
 
 def _read_sample_pls_score(sample, pls_score_file):
-    '''
+    """
     Reads plasmidness score file for a sample
     Returns dictionary:
 	    Key: Contig id as sample_ctg
 	    Value: Contig plasmidness (float)
-    '''
+    """
     pls_score_df = pd.read_csv(pls_score_file, sep='\t', header=None)
     pls_score_dict = dict(zip(pls_score_df[0], pls_score_df[1]))
     return {
@@ -32,13 +32,13 @@ def _read_sample_pls_score(sample, pls_score_file):
     }
 
 def get_pls_ctgs_list(sample, ground_truth_df):	
-    '''
+    """
     Reads ground truth file for a sample
     Returns dictionary:
 	    Key: Plasmid
 	    Value: List of contig ids of contigs belonging to plasmid
 	    Each contig id of the form sample_ctg
-    '''
+    """
     sample_pls_ctgs = ground_truth_df.groupby('plasmid')['contig'].apply(list).to_dict()
     for pls in sample_pls_ctgs:
         sample_pls_ctgs[pls] = [
@@ -48,7 +48,7 @@ def get_pls_ctgs_list(sample, ground_truth_df):
     return sample_pls_ctgs
 
 def change_type_to_pls(sample, ground_truth_df):
-    '''
+    """
     Function to change mol_type to 'plasmid' for 
     contigs mapped to plasmids in the ground truth.
 
@@ -56,7 +56,7 @@ def change_type_to_pls(sample, ground_truth_df):
     Returns dictionary:
 	    Key: Contig id as sample_ctg
 	    Value: 'plasmid'
-    '''
+    """
     return {
         _sample_ctg(sample, ctg): 'plasmid'
         for ctg in ground_truth_df['contig'].unique()
@@ -64,21 +64,21 @@ def change_type_to_pls(sample, ground_truth_df):
 
 #Classifying contigs as seeds according to gene density and length thresholds
 def seed_by_param(PLS_SC_THR, LEN_THR, CTG_LEN, CTG_PLS_SC):
-    '''
+    """
     Function to classify contigs as seeds
     according to given threshold params (gene density and length)
-    '''
+    """
     return 1 if CTG_PLS_SC >= PLS_SC_THR and CTG_LEN >= LEN_THR else 0	
 
 def pls_seeds_by_thresholds(PLS_SC_THRESHOLDS, LEN_THRESHOLDS, CTG_DETAILS, PLS_CTGS):
-    '''
+    """
     Computing number of seeds for every plasmid
     Returns dictionary:
 	    Key: Plasmid ID
 	    Value: Nested dictionary with
 		    Keys: threshold combinations (len_thr_sc_thr) 
 		    Values: number of contigs classified as seeds using the thresholds
-    '''
+    """
     seeds_dict = {}
     for pls in PLS_CTGS:
         seeds_dict[pls] = {}
@@ -96,14 +96,14 @@ def pls_seeds_by_thresholds(PLS_SC_THRESHOLDS, LEN_THRESHOLDS, CTG_DETAILS, PLS_
     return seeds_dict	
 
 def count_false_seeds(PLS_SC_THRESHOLDS, LEN_THRESHOLDS, CTG_DETAILS_DF):
-    '''
+    """
     Computing contigs incorrectly classified as seeds
     Returns dictionary
 	    Key: Plasmidness score threshold,
 	    Value: Nested dictionary 
 		    Keys: length thresholds
 		    Value: number of false seeds
-    '''
+    """
     false_seeds_dict = {}
     for sc_thr in PLS_SC_THRESHOLDS:
         false_seeds_dict[sc_thr] = {}
@@ -118,14 +118,14 @@ def count_false_seeds(PLS_SC_THRESHOLDS, LEN_THRESHOLDS, CTG_DETAILS_DF):
     return false_seeds_dict	
 
 def count_pls_with_seeds(PLS_SC_THRESHOLDS, LEN_THRESHOLDS, seeds_df):
-    '''
+    """
     Computing number of plasmids with and without seed contigs
     Returns dictionary:
 	    Key: Plasmidness score threshold,
 	    Value: Nested dictionary 
 		    Keys: Length thresholds
 		    Value: number of plasmids with at least one seed
-    '''
+    """
     pls_with_seeds_dict = {}
     for sc_thr in PLS_SC_THRESHOLDS:
         pls_with_seeds_dict[sc_thr] = {}
@@ -136,13 +136,13 @@ def count_pls_with_seeds(PLS_SC_THRESHOLDS, LEN_THRESHOLDS, seeds_df):
     return pls_with_seeds_dict
 
 def output_best_params(pls_with_seeds_df, false_seeds_df, out_file):
-    '''
+    """
     Choosing seed parameters: plasmidness score threshold (sc_thr) and contig length (len_thr) threshold)
     We wish to choose seed parameters such that
     Number of seeded plasmids (SP) is maximized and
     Number of false seeds (NPS) is minimized.
     So, our objective is SP-NPS.
-    '''
+    """
     obj_df = pls_with_seeds_df.subtract(false_seeds_df)
     max_obj = obj_df.to_numpy().max()       #Computing the maximum objective value
     #Listing all combinations with max objective value
@@ -153,9 +153,9 @@ def output_best_params(pls_with_seeds_df, false_seeds_df, out_file):
                     out.write(f'{row_name}\t{col_name}\n')	
 
 def compute_seeds_parameters_file(input_csv_file, out_file):
-    '''
+    """
     Reads input csv file and creates a dataframe of file addresses 
-    '''
+    """
     PATHS_DF = pd.read_csv(
         input_csv_file,
         sep=',',
