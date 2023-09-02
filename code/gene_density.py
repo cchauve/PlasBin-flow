@@ -62,7 +62,7 @@ def compute_gene_density(
     ctg_len = read_GFA_len(gfa_file, gzipped=gfa_gzipped)
     ctg_intervals = compute_blast_s_intervals(mappings_df)
     ctg_gd_dict = {
-        ctg_id: 0
+        ctg_id: {GD_DENSITY_KEY: 0.0, GD_INTERVALS_KEY: []}
         for ctg_id in ctg_len.keys()
     }
     for ctg_id,intervals in ctg_intervals.items():
