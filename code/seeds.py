@@ -170,7 +170,7 @@ def compute_seeds_parameters_file(input_csv_file, out_file):
     for index, row in PATHS_DF.iterrows():
         # Reading sample GFA file and storing contig lengths
         sample_len_dict = read_GFA_len(
-            row['assembly'], gzipped=True, id_fun=lambda x: _sample_ctg(row['sample'], ctg)
+            row['assembly'], gzipped=True, id_fun=lambda x: _sample_ctg(row['sample'], x)
         )
         CTG_DETAILS['length'].update(sample_len_dict)
         # Reading and storing sample plasmidness scores

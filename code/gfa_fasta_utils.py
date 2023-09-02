@@ -361,11 +361,12 @@ def read_GFA_attribute(in_file_path, att_key, gzipped=False, id_fun=lambda x: x)
         - (Dictionary): sequence id (str) -> attribute value
     """
     return  {
-        id_fun(ctg_id): ctg_attributes[att_key]
+        ctg_id: ctg_attributes[att_key]
         for ctg_id,ctg_attributes in read_GFA_ctgs(
                 in_file_path, 
                 [att_key],
-                gzipped=gzipped
+                gzipped=gzipped,
+                id_fun=id_fun
         ).items()
     }
 
