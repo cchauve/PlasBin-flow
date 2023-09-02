@@ -39,8 +39,11 @@ def create_directory(in_dir_list):
         if not os.path.exists(in_dir):
             os.makedirs(in_dir)
 
-def run_cmd(cmd, num_attempts=5):
-    """ Run external command, trying at most num_attempts=5 times  """
+def _run_cmd(cmd, output, num_attempts):
+    """ 
+    Run external command, trying at most num_attempts times  
+    If output is None, write output in logging file
+    """
     cmd_str = ' '.join(cmd)
     logging.info(f'COMMAND {cmd_str}')
     attempt = 1
@@ -55,34 +58,22 @@ def run_cmd(cmd, num_attempts=5):
             else:
                 process_exception(f'{msg}: aborting')
         else:
-            logging.info(f'STDOUT:\n{process.stdout}')
+            if output is None:
+                logging.info(f'STDOUT:\n{process.stdout}')
+            else:
+                output.write(process.stdout)
             if len(process.stderr) > 0:
                 logging.warning(f'STDERR:\n{process.stderr}')
             process_returncode = process.returncode
         attempt += 1
     return process_returncode
     
+def run_cmd(cmd, num_attempts=5):
+    """ Run external command, trying at most num_attempts=5 times  """
+    return _run_cmd(cmd, None, num_attempts)
+    
 def run_cmd_redirect(cmd, out_file_name, num_attempts=5):
     """ Run external command with redirection, trying at most num_attempts=5 times  """
-    cmd_str = ' '.join(cmd)
-    logging.info(f'COMMAND {cmd_str} > {out_file_name}')
-    attempt = 1
-    process_returncode = 0
-    while attempt <= num_attempts:
-        try:
-            process = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        except subprocess.CalledProcessError as e:
-            msg = f'Running {cmd_str}: {e} attempt #{attempt}'
-            if attempt < num_attempts:
-                logging.warning(f'{msg}: retrying')
-            else:
-                process_exception(f'{msg}: aborting')
-        else:
-            logging.info(f'STDOUT:\n{process.stdout}')
-            with open(out_file_name, 'w') as out_file:
-                out_file.write(process.stdout)
-            if len(process.stderr) > 0:
-                logging.warning(f'STDERR:\n{process.stderr}')
-            process_returncode = process.returncode
-        attempt += 1
-    return process_returncode
+    with open(out_file_name, 'w') as output:
+        return _run_cmd(cmd, output, num_attempts)
+
