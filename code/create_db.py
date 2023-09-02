@@ -98,7 +98,7 @@ def create_db(
                     'curl',
                     f'https://eutils.be-md.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nucleotide&id={src}&rettype=gbwithparts&retmode=text'
                 ]
-                res = run_cmd_redirect(cmd, temp)
+                res = run_cmd_redirect(cmd, temp, num_attempts=1, exit_on_error=False)
                 if res != 0:
                     logging.warning(
                         f'Download of plasmid {src} failed. Trying again.'
