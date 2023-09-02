@@ -37,6 +37,9 @@ The main results will be the files
 - `output/seeds.txt` that contains the optimal seed contigs thresholds
   for the considered tuning dataset.
 
+Note that the GC intervals file shows very small intervals due to the
+fact the tuning was done on a very small set of very similar samples.
+
 Additionally, for each sample, the following files will be created:
 - `<sample>.genes_mappings.tsv`: mapping of reference plasmid
   genes to sample contigs;
