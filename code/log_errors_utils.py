@@ -21,7 +21,9 @@ def process_error(msg):
 def check_file(in_file):
     if not os.path.isfile(in_file):
         process_error(f'{in_file} is missing')
-
+    elif os.path.getsize(in_file) == 0:
+        logging.warning('File {in_file} is empty')
+        
 def log_file(in_file):
     """ Write logging message for creating file in_file """
     if os.path.isfile(in_file):
