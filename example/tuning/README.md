@@ -49,9 +49,11 @@ The main results will be the files
   for the considered tuning dataset.
 
 Note that the GC intervals file shows very small intervals due to the
-fact the tuning was done on a very small set of very similar samples.
-Similarly, the seeds parameters file `output/seeds.txt` shows many
-optimal seed parameters for the same reason.
+fact the tuning was done on a very small set of very similar samples,
+where the GC content of chromosomes and plasmids is quite similar.
+The seeds parameters file `output/seeds.txt` shows many
+optimal seed parameters due to the small size of the reference plasmid
+genes database.
 
 Additionally, for each sample, the following files will be created:
 - `<sample>.genes_mappings.tsv`: mapping of reference plasmid
