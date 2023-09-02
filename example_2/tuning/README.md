@@ -24,7 +24,7 @@ python ../../code/plasbin_utils.py tuning \
        --out_dir       output \
        --tmp_dir       tuning_tmp \
        --log_file      tuning.log \       
-       --db_file       ../../database/genes.fasta \
+       --db_file       output/pls.genes.fasta \
        --out_file      tuning_output.csv \
        --pid_threshold 0.9 \
        --cov_threshold 0.7 \
@@ -50,6 +50,8 @@ The main results will be the files
 
 Note that the GC intervals file shows very small intervals due to the
 fact the tuning was done on a very small set of very similar samples.
+Similarly, the seeds parameters file `output/seeds.txt` shows many
+optimal seed parameters for the same reason.
 
 Additionally, for each sample, the following files will be created:
 - `<sample>.genes_mappings.tsv`: mapping of reference plasmid
