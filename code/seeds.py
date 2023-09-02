@@ -1,5 +1,6 @@
 ''' Functions to compute parameters defining seeds '''
 
+import os
 import pandas as pd
 from Bio import SeqIO
 import numpy as np
@@ -40,7 +41,7 @@ def _read_sample_pls_score(sample, pls_score_file):
     Returns dictionary:
 	    Key: Contig id as sample_ctg
 	    Value: Contig plasmidness (float)
-    '''	
+    '''
     pls_score_df = pd.read_csv(pls_score_file, sep='\t', header=None)
     pls_score_dict = dict(zip(pls_score_df[0], pls_score_df[1]))
     return {
