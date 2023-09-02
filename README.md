@@ -143,19 +143,19 @@ follows:
 
 ```
 python code/plasbin_flow.py \
-       -ag assembly_graph \
-       -gc gc_content_file \
-       -map mapping_file \
-       -lthr length_threshold \
-       -pthr plasmid_score_threshold \
-	-outdir output_dir \
-	-outfile output_file
+       -ag assembly graph \
+       -gc contigs gc_content_file \
+       -ps contigs plasmid scores file \
+       -lthr seeds length threshold \
+       -pthr seeds plasmid score threshold \
+       -outdir output_dir \
+       -outfile output_file
 ```
 where
-- `assembly_graph` is the GFA format assembly graph file,
-- `gc_content_file` is the GC content probability file described above
-- `plasmid_score_file` is the contigs plasmid scores file described above,
-- `lthr` and `pthr` are the length and plasmid score thresholds defining seeds,
+- `assembly graph` is the gzipped GFA1 format assembly graph file,
+- `contigs gc content file` is the GC content probability file described above
+- `contigs plasmid score file` is the contigs plasmid scores file described above,
+- `seeds length threshold` and `seeds plasmid score threshold` are the length and plasmid score thresholds defining seeds,
 - `output_dir` and `output_file` are the directory and file name for the output file.
 
 The output of PlasBin-flow is a TSV file with each line containing the following information:
