@@ -81,7 +81,10 @@ def compute_gene_density(
     filter_blast_outfmt6(mappings_df, min_pident=pid_threshold, min_q_cov=cov_threshold)
     ctg_len = _read_GFA_ctg_len(gfa_file, gzipped=gfa_gzipped)
     ctg_intervals = compute_blast_s_intervals(mappings_df)
-    ctg_gd_dict = {}
+    ctg_gd_dict = {
+        ctg_id: 0
+        for ctg_id in ctg_len.keys()
+    }
     for ctg_id,intervals in ctg_intervals.items():
         sorted_intervals = sorted(intervals, key=lambda x: x[0])
         intervals_union = _get_union(sorted_intervals)
