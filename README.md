@@ -349,7 +349,7 @@ where
 PlasBin-flow requires auxiliary data files and parameters in order to process samples:
 - reference plasmid genes database used to compute the mapping file and the gene density,
 - GC content intervals used to compute the GC content probabilities file,
-- parameters defining seeds contigs.
+- parameters defining seed contigs.
 
 PlasBin-flow comes with default files/values for these (see the
 PlasBin-flow paper for a description of how these were obtained):
@@ -357,7 +357,7 @@ PlasBin-flow paper for a description of how these were obtained):
 - GC content intervals:     [gc_intervals.txt](example/input/gc_intervals.txt)
 - seed contigs parameters:  default value, length=2650, plasmid score=0.58.
 
-Alternatively, given a *reference set* of samples for which the true
+Alternatively, given a *reference set of samples* for which the true
 plasmids are known, the script
 [plasbin_utils.py](code/plasbin_utils.py) can be used to compute these
 parameters and auxiliary files.
@@ -373,7 +373,7 @@ python plasbin_utils.py pls_genes_db \
 creates a reference plasmid genes database `out_dir/pls.genes.fasta`. 
 
 The file `input_file` must contain the fields `sample`, `gfa` (so
-tuning samples need to be re-assembled from reads data) amd
+tuning samples need to be re-assembled from reads data) and
 `pls_fasta` **where each plasmid entry must be named using the plasmid
 GenBank or RefSeq accession**.
 
@@ -423,18 +423,18 @@ name>.ground_truth.tsv` that records true plasmid bins.
 
 True plasmid bins for a sample are defined by mapping the sample
 contigs to the true plasmids, and discarding any mapping with identity
-below `pid_threshold p` (default value 0.95) and contig coverage below
-`--cov_threshold c` (default value 0.8).
+below `pid_threshold p` (default value = 0.95) and contig coverage below
+`--cov_threshold c` (default value = 0.8).
 
 The file `input_file` must contain the fields `sample`, `gfa`, and `pls_fasta`.
 
 The resulting ground truth file `out_dir/<sample
 name>.ground_truth.tsv` lists contigs mapped to plasmids associated
 with the sample. A line in the ground truth TSV file should contain
-the name or id of the plasmid in the first column and a contig that
+the name of the plasmid in the first column and a contig that
 has been mapped to the plasmid in the second column. The file can
 contain other information as long as the first two columns contain the
-plasmid and contig ids respectively.
+plasmid and contig names respectively.
 ```
 P1 C1
 P1 C2
@@ -450,11 +450,11 @@ for each sample.
 ### Tuning: Computing seed contigs parameters
 
 PlasBin-flow takes two parameters as input as the contig length and
-plasmidness threshold to decide which contig from a given sample can
+plasmid score thresholds to decide which contig from a given sample can
 be designated as seeds. Each plasmid bin output by PlasBin-flow should
 contain at least one seed contig. Seed parameters are decided by
-observing the length and plasmidness of contigs from the set of
-reference samples, based on their mappings to true plasmids.
+observing the length and plasmid score of contigs from the set of
+tuning samples, based on their mappings to the true plasmids.
 
 The command
 ```
@@ -471,7 +471,7 @@ Each line of the `out_dir/seeds.txt` file contains a pair
 considered as one of the optimal seed contigs parameters for samples
 in the reference set.
 
-The file `input_file` must contain the fields `sample`, `gfa` and
+The file `input_file` must contain the fields `sample`, `gfa`,
 `ground_truth` and `pls_score`.
 
 ### Full tuning
@@ -483,18 +483,18 @@ python plasbin_utils.py tuning \
        --input_file input_file \
        --out_dir out_dir \
        --tmp_dir tmp_dir \
+       --pls_db pls_db_file \
        [--out_file out_file] \
        [--pid_threshold p] \
        [--cov_threshold c] \
-       [--n_gcints n_gcints] \
-       [--pls_db pls_db_file]
+       [--n_gcints n_gcints]
 ``` 
 
 The file `input_file` must contain the fields `sample`, `gfa`, `pls_fasta` and `chr_fasta`.
 
 The parameters `pid_threshold,cov_threshold,n_gcints` are as described above.
 
-The file `pls_db_file` is the FASTA file containing the refernece
+The file `pls_db_file` is the FASTA file containing the reference
 plasmid genes database.
 
 This command creates the files `out_dir/gc.[txt,png,csv]`,
