@@ -171,6 +171,7 @@ def gunzip_GFA(in_file_path, out_file_path):
 
 # Mandatory fields in GFA contigs and links
 GFA_SEQ_KEY = 'Sequence'
+GFA_LEN_KEY = 'Length'
 GFA_FROM_KEY = 'From'
 GFA_FROM_ORIENT_KEY = 'FromOrient'
 GFA_TO_KEY = 'To'
@@ -180,12 +181,13 @@ GFA_OVERLAP_KEY = 'Overlap'
 # Conversionto of GFA attributes.
 # Missing attributes types: B, J
 GFA_ATTRIBUTE_TYPE = {
-    'i': lambda x: int(x),
+    'i': lambda x: int(float(x)),
     'f': lambda x: float(x),
     'Z': lambda x: str(x),
     'A': lambda x: str(x),
     'H': lambda x: bytes(x)
 }
+# 'i' converted into float at first to handle cases such as '1.20934e+06'
 
 def __add_attributes(attributes_data, attributes_list):
     """
@@ -276,13 +278,147 @@ def read_GFA_ctgs(in_file_path, attributes_list, gzipped=False, ctg_fun=lambda x
         for line in [x for x in in_file.readlines() if x[0]=='S']:
             ctg_data = line.strip().split('\t')
             ctg_id,ctg_seq = ctg_data[1],ctg_data[2]
+            ctg_len = len(ctg_seq)
             result[id_fun(ctg_id)] = ctg_fun(
                 __add_attributes(
-                    [f'{GFA_SEQ_KEY}:Z:{ctg_seq}'] + ctg_data[3:],
+                    [f'{GFA_SEQ_KEY}:Z:{ctg_seq}', f'{GFA_LEN_KEY}:i:{ctg_len}'] + ctg_data[3:],
                     attributes_list
                 )
             )
     return result
+
+def read_GFA_id(in_file_path, gzipped=False, id_fun=lambda x: x):
+    """
+    Computes the list of segments (contigs) id in a GFA file
+
+    Args:
+        - in_file_path (str): path of GFA file to read
+        - gzipped (bool): True if file is gzipped
+        - id_fun: function that process a contig id
+
+    Returns:
+        - (List(str)): list of sequence ids
+    """
+    return [
+        id_fun(ctg_id)
+        for ctg_id in list(
+                read_GFA_ctgs(
+                    in_file_path,
+                    record_fun=lambda x: None,
+                    gzipped=gzipped
+                ).keys()
+        )
+    ]
+
+def read_GFA_attribute(in_file_path, att_key, gzipped=False, id_fun=lambda x: x):
+    """
+    Computes the length of segments (contigs) in a GFA file
+
+    Args:
+        - in_file_path (str): path of GFA file to read
+        - att_key (str): attribute key
+        - gzipped (bool): True if file is gzipped
+        - id_fun: function that process a contig id
+
+    Returns:
+        - (Dictionary): sequence id (str) -> attribute value
+    """
+    return  {
+        ctg_id: ctg_attributes[att_key]
+        for ctg_id,ctg_attributes in read_GFA_ctgs(
+                in_file_path, 
+                [att_key],
+                gzipped=gzipped,
+                id_fun=id_fun
+        ).items()
+    }
+
+def read_GFA_len(in_file_path, gzipped=False, id_fun=lambda x: x):
+    """
+    Computes the length of segments (contigs) in a GFA file
+
+    Args:
+        - in_file_path (str): path of GFA file to read
+        - gzipped (bool): True if file is gzipped
+        - id_fun: function that process a contig id
+
+    Returns:
+        - (Dictionary): sequence id (str) -> length of sequence (int)
+    """
+    return read_GFA_attribute(
+        in_file_path, 'LN', gzipped=gzipped, id_fun=id_fun
+    )
+
+def read_GFA_seq(in_file_path, gzipped=False, id_fun=lambda x: x):
+    """
+    Computes segments (contigs) sequences in a GFA file
+
+    Args:
+        - in_file_path (str): path of GFA file to read
+        - gzipped (bool): True if file is gzipped
+        - id_fun: function that process a contig id
+
+    Returns:
+        - (Dictionary): sequence id (str) -> sequence (str)
+    """
+    return read_GFA_attribute(
+        in_file_path, GFA_SEQ_KEY, gzipped=gzipped, id_fun=id_fun
+    )
+
+def _ctgs_normalized_coverage(attributes_dict):
+    """
+    Computes the normalized coverage for a set of contigs
+    Args:
+        - attributes_dict (Dictionary): contig id -> attributes dictionary, including LN and KC keys
+    Returnd:
+        (Dictionary): contig id (str) -> normalized coverage (float)
+    """
+    # Total assembly coverage divided by k (k-mer value)
+    total_coverage = sum([
+        ctg_data['KC'] for _,ctg_data in attributes_dict.items()
+    ])
+    # Total assembly length
+    total_length = sum([
+        ctg_data[GFA_LEN_KEY] for _,ctg_data in attributes_dict.items()
+    ])
+    # Average assembly coverage: k * total_coverage / total_length
+    # Contig total coverage = k * ctg.KC
+    # Contig average coverage = k * ctg.KC / ctg.Length
+    # Contig normalized coverage = (k * ctg.KC / ctg.Length) / (k * total_coverage / total_length)
+    # = ctg.KC * total_length / ctg.LN * total_coverage
+    return {
+        ctg_id: (ctg_data['KC'] * total_length) / (ctg_data[GFA_LEN_KEY] * total_coverage)
+        for ctg_id, ctg_data in attributes_dict.items()
+    }
+
+def read_GFA_normalized_coverage(in_file_path, cov_key=None, gzipped=False, id_fun=lambda x: x):
+    """
+    Computes normalized coverage of segments (contigs) in a GFA file
+
+    Args:
+        - in_file_path (str): path of FASTA file to read
+        - cov_key (str or None): attribute key that records normalized coverage
+           if None, coverage is based on attributes KC and LN
+        - gzipped (bool): True if file is gzipped
+        - id_fun: function that process a contig id
+
+    Returns:
+        - (Dictionary): sequence id (str) -> normalized coverage (float)
+    """
+    
+    if cov_key is None:
+        return _ctgs_normalized_coverage(
+            read_GFA_ctgs(
+                in_file_path,
+                [GFA_LEN_KEY, 'KC'],
+                gzipped=gzipped,
+                id_fun=id_fun
+            )
+        )
+    else:
+        return read_GFA_attribute(
+            in_file_path, cov_key, gzipped=gzipped, id_fun=id_fun
+        )
 
 def read_GFA_links(in_file_path, attributes_list, gzipped=False):
     """
@@ -321,84 +457,6 @@ def read_GFA_links(in_file_path, attributes_list, gzipped=False):
                 )
             )
     return result
-
-def read_GFA_id(in_file_path, gzipped=False, id_fun=lambda x: x):
-    """
-    Computes the list of sequences id in a FASTA file
-
-    Args:
-        - in_file_path (str): path of GFA file to read
-        - gzipped (bool): True if file is gzipped
-        - id_fun: function that process a contig id
-
-    Returns:
-        - (List(str)): list of sequence ids
-    """
-    return [
-        id_fun(ctg_id)
-        for ctg_id in list(
-                read_GFA_ctgs(
-                    in_file_path,
-                    record_fun=lambda x: None,
-                    gzipped=gzipped
-                ).keys()
-        )
-    ]
-
-def read_GFA_attribute(in_file_path, att_key, gzipped=False, id_fun=lambda x: x):
-    """
-    Computes the length of entry sequences in a FASTA file
-
-    Args:
-        - in_file_path (str): path of GFA file to read
-        - att_key (str): attribute key
-        - gzipped (bool): True if file is gzipped
-        - id_fun: function that process a contig id
-
-    Returns:
-        - (Dictionary): sequence id (str) -> attribute value
-    """
-    return  {
-        ctg_id: ctg_attributes[att_key]
-        for ctg_id,ctg_attributes in read_GFA_ctgs(
-                in_file_path, 
-                [att_key],
-                gzipped=gzipped,
-                id_fun=id_fun
-        ).items()
-    }
-
-def read_GFA_len(in_file_path, gzipped=False, id_fun=lambda x: x):
-    """
-    Computes the length of entry sequences in a FASTA file
-
-    Args:
-        - in_file_path (str): path of GFA file to read
-        - gzipped (bool): True if file is gzipped
-        - id_fun: function that process a contig id
-
-    Returns:
-        - (Dictionary): sequence id (str) -> length of sequence (int)
-    """
-    return read_GFA_attribute(
-        in_file_path, 'LN', gzipped=gzipped, id_fun=id_fun
-    )
-
-def read_GFA_seq(in_file_path, gzipped=False, id_fun=lambda x: x):
-    """
-    Computes entry sequences in a FASTA file
-
-    Args:
-        - in_file_path (str): path of FASTA file to read
-        - gzipped (bool): True if file is gzipped
-        - id_fun: function that process a contig id
-
-    Returns:
-        - (Dictionary): sequence id (str) -> sequence (str)
-    """
-    return read_GFA_attribute(
-        in_file_path, GFA_SEQ_KEY, gzipped=gzipped, id_fun=id_fun
-    )
 
 def write_GFA_to_FASTA(in_GFA_file, out_FASTA_file, in_gzipped, out_gzipped, sep=' '):
     """
