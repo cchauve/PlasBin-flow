@@ -75,7 +75,7 @@ def run_cmd(cmd, num_attempts=5, exit_on_error=True):
     """ Run external command, trying at most num_attempts=5 times  """
     return _run_cmd(cmd, None, num_attempts, exit_on_error)
     
-def run_cmd_redirect(cmd, out_file_name, num_attempts=5, exit_on_error=False):
+def run_cmd_redirect(cmd, out_file_name, num_attempts=5, exit_on_error=True):
     """ Run external command with redirection, trying at most num_attempts=5 times  """
     return _run_cmd(cmd, out_file_name, num_attempts, exit_on_error)
 
