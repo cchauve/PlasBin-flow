@@ -259,7 +259,7 @@ The optional file `gc_intervals_file` is a file that describes the GC
 intervals, with one interval boundary per line (so its first line must
 be 0, its last line must be 1 and in between the values must be
 increasing, an example is provided in
-[gc_intervals.txt](example/input/gc_intervals.txt).  If it is not
+[gc_intervals.txt](example/default/gc_intervals.txt).  If it is not
 povided, the default intervals defined by boundaries
 `[0, 0.4, 0.45, 0.5, 0.55, 0.6, 1]` are used.
 
@@ -358,7 +358,7 @@ PlasBin-flow requires auxiliary data files and parameters in order to process sa
 PlasBin-flow comes with default files/values for these (see the
 PlasBin-flow paper for a description of how these were obtained):
 - reference plasmid genes database: [genes.fasta](database/genes.fasta)
-- GC content intervals:     [gc_intervals.txt](example/input/gc_intervals.txt)
+- GC content intervals:     [gc_intervals.txt](example/default/gc_intervals.txt)
 - seed contigs parameters:  default value, length=2650, plasmid score=0.58.
 
 Alternatively, given a *reference set of samples* for which the true
