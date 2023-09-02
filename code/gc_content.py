@@ -1,42 +1,105 @@
+''' Functions to compute GC content intervals and probabilities '''
+
 import os
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-import gzip
-from pathlib import Path
-from Bio import SeqIO
 import scipy.special as sc
 import scipy.integrate as integrate
 import numpy as np
 from scipy.stats import binom
 import math
+import logging
 
-def get_seq_details(seq, mol_type):
+from gfa_fasta_utils import (
+    read_FASTA_ctgs,
+    read_GFA_ctgs,
+    GFA_SEQ_KEY
+)
+from log_errors_utils import (
+    CustomException,
+    process_exception
+)
+
+# Keys of dictionary associated to a FASTA record
+GC_COUNT_KEY = 'gc_count'
+GC_RATIO_KEY = 'gc_ratio'
+LENGTH_KEY = 'length'
+MOL_TYPE_KEY = 'mol_type'
+MOL_TYPE_CHR = 'chromosome'
+MOL_TYPE_PLS = 'plasmid'
+
+DEFAULT_GC_INTERVALS = [0, 0.4,  0.45, 0.5, 0.55, 0.6, 1]
+
+def _process_sequence(sequence):
     '''
-    Parsing entry in the fasta file and
-    Updating the dictionary with all sequences
+    Computes sequence statistics
+
+    Args:
+        sequence (str): input sequence
+    
+    Returns:
+        (Dictionary): GC_COUNT_KEY -> GC content, GC_RATIO_KEY: GC content ratio, LENGTH_KEY: length
     '''
-    sequence = str(seq.seq)
     gc_count = sequence.count('G') + sequence.count('C')
     length = len(sequence)
     return {
-        'gc_count': gc_count,
-        'length': length,
-        'gc_percent': gc_count/length,
-        'type': mol_type
+        GC_COUNT_KEY: gc_count,
+        GC_RATIO_KEY: gc_count / length,
+        LENGTH_KEY: length
     }
 
-def read_fastas(seq_dict, fasta_paths, mol_type):
+def _process_FASTA_record(record):
     '''
-    Read all paths to chromosome/plasmid fasta files
-    Populate dictionary of sequences
+    Parse a FASTA record
+
+    Args:
+        record (Bio.SeqIO.record): FASTA record
+
+    Returns:
+        (Dictionary): GC count (GC_COUNT_KEY), length (LENGTH_KEY), GC ratio (GC_RATIO_KEY)
     '''
-    for path in fasta_paths:
-        with gzip.open(os.path.expanduser(path),'rt') as f:
-            seqs = SeqIO.parse(f,'fasta')
-            for seq in seqs:
-                seq_id = seq.id
-                seq_dict[seq_id] = get_seq_details(seq, mol_type)
+    return _process_sequence(str(record.seq))
+    
+
+def _process_GFA_ctg(attributes_dict):
+    '''
+    Parse a GFA record
+
+    Args:
+        (Dictionary): attribute key: attribute value
+        where attribute key is GFA_SEQ_KEY (contig sequence)
+
+    Returns:
+        (Dictionary): GC count (GC_COUNT_KEY), GC ratio (GC_RATIO_KEY), length (LENGTH_KEY)
+    '''
+    return _process_sequence(attributes_dict[GFA_SEQ_KEY])
+
+def _read_FASTA_files(fasta_file_paths, mol_type):
+    '''
+    Read all plasmid/chromosome FASTA files, recording GC features
+
+    Args:
+        - fasta_file_paths (List(str)): list of paths to FASTA files to read
+        - mol_type (str): MOL_TYPE_CHR, MOL_TYPE_PLS
+
+    Returns:
+        (Dictionary): sequence id ->
+            (Dictionary) feature key -> feature
+            feature key in {GC_COUNT_KEY, GC_RATIO_KEY, LENGTH_KEY, MOL_TYPE_KEY}
+    '''
+    for fasta_file in fasta_file_paths:
+        try:
+            seq_dict = read_FASTA_ctgs(
+                fasta_file, _process_FASTA_record, gzipped=True
+            )
+        except Exception as e:
+            process_exception(
+                f'Reading FASTA file {fasta_file}: {e}'
+            )
+        else:
+            for seq_id in seq_dict.keys():
+                seq_dict[seq_id][MOL_TYPE_KEY] = mol_type
     return seq_dict
 
 def compute_gc_intervals_files(
@@ -50,153 +113,191 @@ def compute_gc_intervals_files(
     Args:
         - chr_paths_file (str): path to file containing the list of paths of chromosome FASTA files
         - pls_paths_file (str): path to file containing the list of paths of plasmids FASTA files
-        - out_csv_file (str): written tCSV file containing GC content of chromosomes and plasmids
+        - out_csv_file (str): written CSV file containing GC content of chromosomes and plasmids
         - out_png_file (str): written PNG file containing violin plot of GC content of chromosomes and plasmids
         - out_intervals_file (str): written text file containing the endpoints of GC content intervals in ascending order
         - n_gcints (int): number of GC content intervals between 0 and 1
 
     Returns:
         None, creates files out_csv_file, out_png_file, out_intervals_file
+        out_csv_file and out_png_file record GC content and ratio features
+        out_intervals_file records n_gcints equally spaced intervals between the min and mac GC content ratio
     '''
 
-    '''
-    Dictionary with all sequences (plasmids as well as chromosomes)
-    Key: Sequence Id, Values: Dictionary of attributes
-    gc_count (int)
-    length (int)
-    gc_percent (float): Ratio of gc_count/length
-    type (str): Type of molecule, plasmid or chromosome
-    '''
-    seq_dict = {}
     # Reading and storing input data for reference samples
+    # seq_dict: sequence id -> {
+    #  GC_COUNT_KEY -> GC content, GC_RATIO_Key: GC content ratio, LENGTH_KEY: length
+    # }
     chr_paths = open(chr_paths_file,'r').read().splitlines()
-    seq_dict = read_fastas(seq_dict, chr_paths, 'chromosome')
+    seq_dict = _read_FASTA_files(chr_paths, MOL_TYPE_CHR)
     pls_paths = open(pls_paths_file,'r').read().splitlines()
-    seq_dict = read_fastas(seq_dict, pls_paths, 'plasmid')
+    seq_dict.update(_read_FASTA_files(pls_paths, MOL_TYPE_PLS))
+
     # Converting to dataframe
     seq_df = pd.DataFrame.from_dict(seq_dict).T
     seq_df.index.name='id'
     seq_df.to_csv(out_csv_file)
     second_df = pd.DataFrame(seq_df.to_dict())
-    # Determining intervals from dataframe
-    pls_df = seq_df[seq_df['type'] == 'plasmid']
-    max_gc = pls_df['gc_percent'].max()
-    min_gc = pls_df['gc_percent'].min()
-    gc_bin_size = (max_gc - min_gc) / (n_gcints-2)
-    gc_endpoints = (np.linspace(min_gc - gc_bin_size/2, max_gc + gc_bin_size/2, n_gcints - 1))
-    with open(out_intervals_file, "w") as f:
-        intervals_str = '\n'.join([str(x) for x in gc_endpoints])
-        f.write(f'0\n{intervals_str}\n1\n')
     # Violinplot from dataframe
     fig, ax = plt.subplots(figsize=(10,8))
-    plt.suptitle('GC distribution')
-    ax = sns.violinplot(x="type", y="gc_percent", data=second_df)
+    plt.suptitle('GC content ratio distribution')
+    ax = sns.violinplot(x=MOL_TYPE_KEY, y=GC_RATIO_KEY, data=second_df)
     plt.savefig(out_png_file)
 
-''' Functions that should be extracted into a separate module '''
+    # Determining equally spaced intervals from dataframe
+    pls_df = seq_df[seq_df[MOL_TYPE_KEY] == MOL_TYPE_PLS]
+    max_gc = pls_df[GC_RATIO_KEY].max()
+    min_gc = pls_df[GC_RATIO_KEY].min()
+    gc_bin_size = (max_gc - min_gc) / (n_gcints-2)
+    gc_endpoints = (np.linspace(min_gc - gc_bin_size/2, max_gc + gc_bin_size/2, n_gcints - 1))
+    try:
+        with open(out_intervals_file, "w") as f:
+            intervals_str = '\n'.join([str(x) for x in gc_endpoints])
+            f.write(f'0\n{intervals_str}\n1\n')
+    except Exception as e:
+        process_exception(f'Writing GC intervals file {out_intervals_file}: {e}')
+            
+def read_gc_intervals_file(gc_intervals_file):
+    '''
+    Read GC intervals file
 
-def read_file(filename):
-    string = open(filename, "r").read()
-    string_list = string.split("\n")
-    string_list = [
-        line
-        for line in string_list
-        if line and line[0] != '#'
-    ]
-    return string_list
-
-# Storing contig details
-## Stores the id of the contig
-def get_id(line):
-    return line[1]
-## Stores the nucleotide sequence of the contig
-def get_nucleotide_seq(line):
-    return line[2]
-## Stores the length of the sequence
-def get_length(line):
-    return int(line[3].split(':')[2])
-
-# Takes a contig from the assembly file and initiates an entry in the contigs_dict
-# Each contig is tagged with the following attributes:
-# 1. Length of the contig (int)
-# 2. Sequence of a contig (string)
-def update_contigs_dict(contigs_dict, line):
-    c = get_id(line)
-    seq = get_nucleotide_seq(line)
-    GC_cont = compute_GCratio(seq)
-    n = get_length(line)
+    Args:
+        gc_intervals_file (str): pth to GC intervals file
     
-    contigs_dict[c] = {}
-    contigs_dict[c]['Sequence'] = seq
-    contigs_dict[c]['GC_cont'] = GC_cont
-    contigs_dict[c]['Length'] = n
-    
-    return contigs_dict
-
-# Reads the assembly file line by line and forwards a line
-# to update_contigs_dict or get_link depending on the entry
-def get_data(assembly_file, contigs_dict):
-    string_list = read_file(assembly_file)
-    for line in string_list:
-        line = line.split("\t")
-        if line[0] == 'S':
-            contigs_dict = update_contigs_dict(contigs_dict, line)
-    return contigs_dict
-
-# Computes GC ratio: counts no. of 'G'/'C' occurences in the sequence and divide by the sequence length.
-def compute_GCratio(seq):
-    GC = 0
-    ln_seq = 0
-    for nucl in seq:
-        if nucl == 'G' or nucl == 'C':
-            GC += 1
-        ln_seq += 1
-    return GC/ln_seq
-
-def combln(n, k):
-    # Compute ln of n choose k. Note than n! = gamma(n+1).
-    return sc.gammaln(n + 1) - sc.gammaln(k + 1) - sc.gammaln(n - k + 1)
-
-def gprob2(n,g,p,m):
-    # Compute probability of observing g GC nucleotides in a contig
-    # of length n within a molecule of GC content p using pseducount m.
-    # Done via logarithm to avoid overflow.
-    alpha = m*p
-    beta = m*(1-p)
-    resultln = combln(n, g) + sc.betaln(g + alpha, n - g + beta) - sc.betaln(alpha, beta)
-    return math.exp(resultln)
-
-def compute_gc_probabilities_file(gfa_file, gc_intervals_file, out_file):
-
-    if gc_intervals_file != None:
-        probs = read_file(gc_intervals_file)
-        probs = [float(x) for x in probs]
-        probs = sorted(probs)
+    Returns:
+        (List(float)): sorted list of GC intervals boundaries
+    '''
+    try:
+        with open(gc_intervals_file) as in_file:
+            intervals = [
+                float(x.rstrip())
+                for x in in_file.readlines()
+            ]
+        if intervals[0] != 0.0 or intervals[-1] != 1.0:
+            raise CustomException(
+                f'GC interval boundaries must start by 0 and end by 1'
+            )
+        for x in range(1,len(intervals)):
+            if intervals[x] <= intervals[x-1]:
+               raise CustomException(
+                f'GC intervals boundaries must be increasing'
+            ) 
+    except Exception as e:
+        process_exception(
+            f'Reading GC intervals file {gc_intervals_file}: {e}'
+        )
     else:
-        probs = [0, 0.4,  0.45, 0.5, 0.55, 0.6, 1]
+        return intervals
 
-    gc_file = open(out_file, "w")
-    gc_file.write('CTG')
-    for i in range(0, len(probs)-1):
-        gc_file.write(f'\t{probs[i]}-{probs[i+1]}')
-    gc_file.write('\n')
+def compute_gc_probabilities(contigs_gc, gc_intervals):
+    '''
+    Computes GC probabilities for a set of contigs and GC intervals
 
-    contigs_dict = {}
-    contigs_dict = get_data(gfa_file, contigs_dict)
+    Args:
+        - contigs_gc (Dictionary): contig id -> {
+          GC_COUNT_KEY: GC count, GC_RATIO_KEY: GC content ratio, LENGTH_KEY: contig length
+          }
+        - gc_intervals (List(float)): GC intervals boundaries
+
+    Returns:
+        (Dictionary) contig id -> List(float)
+        where element in position i in the list is the probability to be in the (i+1)th interval
+    '''
+    def _gprob2(n, g, p, m):
+        '''
+        Compute probability of observing g GC nucleotides in a contig
+        of length n within a molecule of GC content p using pseducount m.
+        Done via logarithm to avoid overflow.
+        '''
+        def _combln(n, k):
+            ''' Compute ln of n choose k. Note than n! = gamma(n+1) '''
+            return sc.gammaln(n + 1) - sc.gammaln(k + 1) - sc.gammaln(n - k + 1)
+        alpha = m*p
+        beta = m*(1-p)
+        resultln = _combln(n, g) + sc.betaln(g + alpha, n - g + beta) - sc.betaln(alpha, beta)
+        return math.exp(resultln)
     
     m = 10
-    for c in contigs_dict:
-        n = contigs_dict[c]['Length']
-        g_frac = contigs_dict[c]['GC_cont']
-        g = g_frac*n
+    ctgs_gcp = {}
+    for ctg_id,ctg_data in contigs_gc.items():
+        n = ctg_data[LENGTH_KEY]
+        g = ctg_data[GC_COUNT_KEY]
         total = 0
-        gc_file.write(c)
-        gp_array = []
-        for i in range(0, len(probs)-1):
-            gp2 = integrate.quad(lambda x: gprob2(n,g,x,m), probs[i], probs[i+1])
-            gp2 = gp2[0]/(probs[i+1] - probs[i])
+        gcp_array = []
+        for i in range(0, len(gc_intervals)-1):
+            gp2 = integrate.quad(
+                lambda x: _gprob2(n,g,x,m),
+                    gc_intervals[i], gc_intervals[i+1]
+            )
+            gp2 = gp2[0]/(gc_intervals[i+1] - gc_intervals[i])
             total += gp2
-            gp_array.append(gp2)
-        for gp in gp_array:
-            gc_file.write(f'\t{gp / total}')
-        gc_file.write("\n")
+            gcp_array.append(gp2)
+        ctgs_gcp[ctg_id] = [gcp/total for gcp in gcp_array]
+    return ctgs_gcp
+
+def _write_gc_probabilities_file(ctg_gcp_dict, gcp_out_file):
+    try:
+        with open(gcp_out_file, 'w') as out_file:
+            for ctg_id,ctg_gcp in ctg_gcp_dict.items():
+                gcp_str = '\t'.join([str(gcp) for gcp in ctg_gcp])
+                out_file.write(f'{ctg_id}\t{gcp_str}\n')
+    except Exception as e:
+        process_exception(f'Writing GC probabilities file {gcp_out_file}: {e}')
+                
+def read_gc_probabilities_file(gcp_in_file):
+    '''
+    Args:
+        gcp_in_file (str): path to a GC probabilities file
+    Returns 
+        Dictionary contig id -> list of probabilities ordered by GC interval
+    '''
+    try:
+        gcp_dict = {}
+        with open(gcp_in_file, 'r') as in_file:
+            for gcp_line in in_file.readlines():
+                ctg_data = gcp_line.rstrip().split()
+                ctg_id = ctg_data[0]
+                ctg_gcp_list = [
+                    float(x) for x in ctg_data[1:]
+                ]
+                gcp_dict[ctg_id] = ctg_gcp_list
+    except Exception as e:
+        process_exception(f'Reading GC pobabilities file {gcp_in_file}: {e}')
+    else:
+        return gcp_dict
+            
+def compute_gc_probabilities_file(gfa_file, gc_intervals_file, gcp_out_file):
+    '''
+    Computes probability that contigs originate from a molecule of a given GC conten ratio,
+    for a given list of GC content intervals.
+
+    Args:
+        - gfa_file (str): path to an ungzipped GFA file
+        - gc_intervals_file (str) path to a GC vontent ratio intervals file
+        - out_file: output file
+
+    Returns:
+        creates out_file in format
+        line 1: CTG<TAB><TAB-separated list of GC intervals>
+        line 2+: GFA contig id<TAB><TAB-separated list of probabilities the contig oiginates from 
+                 a molecule of GC content ratio within the interval>
+    '''
+    if gc_intervals_file != None:
+        gc_intervals = read_gc_intervals_file(gc_intervals_file)
+    else:
+        gc_intervals = DEFAULT_GC_INTERVALS
+        logging.warning('Using default GC content intervals')
+
+    try:
+        ctg_gc = read_GFA_ctgs(
+            gfa_file,
+            [GFA_SEQ_KEY],
+            gzipped=False,
+            ctg_fun=_process_GFA_ctg
+        )
+    except Exception as e:
+        process_exception(f'Reading GFA file {gfa_file}: {e}')
+
+    ctg_gc_probabilities = compute_gc_probabilities(ctg_gc, gc_intervals)
+    _write_gc_probabilities_file(ctg_gc_probabilities, gcp_out_file)
+   
