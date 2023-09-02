@@ -39,7 +39,7 @@ def create_directory(in_dir_list):
         if not os.path.exists(in_dir):
             os.makedirs(in_dir)
 
-def _run_cmd(cmd, output, num_attempts, exit_on_error=True):
+def _run_cmd(cmd, output, num_attempts, exit_on_error):
     """ 
     Run external command, trying at most num_attempts times  
     If output is None, write output in logging file
@@ -71,11 +71,11 @@ def _run_cmd(cmd, output, num_attempts, exit_on_error=True):
         attempt += 1
     return process_returncode
     
-def run_cmd(cmd, num_attempts=5):
+def run_cmd(cmd, num_attempts=5, exit_on_error=True):
     """ Run external command, trying at most num_attempts=5 times  """
-    return _run_cmd(cmd, None, num_attempts)
+    return _run_cmd(cmd, None, num_attempts, exit_on_error)
     
-def run_cmd_redirect(cmd, out_file_name, num_attempts=5):
+def run_cmd_redirect(cmd, out_file_name, num_attempts=5, exit_on_error=False):
     """ Run external command with redirection, trying at most num_attempts=5 times  """
-    return _run_cmd(cmd, out_file_name, num_attempts)
+    return _run_cmd(cmd, out_file_name, num_attempts, exit_on_error)
 
