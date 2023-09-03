@@ -1,5 +1,19 @@
 from __future__ import division
+
 import math
+
+def read_pls_score_file(in_pls_score_file):
+        """
+        Reads a plasmid score file
+        Args: in_pls_score_file (str): path to a plasmid score file
+        Returns: Dictionary contig (str): plasmid score (float)
+        """
+        pls_scores_dict = {}
+        with open(in_pls_score_file) as in_file:
+                for line in in_file.readlines():
+                        line_split = line.rstrip().split('\t')
+                        pls_scores_dict[line_split[0]] = float(line_split[1])
+        return pls_scores_dict
 
 def read_file(filename):
 	string = open(filename, "r").read()

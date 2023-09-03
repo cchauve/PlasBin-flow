@@ -62,7 +62,7 @@ python plasbin_utils.py gc_intervals --input_file input_file --out_dir out_dir -
     gc.csv: GC content per sample
   gc.png: GC content violin plot
   gc.txt: GC content intervals
-  seeds.txt: seed parameters
+  seeds.tsv: seed parameters
 - tmp_dir: temporary directory, not deleted
 - n_gcints: [optional] number of GC content intervals between 0 and 1 (default=6)
 
@@ -87,7 +87,7 @@ python plasbin_utils.py seeds --input_file input_file --out_dir out_dir --tmp_di
   ground_truth: ground truth file
   pls_score: plasmid score file
 - out_dir: directory where the seeds parameters file is written
-  seeds.txt
+  seeds.tsv
 - tmp_dir: temporary directory, not deleted
 
 python plasbin_tuning.py tuning --input_file input_file --out_dir out_dir --tmp_dir tmp_dir [--out_file out_file --pid_threshold p --cov_threshold c --n_gcints n_gcints --pls_db pls_db_file]
@@ -101,7 +101,7 @@ python plasbin_tuning.py tuning --input_file input_file --out_dir out_dir --tmp_
   gc.csv: GC content per sample
   gc.png: GC content violin plot
   gc.txt: GC content intervals
-  seeds.txt: seed parameters
+  seeds.tsv: seed parameters
   <sample>.ground_truth.tsv for each sample if created
   <sample>.gene_density.tsv for each sample if created
   <sample>.genes_mappings.txt for each sample if created
@@ -331,7 +331,7 @@ def _pls_genes_db_file(in_dir):
     return os.path.join(in_dir, 'pls.genes.fasta')
 def _seeds_parameters_file(in_dir):
     """ Seeds parameters file """
-    return os.path.join(in_dir, 'seeds.txt')
+    return os.path.join(in_dir, 'seeds.tsv')
 def _gc_csv_file(in_dir):
     """ GC content intervals TXT file """
     return os.path.join(in_dir, f'{GC_FILE_PREFIX}.csv')
@@ -426,7 +426,7 @@ def create_gene_density_files(
        None, creates files _gene_density_file(out_dir, sample) for each sample  
 
     """
-    logging.info(f'## Compute gene densit and create new dataset CSV file')
+    logging.info(f'## Compute gene density and create new dataset CSV file')
     for sample in samples_df.index:
         logging.info(f'ACTION\tcompute gene density for {sample}')
         gfa_file = _get_gfa(samples_df, sample)
