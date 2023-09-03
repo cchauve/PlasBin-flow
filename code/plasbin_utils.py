@@ -187,31 +187,34 @@ GC_COL = 'gc_probabilities'
 MAPPINGS_COL = 'genes2ctgs_mappings'
 PLS_SCORE_COL = 'pls_score'
 
-def check_input_files(samples_df):
+def check_missing_data(samples_df, required_columns):
     """
-    Check that all file entries in sample_df do exist
+    Check that all data required entries in sample_df do exist
     Args:
         - sample_df (DataFrame)
+        - required_columns (List(str)): columns expected to be found in the file 
+          (additional columns are allowed)
     Returns:
-        - List(str): empty entries
-        - List(str): missing files
+        List(str): missing data in format <sample>.<column>
+    Note:
+        File existence is not checked by this function and is assumed to be checked 
+        by functions using the files
     """
-    empty_files = []
-    missing_files = []
-    for sample,files in samples_df.iterrows():
-        for col,file_col in files.items():
-            if pd.isnull(file_col):
-                empty_files.append(f'{sample}.{col}')
-            elif not os.path.isfile(file_col):
-                missing_files.append(file_col)
-    return empty_files,missing_files
+    missing_data = []
+    for sample,data_sample in samples_df.iterrows():
+        for col,data_col in data_sample.items():
+            if col in required_columns and pd.isnull(data_col):
+                missing_data.append(f'{sample}.{col}')
+    return missing_data
 
 def read_samples(in_csv_file, required_columns):
     """
     Reads the samples information CSV file
     
     Args:
-        in_csv_file (str): path to the CSV file containing samples information
+        - in_csv_file (str): path to the CSV file containing samples information
+        - required_columns (List(str)): columns expected to be found in the file 
+          (additional columns are allowed)
 
     Returns: 
         (DataFrame): dataframe indexed by sample id
@@ -230,13 +233,10 @@ def read_samples(in_csv_file, required_columns):
         if len(missing_columns) > 0:
             msg = ' '.join(missing_columns)
             raise CustomException(f'{in_csv_file}: Missing column(s) {msg}') 
-        empty_files,missing_files = check_input_files(samples_df)
-        if len(empty_files) > 0:
-            msg = ' '.join(empty_files)
-            raise CustomException(f'{in_csv_file}: Empty file entry {msg}')
-        if len(missing_files) > 0:
-            msg = ' '.join(missing_files)
-            raise CustomException(f'{in_csv_file}: Missing files {msg} ')
+        missing_data = check_missing_data(samples_df, required_columns)
+        if len(missing_data) > 0:
+            msg = ' '.join(missing_data)
+            raise CustomException(f'{in_csv_file}: Empty data {msg}')
     except Exception as e:
         process_exception(f'Reading CSV dataset file {in_csv_file}: {e}')
     else:
