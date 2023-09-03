@@ -469,13 +469,16 @@ python plasbin_utils.py seeds \
        --tmp_dir tmp_dir \
        [--log_file log file]
 ```
-computes a file `out_dir/seeds.txt` that contains the optimal seed
+computes a file `out_dir/seeds.tsv` that contains the optimal seed
 contigs parameters.
 
-Each line of the `out_dir/seeds.txt` file contains a pair
-(plasmid score, length) of thesholds separated by a tab. Each pair is
-considered as one of the optimal seed contigs parameters for samples
-in the reference set.
+Each line of the `out_dir/seeds.tsv` file contains 4 tab-separated fields
+(plasmid score, length, number of plasmids with seeds, number of false seeds):
+- plasmid score and length are the thresholds values,
+- number of reference plasmids with seeds is the number of true plasmids 
+  with at least one contig identified as a seed based on the thresholds,
+- number of false seeds is the number of contigs that meets the thresholds 
+  but are not assigned to a reference plasmid in their sample.
 
 The file `input_file` must contain the fields `sample`, `gfa`,
 `ground_truth` and `pls_score`.
@@ -505,7 +508,7 @@ The file `pls_db_file` is the FASTA file containing the reference
 plasmid genes database.
 
 This command creates the files `out_dir/gc.[txt,png,csv]`,
-`out_dir/gc_intervals.txt`, `out_dir/seeds.txt`,
+`out_dir/gc_intervals.txt`, `out_dir/seeds.tsv`,
 `out_dir/pls.genes.fasta`, and for each sample `out_dir/<sample
 name>.genes_mappings.txt` and `out_dir/<sample
 name>.ground_truth.tsv`.
