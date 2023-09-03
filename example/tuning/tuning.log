@@ -47,69 +47,69 @@ root - INFO - COMMAND makeblastdb -in tuning_tmp/SAMN11056450.pls.fasta -dbtype 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:36:59
+Building a new DB, current time: 09/03/2023 12:46:31
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN11056450.pls.fasta.db
 New DB title:  tuning_tmp/SAMN11056450.pls.fasta
 Sequence type: Nucleotide
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.000714064 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.000853062 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:37:00
+Building a new DB, current time: 09/03/2023 12:46:31
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN11056450.pls.fasta.db
 New DB title:  tuning_tmp/SAMN11056450.pls.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN11056450.pls.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.000778913 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.00113201 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:37:01
+Building a new DB, current time: 09/03/2023 12:46:32
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN11056450.pls.fasta.db
 New DB title:  tuning_tmp/SAMN11056450.pls.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN11056450.pls.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.000744104 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.000680208 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:37:10
+Building a new DB, current time: 09/03/2023 12:46:41
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN11056450.pls.fasta.db
 New DB title:  tuning_tmp/SAMN11056450.pls.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN11056450.pls.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.000739098 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.00109506 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:37:19
+Building a new DB, current time: 09/03/2023 12:46:42
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN11056450.pls.fasta.db
 New DB title:  tuning_tmp/SAMN11056450.pls.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN11056450.pls.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.000715971 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.00151992 seconds.
 
 
 
@@ -135,69 +135,69 @@ root - INFO - COMMAND makeblastdb -in tuning_tmp/SAMD00491671.pls.fasta -dbtype 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:37:22
+Building a new DB, current time: 09/03/2023 12:46:53
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491671.pls.fasta.db
 New DB title:  tuning_tmp/SAMD00491671.pls.fasta
 Sequence type: Nucleotide
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.000988007 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.00119901 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:37:23
+Building a new DB, current time: 09/03/2023 12:47:02
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491671.pls.fasta.db
 New DB title:  tuning_tmp/SAMD00491671.pls.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491671.pls.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.000823975 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.000730038 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:37:32
+Building a new DB, current time: 09/03/2023 12:47:03
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491671.pls.fasta.db
 New DB title:  tuning_tmp/SAMD00491671.pls.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491671.pls.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.00113988 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.00104785 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:37:33
+Building a new DB, current time: 09/03/2023 12:47:04
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491671.pls.fasta.db
 New DB title:  tuning_tmp/SAMD00491671.pls.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491671.pls.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.000788927 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.000695944 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:37:34
+Building a new DB, current time: 09/03/2023 12:47:04
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491671.pls.fasta.db
 New DB title:  tuning_tmp/SAMD00491671.pls.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491671.pls.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.000879049 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.000982046 seconds.
 
 
 
@@ -223,69 +223,69 @@ root - INFO - COMMAND makeblastdb -in tuning_tmp/SAMD00491757.pls.fasta -dbtype 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:37:37
+Building a new DB, current time: 09/03/2023 12:47:08
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491757.pls.fasta.db
 New DB title:  tuning_tmp/SAMD00491757.pls.fasta
 Sequence type: Nucleotide
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.00140786 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.00127292 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:37:38
+Building a new DB, current time: 09/03/2023 12:47:08
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491757.pls.fasta.db
 New DB title:  tuning_tmp/SAMD00491757.pls.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491757.pls.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.000929117 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.00135708 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:37:47
+Building a new DB, current time: 09/03/2023 12:47:18
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491757.pls.fasta.db
 New DB title:  tuning_tmp/SAMD00491757.pls.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491757.pls.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.000869036 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.00082016 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:37:48
+Building a new DB, current time: 09/03/2023 12:47:20
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491757.pls.fasta.db
 New DB title:  tuning_tmp/SAMD00491757.pls.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491757.pls.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.00118995 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.000813007 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:37:57
+Building a new DB, current time: 09/03/2023 12:47:20
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491757.pls.fasta.db
 New DB title:  tuning_tmp/SAMD00491757.pls.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491757.pls.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.000951052 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.00139308 seconds.
 
 
 
@@ -311,69 +311,69 @@ root - INFO - COMMAND makeblastdb -in tuning_tmp/SAMEA8911316.pls.fasta -dbtype 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:38:00
+Building a new DB, current time: 09/03/2023 12:47:31
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMEA8911316.pls.fasta.db
 New DB title:  tuning_tmp/SAMEA8911316.pls.fasta
 Sequence type: Nucleotide
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.0013268 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.00174308 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:38:01
+Building a new DB, current time: 09/03/2023 12:47:32
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMEA8911316.pls.fasta.db
 New DB title:  tuning_tmp/SAMEA8911316.pls.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMEA8911316.pls.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.00125694 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.00129318 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:38:03
+Building a new DB, current time: 09/03/2023 12:47:40
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMEA8911316.pls.fasta.db
 New DB title:  tuning_tmp/SAMEA8911316.pls.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMEA8911316.pls.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.00125504 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.00117588 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:38:04
+Building a new DB, current time: 09/03/2023 12:47:49
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMEA8911316.pls.fasta.db
 New DB title:  tuning_tmp/SAMEA8911316.pls.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMEA8911316.pls.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.00121593 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.00140405 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:38:05
+Building a new DB, current time: 09/03/2023 12:47:57
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMEA8911316.pls.fasta.db
 New DB title:  tuning_tmp/SAMEA8911316.pls.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMEA8911316.pls.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.00129604 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.00123596 seconds.
 
 
 
@@ -399,69 +399,69 @@ root - INFO - COMMAND makeblastdb -in tuning_tmp/SAMN15735178.pls.fasta -dbtype 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:38:08
+Building a new DB, current time: 09/03/2023 12:48:01
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN15735178.pls.fasta.db
 New DB title:  tuning_tmp/SAMN15735178.pls.fasta
 Sequence type: Nucleotide
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.000745058 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.000756979 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:38:08
+Building a new DB, current time: 09/03/2023 12:48:01
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN15735178.pls.fasta.db
 New DB title:  tuning_tmp/SAMN15735178.pls.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN15735178.pls.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.000711918 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.000692844 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:38:09
+Building a new DB, current time: 09/03/2023 12:48:11
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN15735178.pls.fasta.db
 New DB title:  tuning_tmp/SAMN15735178.pls.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN15735178.pls.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.000708818 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.000703812 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:38:10
+Building a new DB, current time: 09/03/2023 12:48:20
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN15735178.pls.fasta.db
 New DB title:  tuning_tmp/SAMN15735178.pls.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN15735178.pls.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.000669956 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.000950098 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:38:19
+Building a new DB, current time: 09/03/2023 12:48:29
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN15735178.pls.fasta.db
 New DB title:  tuning_tmp/SAMN15735178.pls.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN15735178.pls.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 1 sequences in 0.000676155 seconds.
+Adding sequences from FASTA; added 1 sequences in 0.00115991 seconds.
 
 
 
@@ -503,69 +503,69 @@ root - INFO - COMMAND makeblastdb -in tuning_tmp/SAMN11056450.gfa.fasta -dbtype 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:38:23
+Building a new DB, current time: 09/03/2023 12:48:33
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN11056450.gfa.fasta.db
 New DB title:  tuning_tmp/SAMN11056450.gfa.fasta
 Sequence type: Nucleotide
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 65 sequences in 0.032532 seconds.
+Adding sequences from FASTA; added 65 sequences in 0.023973 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:38:31
+Building a new DB, current time: 09/03/2023 12:48:34
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN11056450.gfa.fasta.db
 New DB title:  tuning_tmp/SAMN11056450.gfa.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN11056450.gfa.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 65 sequences in 0.028543 seconds.
+Adding sequences from FASTA; added 65 sequences in 0.023149 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:38:49
+Building a new DB, current time: 09/03/2023 12:48:34
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN11056450.gfa.fasta.db
 New DB title:  tuning_tmp/SAMN11056450.gfa.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN11056450.gfa.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 65 sequences in 0.0305781 seconds.
+Adding sequences from FASTA; added 65 sequences in 0.03897 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:39:07
+Building a new DB, current time: 09/03/2023 12:48:35
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN11056450.gfa.fasta.db
 New DB title:  tuning_tmp/SAMN11056450.gfa.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN11056450.gfa.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 65 sequences in 0.03722 seconds.
+Adding sequences from FASTA; added 65 sequences in 0.068404 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:39:17
+Building a new DB, current time: 09/03/2023 12:48:43
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN11056450.gfa.fasta.db
 New DB title:  tuning_tmp/SAMN11056450.gfa.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN11056450.gfa.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 65 sequences in 0.0324981 seconds.
+Adding sequences from FASTA; added 65 sequences in 0.089808 seconds.
 
 
 
@@ -588,69 +588,69 @@ root - INFO - COMMAND makeblastdb -in tuning_tmp/SAMD00491671.gfa.fasta -dbtype 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:39:19
+Building a new DB, current time: 09/03/2023 12:48:45
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491671.gfa.fasta.db
 New DB title:  tuning_tmp/SAMD00491671.gfa.fasta
 Sequence type: Nucleotide
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 137 sequences in 0.0966818 seconds.
+Adding sequences from FASTA; added 137 sequences in 0.0414779 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:39:29
+Building a new DB, current time: 09/03/2023 12:48:54
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491671.gfa.fasta.db
 New DB title:  tuning_tmp/SAMD00491671.gfa.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491671.gfa.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 137 sequences in 0.0955892 seconds.
+Adding sequences from FASTA; added 137 sequences in 0.056843 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:39:30
+Building a new DB, current time: 09/03/2023 12:49:04
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491671.gfa.fasta.db
 New DB title:  tuning_tmp/SAMD00491671.gfa.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491671.gfa.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 137 sequences in 0.042383 seconds.
+Adding sequences from FASTA; added 137 sequences in 0.0725899 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:39:39
+Building a new DB, current time: 09/03/2023 12:49:04
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491671.gfa.fasta.db
 New DB title:  tuning_tmp/SAMD00491671.gfa.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491671.gfa.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 137 sequences in 0.0569661 seconds.
+Adding sequences from FASTA; added 137 sequences in 0.030102 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:39:40
+Building a new DB, current time: 09/03/2023 12:49:05
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491671.gfa.fasta.db
 New DB title:  tuning_tmp/SAMD00491671.gfa.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491671.gfa.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 137 sequences in 0.0657351 seconds.
+Adding sequences from FASTA; added 137 sequences in 0.0319729 seconds.
 
 
 
@@ -673,69 +673,69 @@ root - INFO - COMMAND makeblastdb -in tuning_tmp/SAMD00491757.gfa.fasta -dbtype 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:39:42
+Building a new DB, current time: 09/03/2023 12:49:07
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491757.gfa.fasta.db
 New DB title:  tuning_tmp/SAMD00491757.gfa.fasta
 Sequence type: Nucleotide
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 81 sequences in 0.054121 seconds.
+Adding sequences from FASTA; added 81 sequences in 0.0286491 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:39:42
+Building a new DB, current time: 09/03/2023 12:49:08
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491757.gfa.fasta.db
 New DB title:  tuning_tmp/SAMD00491757.gfa.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491757.gfa.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 81 sequences in 0.0303249 seconds.
+Adding sequences from FASTA; added 81 sequences in 0.0346839 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:39:51
+Building a new DB, current time: 09/03/2023 12:49:09
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491757.gfa.fasta.db
 New DB title:  tuning_tmp/SAMD00491757.gfa.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491757.gfa.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 81 sequences in 0.0335531 seconds.
+Adding sequences from FASTA; added 81 sequences in 0.0249059 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:39:59
+Building a new DB, current time: 09/03/2023 12:49:10
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491757.gfa.fasta.db
 New DB title:  tuning_tmp/SAMD00491757.gfa.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491757.gfa.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 81 sequences in 0.0595999 seconds.
+Adding sequences from FASTA; added 81 sequences in 0.0757232 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:40:00
+Building a new DB, current time: 09/03/2023 12:49:11
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491757.gfa.fasta.db
 New DB title:  tuning_tmp/SAMD00491757.gfa.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMD00491757.gfa.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 81 sequences in 0.0247619 seconds.
+Adding sequences from FASTA; added 81 sequences in 0.0382509 seconds.
 
 
 
@@ -758,69 +758,69 @@ root - INFO - COMMAND makeblastdb -in tuning_tmp/SAMEA8911316.gfa.fasta -dbtype 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:40:02
+Building a new DB, current time: 09/03/2023 12:49:14
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMEA8911316.gfa.fasta.db
 New DB title:  tuning_tmp/SAMEA8911316.gfa.fasta
 Sequence type: Nucleotide
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 63 sequences in 0.227196 seconds.
+Adding sequences from FASTA; added 63 sequences in 0.0307801 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:40:03
+Building a new DB, current time: 09/03/2023 12:49:14
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMEA8911316.gfa.fasta.db
 New DB title:  tuning_tmp/SAMEA8911316.gfa.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMEA8911316.gfa.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 63 sequences in 0.032748 seconds.
+Adding sequences from FASTA; added 63 sequences in 0.0747201 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:40:04
+Building a new DB, current time: 09/03/2023 12:49:15
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMEA8911316.gfa.fasta.db
 New DB title:  tuning_tmp/SAMEA8911316.gfa.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMEA8911316.gfa.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 63 sequences in 0.0416811 seconds.
+Adding sequences from FASTA; added 63 sequences in 0.026088 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:40:05
+Building a new DB, current time: 09/03/2023 12:49:16
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMEA8911316.gfa.fasta.db
 New DB title:  tuning_tmp/SAMEA8911316.gfa.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMEA8911316.gfa.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 63 sequences in 0.036305 seconds.
+Adding sequences from FASTA; added 63 sequences in 0.041147 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:40:14
+Building a new DB, current time: 09/03/2023 12:49:25
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMEA8911316.gfa.fasta.db
 New DB title:  tuning_tmp/SAMEA8911316.gfa.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMEA8911316.gfa.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 63 sequences in 0.0307901 seconds.
+Adding sequences from FASTA; added 63 sequences in 0.022598 seconds.
 
 
 
@@ -843,69 +843,69 @@ root - INFO - COMMAND makeblastdb -in tuning_tmp/SAMN15735178.gfa.fasta -dbtype 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:40:15
+Building a new DB, current time: 09/03/2023 12:49:28
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN15735178.gfa.fasta.db
 New DB title:  tuning_tmp/SAMN15735178.gfa.fasta
 Sequence type: Nucleotide
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 114 sequences in 0.102864 seconds.
+Adding sequences from FASTA; added 114 sequences in 0.0361149 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:40:16
+Building a new DB, current time: 09/03/2023 12:49:29
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN15735178.gfa.fasta.db
 New DB title:  tuning_tmp/SAMN15735178.gfa.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN15735178.gfa.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 114 sequences in 0.0288138 seconds.
+Adding sequences from FASTA; added 114 sequences in 0.032259 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:40:25
+Building a new DB, current time: 09/03/2023 12:49:30
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN15735178.gfa.fasta.db
 New DB title:  tuning_tmp/SAMN15735178.gfa.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN15735178.gfa.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 114 sequences in 0.0257461 seconds.
+Adding sequences from FASTA; added 114 sequences in 0.0294671 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:40:26
+Building a new DB, current time: 09/03/2023 12:49:39
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN15735178.gfa.fasta.db
 New DB title:  tuning_tmp/SAMN15735178.gfa.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN15735178.gfa.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 114 sequences in 0.0252559 seconds.
+Adding sequences from FASTA; added 114 sequences in 0.047914 seconds.
 
 
 
 root - INFO - STDOUT:
 
 
-Building a new DB, current time: 09/03/2023 12:40:27
+Building a new DB, current time: 09/03/2023 12:49:40
 New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN15735178.gfa.fasta.db
 New DB title:  tuning_tmp/SAMN15735178.gfa.fasta
 Sequence type: Nucleotide
 Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/tuning/tuning_tmp/SAMN15735178.gfa.fasta.db
 Keep MBits: T
 Maximum file size: 1000000000B
-Adding sequences from FASTA; added 114 sequences in 0.053335 seconds.
+Adding sequences from FASTA; added 114 sequences in 0.029377 seconds.
 
 
 
