@@ -1,4 +1,3 @@
-sample,gfa,gc_probabilities,genes2ctgs_mappings,pls_score
-SAMD00491646,data/SAMD00491646.gfa.gz,output/SAMD00491646.gc.tsv,output/SAMD00491646.genes_mappings.txt,output/SAMD00491646.gd.tsv
-SAMN02298816,data/SAMN02298816.gfa.gz,output/SAMN02298816.gc.tsv,output/SAMN02298816.genes_mappings.txt,output/SAMN02298816.gd.tsv
-SAMEA8911316,data/SAMEA8911316.gfa.gz,output/SAMEA8911316.gc.tsv,output/SAMEA8911316.genes_mappings.txt,output/SAMEA8911316.gd.tsv
+sample,assembler,gfa,gc_probabilities,genes2ctgs_mappings,pls_score
+SAMD00491646-unicycler,unicycler,data/SAMD00491646-unicycler.gfa.gz,output/SAMD00491646-unicycler.gc.tsv,output/SAMD00491646-unicycler.genes_mappings.txt,output/SAMD00491646-unicycler.gd.tsv
+SAMD00491646-skesa,skesa,data/SAMD00491646-unicycler.gfa.gz,output/SAMD00491646-skesa.gc.tsv,output/SAMD00491646-skesa.genes_mappings.txt,output/SAMD00491646-skesa.gd.tsv

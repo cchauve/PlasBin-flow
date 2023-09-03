@@ -1,7 +1,9 @@
 # Preprocessing samples for PlasBin-flow
 
-The file `input.csv` contains an example (composed of three
-*Campylobacter* samples) of running PlasBin-flow preprocessing.
+The file `input.csv` contains an example (composed of two
+assemblies of a *Campylobacter* sample, one Unicycler
+assembly and one SKESA assembly) of running PlasBin-flow
+preprocessing.
 
 To preprocess the three samples, using the GC intervals computed in
 the tuning (see [../tuning/](../tuning)) the command is
