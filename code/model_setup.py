@@ -1,4 +1,10 @@
 from gurobipy import *
+from data_utils import (
+        DEFAULT_HEAD_STR,
+        DEFAULT_TAIL_STR,
+        DEFAULT_SOURCE,
+        DEFAULT_SINK
+)
 
 #-----------------------------------------------------------	
 #INITIALIZING VARIABLES
@@ -19,13 +25,13 @@ def link_vars(m, links_list, links, contigs):
 		links[e[::-1]] = m.addVar(vtype=GRB.BINARY, name='link-'+e[1][0]+e[1][1]+e[0][0]+e[0][1])
 
 	for c in contigs:
-		h_ext = (c, 'h')
-		t_ext = (c, 't')
+		h_ext = (c, DEFAULT_HEAD_STR)
+		t_ext = (c, DEFAULT_TAIL_STR)
 		
-		links[('S',h_ext)] = m.addVar(vtype=GRB.BINARY, name='link-S-to-'+c+'-h')
-		links[(h_ext,'T')] = m.addVar(vtype=GRB.BINARY, name='link-'+c+'-h-to-T')
-		links[('S',t_ext)] = m.addVar(vtype=GRB.BINARY, name='link-S-to-'+c+'-t')
-		links[(t_ext,'T')] = m.addVar(vtype=GRB.BINARY, name='link-'+c+'-t-to-T')			
+		links[(DEFAULT_SOURCE,h_ext)] = m.addVar(vtype=GRB.BINARY, name='link-S-to-'+c+'-h')
+		links[(h_ext,DEFAULT_TAIL_STR)] = m.addVar(vtype=GRB.BINARY, name='link-'+c+'-h-to-T')
+		links[(DEFAULT_SOURCE,t_ext)] = m.addVar(vtype=GRB.BINARY, name='link-S-to-'+c+'-t')
+		links[(t_ext,DEFAULT_TAIL_STR)] = m.addVar(vtype=GRB.BINARY, name='link-'+c+'-t-to-T')			
 	return links
 
 #TODO
@@ -65,10 +71,10 @@ def link_inclusion_constr(m, links, contigs, constraint_count):
 	for e in links:	
 		end1, end2 = e[0], e[1]
 		c1, c2 = end1[0], end2[0]
-		if c1 != 'S' and c1 != 'T':
+		if c1 != DEFAULT_SOURCE and c1 != DEFAULT_SINK:
 			m.addConstr(links[e] <= contigs[c1], "link_ubd-"+str(e)+'-by-'+str(c1))
 			constraint_count += 1
-		if c2 != 'S' and c2 != 'T':	
+		if c2 != DEFAULT_SOURCE and c2 != DEFAULT_SINK:	
 			m.addConstr(links[e] <= contigs[c2], "link_ubd-"+str(e)+'-by-'+str(c2))
 			constraint_count += 1
 	return m, constraint_count
@@ -76,7 +82,7 @@ def link_inclusion_constr(m, links, contigs, constraint_count):
 def extr_inclusion_constr(m, links, contigs, extr_dict, constraint_count):
 	M = 100	#Big-M bound constant
 	for c in contigs:
-		x1, x2 = (c, 'h'), (c, 't')	
+		x1, x2 = (c, DEFAULT_HEAD_STR), (c, DEFAULT_TAIL_STR)	
 		expr = LinExpr()
 		link_count = 0
 		for link in extr_dict[x1]:
@@ -105,10 +111,10 @@ def min_flow_constr(m, links, flows, F, LBD_rd, constraint_count):
 	fS_expr = LinExpr()
 	fT_expr = LinExpr()
 	for e in links:
-		if e[0] == 'S':
+		if e[0] == DEFAULT_SOURCE:
 			xS_expr.addTerms(1, links[e])
 			fS_expr.addTerms(1, flows[e])
-		if e[1] == 'T':
+		if e[1] == DEFAULT_SINK:
 			xT_expr.addTerms(1, links[e])
 			fT_expr.addTerms(1, flows[e])
 	m.addConstr(xS_expr == 1, "one-edge-from-S")
@@ -121,7 +127,7 @@ def min_flow_constr(m, links, flows, F, LBD_rd, constraint_count):
 
 def flow_conservation_constraints(m, links, contigs, flows, incoming, outgoing, capacities, contigs_dict, constraint_count):
 	for c in contigs:
-		ext1, ext2 = (c, 'h'), (c, 't')
+		ext1, ext2 = (c, DEFAULT_HEAD_STR), (c, DEFAULT_TAIL_STR)
 		hin_flow = LinExpr()	#flow into head extremity
 		hout_flow = LinExpr()	#flow out of head extremity
 		tin_flow = LinExpr()	#flow into tail extremity

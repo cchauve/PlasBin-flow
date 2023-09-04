@@ -16,13 +16,9 @@ from ground_truth import (
     GT_CTG_KEY
 )
 
-from get_data import (
+from data_utils import (
     read_pls_score_file
 )
-
-# Default thresholds defining seeds used in the paper experiments
-DEFAULT_SEED_LEN_THRESHOLD = 2650
-DEFAULST_SEED_SCORE_THRESHOLD = 0.58
 
 """
 Reading data

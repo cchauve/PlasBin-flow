@@ -22,10 +22,6 @@ from gc_content import (
     intervals_boundaries_to_str,
     read_gc_probabilities_file
 )
-from seeds import (
-    DEFAULT_SEED_LEN_THRESHOLD,
-    DEFAULST_SEED_SCORE_THRESHOLD
-)
 
 """
 Contigs data structure:
@@ -55,6 +51,12 @@ ASSEMBLER_COV_TAG = {
 # Default name for source and sink
 DEFAULT_SOURCE = 'S'
 DEFAULT_SINK = 'T'
+# Head and tail string to define contig extremities
+DEFAULT_HEAD_STR = 'h'
+DEFAULT_TAIL_STR = 't'
+# Default thresholds defining seeds used in the paper experiments
+DEFAULT_SEED_LEN_THRESHOLD = 2650
+DEFAULT_SEED_SCORE_THRESHOLD = 0.58
 
 def read_pls_score_file(in_pls_score_file):
     """
@@ -168,10 +170,10 @@ def read_links_data(in_gfa_file, gfa_gzipped=True):
         - in_gfa_file (str): path to a GFA file
         - gfa_gzipped (bool): True if GFA file gzipped
     Returns:
-        - List((ctg1 (str),{'h','t'}),(ctg2 (str),{'h','t'})): list of edges
+        - List((ctg1 (str),{DEFAULT_HEAD_STR,DEFAULT_TAIL_STR}),(ctg2 (str),{DEFAULT_HEAD_STR,DEFAULT_TAIL_STR})): list of edges
     """
-    ctg_from_ext = {'+': 'h', '-': 't'}
-    ctg_to_ext = {'+': 't', '-': 'h'}    
+    ctg_from_ext = {'+': DEFAULT_HEAD_STR, '-': DEFAULT_TAIL_STR}
+    ctg_to_ext = {'+': DEFAULT_TAIL_STR, '-': DEFAULT_HEAD_STR}    
     links_list = []
     __links_dict = read_GFA_links(
         in_gfa_file,
@@ -206,7 +208,7 @@ def get_capacities(links_list, ctgs_data_dict):
         capacities_dict[(ext_from,ext_to)] = capacity
         capacities_dict[(ext_from,ext_to)] = capacity
     for ctg_id,ctg_data in ctgs_data_dict.items():
-        ext_h,ext_t = (ctg_id, 'h'),(ctg_id, 't')
+        ext_h,ext_t = (ctg_id, DEFAULT_HEAD_STR),(ctg_id, DEFAULT_TAIL_STR)
         capacity = ctg_data[COV_KEY]
         capacities_dict[(DEFAULT_SOURCE,ext_h)] = capacity
         capacities_dict[(DEFAULT_SOURCE,ext_t)] = capacity
@@ -218,20 +220,20 @@ def log_data(ctgs_data_dict, links_list, in_gfa_file, in_pls_score_file):
     ctgs_list = ctgs_data_dict.keys()
     num_ctgs = len(ctgs_list)
     num_links = sum([len(links) for links in links_list])
-    logging.info(f'File {in_gfa_file} contains {num_ctgs} contigs and {num_links} edges')
+    logging.info(f'DATA\tFile {in_gfa_file} contains {num_ctgs} contigs and {num_links} edges')
     cov_list = [ctgs_data_dict[ctg_id][COV_KEY] for ctg_id in ctgs_list]
     min_cov,max_cov = min(cov_list),max(cov_list)
-    logging.info(f'File {in_gfa_file} minimum coverage {min_cov} maximum coverage {max_cov}')
+    logging.info(f'DATA\tFile {in_gfa_file} minimum coverage {min_cov} maximum coverage {max_cov}')
     score_list = [ctgs_data_dict[ctg_id][SCORE_KEY] for ctg_id in ctgs_list]
     max_pls_score = max(score_list)
-    logging.info(f'File {in_pls_score_file} maximum plasmid score {max_pls_score}')
+    logging.info(f'DATA\tFile {in_pls_score_file} maximum plasmid score {max_pls_score}')
     num_seeds = len(
         [ctg_id for ctg_id in ctgs_list if ctgs_data_dict[ctg_id][SEED_KEY]]
     )
     if num_seeds == 0:
-        logging.warning(f'File {in_gfa_file} has no seed')
+        logging.warning(f'DATA\tFile {in_gfa_file} has no seed')
     else:
-        logging.info(f'File {in_gfa_file} has {num_seeds} seed(s)')
+        logging.info(f'DATA\tFile {in_gfa_file} has {num_seeds} seed(s)')
 
 ## TESTING
 

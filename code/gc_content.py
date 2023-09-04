@@ -91,19 +91,13 @@ def _read_FASTA_files(fasta_file_paths, mol_type):
     """
     seq_dict = {}
     for fasta_file in fasta_file_paths:
-        try:
-            seq_dict.update(
-                read_FASTA_ctgs(
-                    fasta_file, _process_FASTA_record, gzipped=True
-                )
+        seq_dict.update(
+            read_FASTA_ctgs(
+                fasta_file, _process_FASTA_record, gzipped=True
             )
-        except Exception as e:
-            process_exception(
-                f'Reading FASTA file {fasta_file}: {e}'
-            )
-        else:
-            for seq_id in seq_dict.keys():
-                seq_dict[seq_id][MOL_TYPE_KEY] = mol_type
+        )
+        for seq_id in seq_dict.keys():
+            seq_dict[seq_id][MOL_TYPE_KEY] = mol_type
     return seq_dict
 
 def compute_gc_intervals_files(
@@ -303,16 +297,12 @@ def compute_gc_probabilities_file(gfa_file, gc_intervals_file, gcp_out_file, gfa
         gc_intervals = DEFAULT_GC_INTERVALS
         logging.warning('Using default GC content intervals')
 
-    try:
-        ctg_gc = read_GFA_ctgs(
-            gfa_file,
-            [GFA_SEQ_KEY],
-            gzipped=gfa_gzipped,
-            ctg_fun=_process_GFA_ctg
-        )
-    except Exception as e:
-        process_exception(f'Reading GFA file {gfa_file}: {e}')
-
+    ctg_gc = read_GFA_ctgs(
+        gfa_file,
+        [GFA_SEQ_KEY],
+        gzipped=gfa_gzipped,
+        ctg_fun=_process_GFA_ctg
+    )
     ctg_gc_probabilities = compute_gc_probabilities(ctg_gc, gc_intervals)
     _write_gc_probabilities_file(ctg_gc_probabilities, gcp_out_file)
    

@@ -11,6 +11,10 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
+from log_errors_utils import (
+    process_exception
+)
+
 # Generic file functions
 
 def __open_file_read(in_file_path, gzipped=False):
@@ -78,18 +82,24 @@ def read_FASTA_ctgs(in_file_path, record_fun, gzipped=False, id_fun=lambda x: x)
     Returns:
         - (Dictionary) sequence id (str) -> record_fun(sequence.record)
     """
-    return {
-        id_fun(id): record_fun(record)
-        for id,record in SeqIO.to_dict(
-            SeqIO.parse(
-                __open_file_read(
-                    in_file_path,
-                    gzipped
-                ),
-                'fasta'
-            )
-        ).items()
-    }
+    try:
+        ctgs_dict = {
+            id_fun(id): record_fun(record)
+            for id,record in SeqIO.to_dict(
+                    SeqIO.parse(
+                        __open_file_read(
+                            in_file_path,
+                            gzipped
+                        ),
+                        'fasta'
+                    )
+            ).items()
+        }
+    except Exception as e:
+        process_exception(f'FASTA\tReading file {in_file_path}: {e}')
+    else:
+        return ctgs_dict
+        
 
 def read_FASTA_id(in_file_path, gzipped=False, id_fun=lambda x: x):
     """
@@ -165,9 +175,12 @@ def gunzip_GFA(in_file_path, out_file_path):
     Returns:
        Creates GFA file out_file_path
     """
-    with gzip.open(in_file_path) as in_file, open(out_file_path, 'wb') as out_file:
-        shutil.copyfileobj(in_file, out_file)
-
+    try:
+        with gzip.open(in_file_path) as in_file, open(out_file_path, 'wb') as out_file:
+            shutil.copyfileobj(in_file, out_file)
+    except Exception as e:
+        process_exception(f'FASTA\tGunzipping {in_file_path} to {out_file_path}: {e}')
+            
 # Mandatory fields in GFA contigs and links
 GFA_SEQ_KEY = 'Sequence'
 GFA_LEN_KEY = 'Length'
@@ -273,19 +286,23 @@ def read_GFA_ctgs(in_file_path, attributes_list, gzipped=False, ctg_fun=lambda x
        - every contig has an associated id and sequence (not checked)
     """
     __assert_attributes_list(attributes_list)
-    result = {}
-    with __open_file_read(in_file_path, gzipped) as in_file:
-        for line in [x for x in in_file.readlines() if x[0]=='S']:
-            ctg_data = line.strip().split('\t')
-            ctg_id,ctg_seq = ctg_data[1],ctg_data[2]
-            ctg_len = len(ctg_seq)
-            result[id_fun(ctg_id)] = ctg_fun(
-                __add_attributes(
-                    [f'{GFA_SEQ_KEY}:Z:{ctg_seq}', f'{GFA_LEN_KEY}:i:{ctg_len}'] + ctg_data[3:],
-                    attributes_list
+    try:
+        result = {}
+        with __open_file_read(in_file_path, gzipped) as in_file:
+            for line in [x for x in in_file.readlines() if x[0]=='S']:
+                ctg_data = line.strip().split('\t')
+                ctg_id,ctg_seq = ctg_data[1],ctg_data[2]
+                ctg_len = len(ctg_seq)
+                result[id_fun(ctg_id)] = ctg_fun(
+                    __add_attributes(
+                        [f'{GFA_SEQ_KEY}:Z:{ctg_seq}', f'{GFA_LEN_KEY}:i:{ctg_len}'] + ctg_data[3:],
+                        attributes_list
+                    )
                 )
-            )
-    return result
+    except Exception as e:
+        process_exception(f'GFA\tReading segments in file {in_file_path}: {e}')
+    else:
+        return result
 
 def read_GFA_id(in_file_path, gzipped=False, id_fun=lambda x: x):
     """
@@ -407,14 +424,18 @@ def read_GFA_normalized_coverage(in_file_path, cov_key=None, gzipped=False, id_f
     """
     
     if cov_key is None:
-        return _ctgs_normalized_coverage(
-            read_GFA_ctgs(
-                in_file_path,
-                [GFA_LEN_KEY, 'KC'],
-                gzipped=gzipped,
-                id_fun=id_fun
-            )
+        ctgs_data = read_GFA_ctgs(
+            in_file_path,
+            [GFA_LEN_KEY, 'KC'],
+            gzipped=gzipped,
+            id_fun=id_fun
         )
+        try:
+            result = _ctgs_normalized_coverage(ctgs_data)
+        except Exception as e:
+            process_exception(f'GFA\tComputing normalized coverage {in_file_path}: {e}')
+        else:
+            return result
     else:
         return read_GFA_attribute(
             in_file_path, cov_key, gzipped=gzipped, id_fun=id_fun
@@ -435,26 +456,30 @@ def read_GFA_links(in_file_path, gzipped=False):
            graph attributes: GFA_FROM_ORIENT_KEY, GFA_TO_KEY, GFA_TO_ORIENT_KEY, GFA_OVERLAP_KEY
     """
     result = defaultdict(list)
-    with __open_file_read(in_file_path, gzipped) as in_file:
-        for line in [x for x in in_file.readlines() if x[0]=='L']:
-            ctg_data = line.strip().split('\t')
-            ctg_from = ctg_data[1]
-            ctg_from_orient = ctg_data[2]
-            ctg_to = ctg_data[3]
-            ctg_to_orient = ctg_data[4]
-            overlap = ctg_data[5]
-            result[ctg_from].append(
-                __add_attributes(
-                    [
-                        f'{GFA_TO_KEY}:Z:{ctg_to}',
-                        f'{GFA_FROM_ORIENT_KEY}:A:{ctg_from_orient}',
-                        f'{GFA_TO_ORIENT_KEY}:A:{ctg_to_orient}',
-                        f'{GFA_OVERLAP_KEY}:Z:{overlap}'
-                    ],
-                    [GFA_TO_KEY,GFA_FROM_ORIENT_KEY,GFA_TO_ORIENT_KEY,GFA_OVERLAP_KEY]
+    try:
+        with __open_file_read(in_file_path, gzipped) as in_file:
+            for line in [x for x in in_file.readlines() if x[0]=='L']:
+                ctg_data = line.strip().split('\t')
+                ctg_from = ctg_data[1]
+                ctg_from_orient = ctg_data[2]
+                ctg_to = ctg_data[3]
+                ctg_to_orient = ctg_data[4]
+                overlap = ctg_data[5]
+                result[ctg_from].append(
+                    __add_attributes(
+                        [
+                            f'{GFA_TO_KEY}:Z:{ctg_to}',
+                            f'{GFA_FROM_ORIENT_KEY}:A:{ctg_from_orient}',
+                            f'{GFA_TO_ORIENT_KEY}:A:{ctg_to_orient}',
+                            f'{GFA_OVERLAP_KEY}:Z:{overlap}'
+                        ],
+                        [GFA_TO_KEY,GFA_FROM_ORIENT_KEY,GFA_TO_ORIENT_KEY,GFA_OVERLAP_KEY]
+                    )
                 )
-            )
-    return result
+    except Exception as e:
+        process_exception(f'GFA\tReading links in file {in_file_path}: {e}')
+    else:
+        return result
 
 def write_GFA_to_FASTA(in_GFA_file, out_FASTA_file, in_gzipped, out_gzipped, sep=' '):
     """
@@ -486,7 +511,9 @@ def write_GFA_to_FASTA(in_GFA_file, out_FASTA_file, in_gzipped, out_gzipped, sep
         )
         for x,y in GFA_ctg_seqs.items()
     ]
-    with __open_file_write(out_FASTA_file, gzipped=out_gzipped) as out_file:
-        SeqIO.write(ctg_records, out_file, 'fasta')
-
+    try:
+        with __open_file_write(out_FASTA_file, gzipped=out_gzipped) as out_file:
+            SeqIO.write(ctg_records, out_file, 'fasta')
+    except Exception as e:
+        process_exception(f'FASTA/GFA\tWriting {in_GFA_file} to {out_FASTA_file}: {e}')
 
