@@ -165,10 +165,10 @@ def read_gc_intervals_file(gc_intervals_file):
     Read GC intervals file
 
     Args:
-        gc_intervals_file (str): pth to GC intervals file
+        - gc_intervals_file (str): path to GC intervals file
     
     Returns:
-        (List(float)): sorted list of GC intervals boundaries
+        List(float): sorted list of GC intervals boundaries
     """
     try:
         with open(gc_intervals_file) as in_file:
@@ -191,6 +191,16 @@ def read_gc_intervals_file(gc_intervals_file):
         )
     else:
         return intervals
+
+def intervals_boundaries_to_str(intervals):
+    """
+    Convert a list of intervals boundaries into a list of strings
+    describing intervals of the form <start>-<end>
+    """
+    return [
+        f'{intervals[i]}-{intervals[i+1]}'
+        for i in range(len(intervals) - 1)
+    ]
 
 def compute_gc_probabilities(contigs_gc, gc_intervals):
     """

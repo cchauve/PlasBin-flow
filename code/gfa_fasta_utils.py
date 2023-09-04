@@ -210,7 +210,8 @@ def __add_attributes(attributes_data, attributes_list):
         if attributes_list != ['all']
     }
     for att_data in attributes_data:
-        att_key,att_type,att_val = att_data.split(':')
+        att_key,att_type = att_data.split(':')[0:2]
+        att_val = ':'.join(att_data.split(':')[2:])
         if attributes_list == ['all'] or att_key in attributes_list:
             if att_type not in GFA_ATTRIBUTE_TYPE.keys():
                 attributes_dict[att_key] = att_val
@@ -346,7 +347,7 @@ def read_GFA_len(in_file_path, gzipped=False, id_fun=lambda x: x):
         - (Dictionary): sequence id (str) -> length of sequence (int)
     """
     return read_GFA_attribute(
-        in_file_path, 'LN', gzipped=gzipped, id_fun=id_fun
+        in_file_path, GFA_LEN_KEY, gzipped=gzipped, id_fun=id_fun
     )
 
 def read_GFA_seq(in_file_path, gzipped=False, id_fun=lambda x: x):
@@ -420,23 +421,21 @@ def read_GFA_normalized_coverage(in_file_path, cov_key=None, gzipped=False, id_f
             in_file_path, cov_key, gzipped=gzipped, id_fun=id_fun
         )
 
-def read_GFA_links(in_file_path, attributes_list, gzipped=False):
+def read_GFA_links(in_file_path, gzipped=False):
     """
     Read links and their attributes from a GFA files
 
     Args:
         - in_file_path (str): path to GFA file to read
-        - attributes_list (List(str)): list of attribute keys to read
         - gzipped (bool): True if gzipped GFA file
 
     Returns:
        - (Dictionary) contig id -> 
          List(links from contig id
-           (Dictionary) attribute key: attribute value (None if missing attribute))
+           (Dictionary) attribute key: attribute value
            graph attributes: GFA_FROM_ORIENT_KEY, GFA_TO_KEY, GFA_TO_ORIENT_KEY, GFA_OVERLAP_KEY
     """
-    __assert_attributes_list(attributes_list)
-    result = defaultidct(list)
+    result = defaultdict(list)
     with __open_file_read(in_file_path, gzipped) as in_file:
         for line in [x for x in in_file.readlines() if x[0]=='L']:
             ctg_data = line.strip().split('\t')
@@ -452,8 +451,8 @@ def read_GFA_links(in_file_path, attributes_list, gzipped=False):
                         f'{GFA_FROM_ORIENT_KEY}:A:{ctg_from_orient}',
                         f'{GFA_TO_ORIENT_KEY}:A:{ctg_to_orient}',
                         f'{GFA_OVERLAP_KEY}:Z:{overlap}'
-                    ] + ctg_data[6:],
-                    attributes_list
+                    ],
+                    [GFA_TO_KEY,GFA_FROM_ORIENT_KEY,GFA_TO_ORIENT_KEY,GFA_OVERLAP_KEY]
                 )
             )
     return result

@@ -16,9 +16,29 @@ import time
 from random import randint
 import argparse
 #import preprocessing
-import get_data
+#import get_data
 import model_setup
 import networkx as nx
+
+from data_utils import (
+        LEN_KEY,
+        SEED_KEY,
+        COV_KEY,
+        SCORE_KEY,
+        UNICYCLER_TAG,
+        DEFAULT_SEED_LEN_THRESHOLD,
+        DEFAULST_SEED_SCORE_THRESHOLD,
+        DEFAULT_SOURCE,
+        DEFAULT_SINK,
+        read_ctgs_data,
+        get_seeds,
+        read_gc_data,
+        read_links_data,
+        get_capacities
+)
+
+SOURCE = DEFAULT_SOURCE
+SINK = DEFAULT_SINK
 
 def read_file(filename):
 	string = open(filename, "r").read()
@@ -31,29 +51,37 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-ag", help="Path to assembly graph file")
 	parser.add_argument("-gc", help="Path to GC probabilities file")
-	parser.add_argument("-map", help="Path to gene to contig mapping file")
-	parser.add_argument("-p", type=float, default = 0.5, help="Offset gd / plasmid score term")
-	parser.add_argument("-outdir", help="Path to output dir")
-	parser.add_argument("-outfile", help="Name of output file")
-	parser.add_argument("-alpha1", nargs='?', const = 1, type=int, default = 1, help="Weight of flow term")
-	parser.add_argument("-alpha2", nargs='?', const = 1, type=int, default = 1, help="Weight of GC content term")
-	parser.add_argument("-alpha3", nargs='?', const = 1, type=int, default = 1, help="Weight of log probabilities term")	
-	parser.add_argument("-rmiter", nargs='?', const = 1, type=int, default = 50, help="Number of iterations to remove circular components")
-	parser.add_argument("-unique", nargs='?', const = 1, type=int, default = 1, help="Unique bins")
+	parser.add_argument("-score", help="Path to plasmid score file")
+	parser.add_argument("-p", type=float, default=0.5, help="Offset plasmid score term")
+	parser.add_argument("-out_dir", help="Path to output dir")
+	parser.add_argument("-out_file", help="Name of output file")
+	parser.add_argument("-alpha1", nargs='?', const=1, type=int, default=1, help="Weight of flow term")
+	parser.add_argument("-alpha2", nargs='?', const=1, type=int, default=1, help="Weight of GC content term")
+	parser.add_argument("-alpha3", nargs='?', const=1, type=int, default=1, help="Weight of log probabilities term")	
+	parser.add_argument("-rmiter", nargs='?', const=1, type=int, default=50, help="Number of iterations to remove circular components")
+	parser.add_argument("-unique", nargs='?', const=1, type=int, default=1, help="Unique bins")
+        parser.add_argument("-assembler", nargs='?', const=1, type=str, default=UNICYCLER_TAG, help="Name of assembler (unicycler/skesa)")
+        parser.add_argument("-seed_len", nargs='?', const=1, type=int, default=DEFAULT_SEED_LEN_THRESHOLD, help="Seed length threshold")
+        parser.add_argument("-seed_score", nargs='?', const=1, type=float, default=DEFAULT_SEED_SCORE_THRESHOLD, help="Seed plasmid score threshold")
+        parser.add_argument("-gc_intervals", nargs='?', const=1, default=None, help="GC intervals file")        
 
 	args = parser.parse_args()
 
-	output_dir = args.outdir
-	output_file = args.outfile
+	output_dir = args.out_dir
+	output_file = args.out_file
 	assembly_file = args.ag
-	gc_file = args.gc
-	mapping_file = args.map
+	gc_prob_file = args.gc
+	score_file = args.score
 	p = float(args.p)
 	alpha1 = args.alpha1
 	alpha2 = args.alpha2
 	alpha3 = args.alpha3
 	rmiter = int(args.rmiter)
 	unique = int(args.unique)
+        assembler = args.assembler
+        seed_len = args.seed_len
+        seed_score = args.seed_score
+        gc_int_file = args.gc_intervals
 
 	#Naming and creating output files
 	#ratios = str(alpha1) + '.' + str(alpha2) + '.' + str(alpha3)
@@ -63,9 +91,7 @@ if __name__ == "__main__":
 		os.makedirs(output_folder)
 
 	output_bins = open(os.path.join(output_folder, output_file), "w")
-
-	
-	
+		
 	#output_fasta = 'putative_plasmids.fasta'
 	#score_filename = 'MILP_objective.csv'
 	#var_vals = 'var_values.txt'
@@ -78,24 +104,25 @@ if __name__ == "__main__":
 
 	#-----------------------------------------------
 	#Main program
-	contigs_dict = {}   #Key: contig IDs, Values: Contig attributes (provided as or derived from input)
-	links_list = []     #List of unordered links: Each link is a pair of extrmeities (e.g. (('1','h'),('2','t')))
-	seeds_set = set()   #Set of contig IDs from seeds file
-	gc_probs = {}       #Key: contigs IDs, Values: Probability for each GC bin
-	gc_pens = {}		#Key: contigs IDs, Values: Penalty for each GC bin
-	capacities = {}     #Key: 
+        
+        contigs_dict = read_ctgs_data(
+                assembly_file, score_file, gfa_gzipped=True,
+                assembler=assembler,
+                seed_len=seed_len, seed_score=seed_score
+        )
+        seeds_set = get_seeds(contigs_dict)
+        gc_probs, gc_pens = read_gc_data(gc_prob_file, gc_int_file)
+        links_list = read_links_data(assembly_file, gfa_gzipped=True)
 
-	contigs_dict, links_list = get_data.get_ag_details(assembly_file, contigs_dict, links_list)
-	contigs_dict = get_data.get_gene_coverage(mapping_file, contigs_dict)
-	
-	seeds_set = get_data.get_seeds(contigs_dict, seeds_set)
-	gc_probs, gc_pens = get_data.get_gc_probs(gc_file, gc_probs, gc_pens)
-
-	for c in contigs_dict:  #Assigning seeds
-		if c in seeds_set:
-			contigs_dict[c]['Seed'] = 1
-		else:
-			contigs_dict[c]['Seed'] = 0
+        
+	# contigs_dict = {}   #Key: contig IDs, Values: Contig attributes (provided as or derived from input)
+	# links_list = []     #List of unordered links: Each link is a pair of extrmeities (e.g. (('1','h'),('2','t')))
+	# gc_probs = {}       #Key: contigs IDs, Values: Probability for each GC bin
+	# gc_pens = {}		#Key: contigs IDs, Values: Penalty for each GC bin
+	# capacities = {}     #Key: 
+	# contigs_dict, links_list = get_data.get_ag_details(assembly_file, contigs_dict, links_list)
+	# contigs_dict = get_data.get_gene_coverage(mapping_file, contigs_dict)
+	# gc_probs, gc_pens = get_data.get_gc_probs(gc_file, gc_probs, gc_pens)
 
 	#Keeping a log of details about contigs in the assembly graph
 	'''
@@ -103,7 +130,7 @@ if __name__ == "__main__":
 	details_file = open(os.path.join(output_folder, input_details), "w")
 	details_file.write("Contig"+"\t"+"Read_depth"+ "\t"+"GC_cont"+"\t"+ "Length"+"\t"+"Density"+"\n")
 	for c in contigs_dict:
-		details_file.write(c+"\t"+str(contigs_dict[c]['Read_depth'])+ "\t"+str(contigs_dict[c]['GC_cont'])+"\t"+ str(contigs_dict[c]['Length'])+"\t"+str(contigs_dict[c]['Gene_coverage'])+"\n")
+		details_file.write(c+"\t"+str(contigs_dict[c][COV_KEY])+ "\t"+str(contigs_dict[c]['GC_cont'])+"\t"+ str(contigs_dict[c][LEN_KEY])+"\t"+str(contigs_dict[c][SCORE_KEY])+"\n")
 		details_file.write("Link list:"+"\t")
 		for link in links_list:
 			if c == link[0][0] or c == link[1][0]:
@@ -129,18 +156,18 @@ if __name__ == "__main__":
 
 		UBD_rd, LBD_rd = 0, 100
 		for c in contigs_dict:
-			UBD_rd = max(UBD_rd, contigs_dict[c]['Read_depth'])
-			LBD_rd = min(LBD_rd, contigs_dict[c]['Read_depth'])
+			UBD_rd = max(UBD_rd, contigs_dict[c][COV_KEY])
+			LBD_rd = min(LBD_rd, contigs_dict[c][COV_KEY])
 
 			ext1, ext2 = (c, 'h'), (c, 't')
 			extr_dict[ext1], extr_dict[ext2] = [], []
 			incoming[ext1], incoming[ext2] = [], []
 			outgoing[ext1], outgoing[ext2] = [], []
 			if c in seeds_set:
-				extr_dict[ext1], extr_dict[ext2] = [('S',ext1)], [('S',ext2)]
-				incoming[ext1], incoming[ext2] = [('S', ext1)], [('S', ext2)]
-			extr_dict[ext1], extr_dict[ext2] = [(ext1,'T')], [(ext2,'T')]
-			outgoing[ext1], outgoing[ext2] = [(ext1, 'T')], [(ext2, 'T')]
+				extr_dict[ext1], extr_dict[ext2] = [(SOURCE,ext1)], [(SOURCE,ext2)]
+				incoming[ext1], incoming[ext2] = [(SOURCE, ext1)], [(SOURCE, ext2)]
+			extr_dict[ext1], extr_dict[ext2] = [(ext1,SINK)], [(ext2,SINK)]
+			outgoing[ext1], outgoing[ext2] = [(ext1, SINK)], [(ext2, SINK)]
 
 			for link in links_list:
 				if link[0] == ext1 or link[1] == ext1:
@@ -157,7 +184,7 @@ if __name__ == "__main__":
 			incoming[ext2].append(link)
 			outgoing[ext2].append(link[::-1])		
 		
-		capacities = get_data.get_caps(links_list, contigs_dict, capacities)
+		capacities = get_capacities(links_list, contigs_dict)
 
 		print("\n\n\n\n\n")
 		#-----------------------------------------------
@@ -195,7 +222,7 @@ if __name__ == "__main__":
 				#expr.addTerms(-alpha2*(1-gc_probs[c][b]), contig_GC[c][b])
 				expr.addTerms(alpha2*(gc_pens[c][b]), contig_GC[c][b])
 			#expr.addTerms(alpha3*contigs_dict[c]['log_ratio'], contigs[c])
-			expr.addTerms(alpha3*(contigs_dict[c]['Gene_coverage'] - p), contigs[c])
+			expr.addTerms(alpha3*(contigs_dict[c][SCORE_KEY] - p), contigs[c])
 		m.setObjective(expr, GRB.MAXIMIZE)
 
 		#-----------------------------------------------
@@ -216,8 +243,8 @@ if __name__ == "__main__":
 		m, constraint_count = model_setup.seed_inclusion_constr(m, contigs, contigs_dict, constraint_count)
 
 		#Constraint type 4
-		#'F' should equal the flow out of 'S' and into 'T'. 
-		#Exactly one edge exits 'S' and exactly one enters 'T'.
+		#'F' should equal the flow out of SOURCE and into SINK. 
+		#Exactly one edge exits SOURCE and exactly one enters SINK.
 		m, constraint_count = model_setup.min_flow_constr(m, links, flows, F, LBD_rd, constraint_count)
 
 		#Constraint types 5 and 6
@@ -281,20 +308,20 @@ if __name__ == "__main__":
 			for c in contigs:
 				if contigs[c].x > 0:
 					G.add_node(c)
-			G.add_node('S')
-			G.add_node('T')
+			G.add_node(SOURCE)
+			G.add_node(SINK)
 
 			for e in links:
 				if links[e].x > 0:
 					end1, end2 = e[0], e[1]
-					if end1 == 'S':
-						c1 = 'S'
+					if end1 == SOURCE:
+						c1 = SOURCE
 						ext1 = None
 					else:
 						c1 = end1[0]
 						ext1 = end1[1]
-					if end2 == 'T':
-						c2 = 'T'
+					if end2 == SINK:
+						c2 = SINK
 						ext2 = None
 					else:
 						c2 = end2[0]
@@ -309,10 +336,10 @@ if __name__ == "__main__":
 				comp_count += 1
 				comp_len = 0
 				for node in comp:
-					if node != 'S' and node != 'T':
-						comp_len += contigs_dict[node]['Length']
+					if node != SOURCE and node != SINK:
+						comp_len += contigs_dict[node][LEN_KEY]
 				#print("Conn comp:", comp_count, comp_len)
-				if 'S' in comp:
+				if SOURCE in comp:
 					ST_comp = G.subgraph(comp)
 					print("Edges:",ST_comp.edges())
 					for edge in ST_comp.edges:
@@ -380,7 +407,7 @@ if __name__ == "__main__":
 		#Recording the plasmid bin
 		for c in contigs:
 			if contigs[c].x > 0:
-				plasmid_length += contigs_dict[c]['Length']
+				plasmid_length += contigs_dict[c][LEN_KEY]
 		
 			
 
@@ -397,7 +424,7 @@ if __name__ == "__main__":
 			#contigs_file.write("#Contig\tDensity\tFlow\tRead_depth\tLength\n")		
 			#for c in contigs:
 			#	if contigs[c].x > 0.5:			
-			#		contigs_file.write("# "+c+"\t"+str(contigs_dict[c]['Gene_coverage'])+"\t"+str(F.x)+"\t"+str(contigs_dict[c]['Read_depth'])+"\t"+str(contigs_dict[c]['Length'])+"\n")				
+			#		contigs_file.write("# "+c+"\t"+str(contigs_dict[c][SCORE_KEY])+"\t"+str(F.x)+"\t"+str(contigs_dict[c][COV_KEY])+"\t"+str(contigs_dict[c][LEN_KEY])+"\n")				
 			#contigs_file.write("\n")
 
 			#contigs_file.write("#Link\tCapacity\n")
@@ -415,8 +442,8 @@ if __name__ == "__main__":
 					#GC_sum += -alpha2*(1-gc_probs[c][b])*contig_GC[c][b].x
 					GC_sum += alpha2*(gc_pens[c][b])*contig_GC[c][b].x
 					gc_c_sum += alpha2*(gc_pens[c][b])*contig_GC[c][b].x
-				gd_sum += alpha3*(contigs_dict[c]['Gene_coverage']-0.5)*contigs[c].x
-				lr_gd = (contigs_dict[c]['Gene_coverage']-0.5)*contigs[c].x
+				gd_sum += alpha3*(contigs_dict[c][SCORE_KEY]-0.5)*contigs[c].x
+				lr_gd = (contigs_dict[c][SCORE_KEY]-0.5)*contigs[c].x
 				#score_file.write("putative_plasmid_"+str(n_iter)+"\t\t"+str(c)+"\t"+str(gc_c_sum)+"\t"+str(lr_gd)+"\n")
 			#score_file.write("Overall\nputative_plasmid_"+str(n_iter)+"\t\t"+str(m.objVal)+"\t"+str(F.x)+"\t"+str(GC_sum)+"\t"+str(gd_sum)+"\n\n")
 				
@@ -427,20 +454,20 @@ if __name__ == "__main__":
 			for c in contigs:
 				if contigs[c].x > 0:
 					G.add_node(c)
-			G.add_node('S')
-			G.add_node('T')
+			G.add_node(SOURCE)
+			G.add_node(SINK)
 
 			for e in links:
 				if links[e].x > 0:
 					end1, end2 = e[0], e[1]
-					if end1 == 'S':
-						c1 = 'S'
+					if end1 == SOURCE:
+						c1 = SOURCE
 						ext1 = None
 					else:
 						c1 = end1[0]
 						ext1 = end1[1]
-					if end2 == 'T':
-						c2 = 'T'
+					if end2 == SINK:
+						c2 = SINK
 						ext2 = None
 					else:
 						c2 = end2[0]
@@ -466,7 +493,7 @@ if __name__ == "__main__":
 				comp_len = 0
 				#components_file.write("Component "+str(comp_count)+":\t")
 				for node in comp:
-					if node != 'S' and node != 'T':
+					if node != SOURCE and node != SINK:
 						if node not in pbf_bins[n_iter]['Contigs']:
 							pbf_bins[n_iter]['Contigs'][node] = 0
 					#components_file.write(str(node)+",")
@@ -474,20 +501,20 @@ if __name__ == "__main__":
 
 		#Updating assembly graph and formulation
 		for e in flows:
-			if e[1] != 'T':
+			if e[1] != SINK:
 				c = e[1][0]
-				contigs_dict[c]['Read_depth'] = max(0, contigs_dict[c]['Read_depth'] - flows[e].x)
+				contigs_dict[c][COV_KEY] = max(0, contigs_dict[c][COV_KEY] - flows[e].x)
 				if c in pbf_bins[n_iter]['Contigs']:
 					pbf_bins[n_iter]['Contigs'][c] += round(flows[e].x / F.x, 2)
 
 			
 		for c in contigs:
 			if contigs[c].x > 0:
-				if c in seeds_set and contigs_dict[c]['Read_depth'] <= 0.5:
-					contigs_dict[c]['Seed'] = 0
+				if c in seeds_set and contigs_dict[c][COV_KEY] <= 0.5:
+					contigs_dict[c][SEED_KEY] = 0
 					seeds_set.remove(c)
 
-				if contigs_dict[c]['Read_depth'] <= 0.05:
+				if contigs_dict[c][COV_KEY] <= 0.05:
 					del(contigs_dict[c])	
 					del(gc_probs[c])
 					del(gc_pens[c])
