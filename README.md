@@ -137,21 +137,27 @@ command [plasbin_flow.py](code/plasbin_flow.py) can be used as
 follows:
 
 ```
-python code/plasbin_flow.py \
-       -ag assembly graph \
-       -gc contigs gc_content_file \
-       -ps contigs plasmid scores file \
-       -lthr seeds length threshold \
-       -pthr seeds plasmid score threshold \
-       -outdir output_dir \
+python code/plasbin_flow.py
+       -ag assembly graph
+       -gc contigs gc_content_file
+       -ps contigs plasmid scores file
+       -outdir output_dir
        -outfile output_file
+       -log_file
+       [-seed_len seeds length threshold]
+       [-seed_score seeds plasmid score threshold]
+       [-assembler assembler used to create the GFA file]
+       [-gc_intervals GC content intervals file]
 ```
 where
 - `assembly graph` is the gzipped GFA1 format assembly graph file,
 - `contigs gc content file` is the GC content probability file described above
 - `contigs plasmid score file` is the contigs plasmid scores file described above,
-- `seeds length threshold` and `seeds plasmid score threshold` are the length and plasmid score thresholds defining seeds,
-- `output_dir` and `output_file` are the directory and file name for the output file.
+- `output_dir` and `output_file` are the directory and file name for the output file,
+- `log_file` is the path to a file containing detailed log information and warnings,
+- [optional] `assembler` can be either `unicycler` (default value, for GFA files with a `dp` tag encoding normalized depth coverage) or `skesa` (for GFA files with a `KC` tag encoding k-mer count used to infer the normalized depth coverage),
+- [optional] `seeds length threshold` and `seeds plasmid score threshold` are the length and plasmid score thresholds defining seeds (default values, used in the PlasBin-flow paper experiments, `2650` and `0.58`),
+- [optional] `GC content intervals file` describes the GC content intervals used to compute GC content probability scores for contigs (defaut intervals, used in the PlasBin-flow paper experiments, are the ones in the file [gc_intervals.txt](example/default/gc_intervals.txt).
 
 The output of PlasBin-flow is a TSV file with each line containing the following information:
 ```
@@ -168,14 +174,18 @@ P1	2.5	0.4-0.45	a:2,b:3,c:2,d:1
 
 ### Advanced options
 
-Additional parameters can be passed to the script
+Additional optional parameters can be passed to the script
 [plasbin_flow.py](code/plasbin_flow.py) that allows to modify the
 optimization model of PlasBin-flow:
 ```
--rmiter		Maximum number of iterations to remove circular components. (optional, default: 50)
--alpha1		Weight of flow term of the objective function. (optional, default: 1)                              
--alpha2		Weight of GC content term of the objective function. (optional, default: 1)
--alpha3		Weight of plasmid score term of the objective function. (optional, default: 1)
+-rmiter		         Maximum number of iterations to remove circular components. (integer, default: 50)
+-alpha1		         Weight of flow term of the objective function. (float, default: 1)                              
+-alpha2		         Weight of GC content term of the objective function. (float, default: 1)
+-alpha3		         Weight of plasmid score term of the objective function. (float, default: 1)
+-p                 Plasmid score offset (float in [0,1], default: 0.5)
+-min_pls_len       Minimum plasmid length (integer, default: 1500); plasmid bins of smaller length are not reported
+-gurobi_mip_gap    MIPGap parameter of Gurobi (optimality gap, float, default value: 0.05)
+-gurobi_time_limit Time limit after which Gurobi stops (integer, default: 2400)
 ```
 
 The default values are the values used in the experiments described in
@@ -216,7 +226,7 @@ can include the following fields:
   plasmids of the sample, one per FASTA entry;
 - `chr_fasta`: path to a gzipped FASTA file containing the
   chromosome(s) of the sample, one per FASTA entry;
-- `pls_score`: path to aplasmid score file (as described above) for
+- `pls_score`: path to a plasmid score file (as described above) for
   the sample;
 - `gc_probabilities`: path to a GC probability file (as described
   above) for the sample;
@@ -242,12 +252,12 @@ The command to create the GC content probabilities files for
 preprocessing a set of samples is
 
 ```
-python plasbin_utils.py gc_probabilities \
-       --input_file input_file \
-       --out_dir out_dir \
-       --tmp_dir tmp_dir \
-       [--log_file log file] \
-       [--gc_intervals gc_intervals_file] \
+python plasbin_utils.py gc_probabilities
+       --input_file input_file
+       --out_dir out_dir
+       --tmp_dir tmp_dir
+       [--log_file log file]
+       [--gc_intervals gc_intervals_file]
        [--out_file out_file]
 ```
 
@@ -282,13 +292,13 @@ contigs.
 The command to compute the contig plasmid gene density for a set of samples is
 
 ```
-python plasbin_utils.py gene_density \
-       --input_file input_file \
-       --out_dir out_dir \
-       --tmp_dir tmp_dir \
-       [--log_file log file] \
-       [--out_file out_file] \
-       [--pid_threshold p] \
+python plasbin_utils.py gene_density
+       --input_file input_file
+       --out_dir out_dir
+       --tmp_dir tmp_dir
+       [--log_file log file]
+       [--out_file out_file]
+       [--pid_threshold p]
        [--cov_threshold c]
 ```
 where
@@ -306,12 +316,12 @@ where
 
 The command to create the mapping file for each sample is
 ```
-python plasbin_utils.py map_genes_to_ctgs \
-       --input_file input_file \
-       --out_dir out_dir \
-       --tmp_dir tmp_dir \
-       [--log_file log file] \
-       --db_file pls_db_file \
+python plasbin_utils.py map_genes_to_ctgs
+       --input_file input_file
+       --out_dir out_dir
+       --tmp_dir tmp_dir
+       [--log_file log file]
+       --db_file pls_db_file
        [--out_file out_file]
 ```
 where
@@ -329,15 +339,15 @@ where
 Finally, both preprocessing steps (computing GC content probabilities
 and gene density) can be done at once using
 ```
-python plasbin_utils.py preprocessing \
-       --input_file input_file \
-       --out_dir out_dir \
-       --tmp_dir tmp_dir \
-       [--log_file log file] \
-       --out_file out_file \       
-       --db_file pls_db_file \
-       [--gc_intervals gc_intervals_file] \
-       [--pid_threshold p] \
+python plasbin_utils.py preprocessing
+       --input_file input_file
+       --out_dir out_dir
+       --tmp_dir tmp_dir
+       [--log_file log file]
+       --out_file out_file 
+       --db_file pls_db_file
+       [--gc_intervals gc_intervals_file]
+       [--pid_threshold p]
        [--cov_threshold c]
 ```
 where
@@ -367,10 +377,10 @@ parameters and auxiliary files.
 ### Tuning: Creating a plasmid gene database
 The command
 ```
-python plasbin_utils.py pls_genes_db \
-       --input_file input_file \
-       --out_dir out_dir \
-       --tmp_dir tmp_dir \
+python plasbin_utils.py pls_genes_db
+       --input_file input_file
+       --out_dir out_dir
+       --tmp_dir tmp_dir
        [--log_file log file]
 ```
 creates a reference plasmid genes database `out_dir/pls.genes.fasta`. 
@@ -384,11 +394,11 @@ GenBank or RefSeq accession**.
 
 The command
 ```
-python plasbin_utils.py gc_intervals \
-       --input_file input_file \
-       --out_dir out_dir \
-       --tmp_dir tmp_dir \
-       [--log_file log file] \
+python plasbin_utils.py gc_intervals
+       --input_file input_file
+       --out_dir out_dir
+       --tmp_dir tmp_dir
+       [--log_file log file]
        [--n_gcints n_gcints]
 ```
 computes a GC content intervals file `out_dir/gc.txt`.
@@ -414,13 +424,13 @@ deemed relevant.
 
 For a set of samples for which true plasmids are known, the command
 ```
-python plasbin_utils.py ground_truth \
-       --input_file input_file \
-       --out_dir out_dir \
-       --tmp_dir tmp_dir \
-       [--log_file log file] \
-       [--out_file out_file] \
-       [--pid_threshold p] \
+python plasbin_utils.py ground_truth
+       --input_file input_file
+       --out_dir out_dir
+       --tmp_dir tmp_dir
+       [--log_file log file]
+       [--out_file out_file]
+       [--pid_threshold p]
        [--cov_threshold c]
 ```
 computes, for each sample, a TSV file `out_dir/<sample
@@ -463,10 +473,10 @@ tuning samples, based on their mappings to the true plasmids.
 
 The command
 ```
-python plasbin_utils.py seeds \
-       --input_file input_file \
-       --out_dir out_dir \
-       --tmp_dir tmp_dir \
+python plasbin_utils.py seeds
+       --input_file input_file
+       --out_dir out_dir
+       --tmp_dir tmp_dir
        [--log_file log file]
 ```
 computes a file `out_dir/seeds.tsv` that contains the optimal seed
@@ -488,15 +498,15 @@ The file `input_file` must contain the fields `sample`, `gfa`,
 Finally, all tuning steps (but building the reference plasmid genes
 database) can be done at once with the command
 ```
-python plasbin_utils.py tuning \
-       --input_file input_file \
-       --out_dir out_dir \
-       --tmp_dir tmp_dir \
-       [--log_file log file] \
-       --db_file pls_db_file \
-       [--out_file out_file] \
-       [--pid_threshold p] \
-       [--cov_threshold c] \
+python plasbin_utils.py tuning
+       --input_file input_file
+       --out_dir out_dir
+       --tmp_dir tmp_dir
+       [--log_file log file]
+       --db_file pls_db_file
+       [--out_file out_file]
+       [--pid_threshold p]
+       [--cov_threshold c]
        [--n_gcints n_gcints]
 ``` 
 
