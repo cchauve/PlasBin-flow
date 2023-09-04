@@ -178,10 +178,10 @@ Additional optional parameters can be passed to the script
 [plasbin_flow.py](code/plasbin_flow.py) that allows to modify the
 optimization model of PlasBin-flow:
 ```
--rmiter		         Maximum number of iterations to remove circular components. (integer, default: 50)
--alpha1		         Weight of flow term of the objective function. (float, default: 1)                              
--alpha2		         Weight of GC content term of the objective function. (float, default: 1)
--alpha3		         Weight of plasmid score term of the objective function. (float, default: 1)
+-rmiter            Maximum number of iterations to remove circular components. (integer, default: 50)
+-alpha1            Weight of flow term of the objective function. (float, default: 1)                              
+-alpha2            Weight of GC content term of the objective function. (float, default: 1)
+-alpha3            Weight of plasmid score term of the objective function. (float, default: 1)
 -p                 Plasmid score offset (float in [0,1], default: 0.5)
 -min_pls_len       Minimum plasmid length (integer, default: 1500); plasmid bins of smaller length are not reported
 -gurobi_mip_gap    MIPGap parameter of Gurobi (optimality gap, float, default value: 0.05)
