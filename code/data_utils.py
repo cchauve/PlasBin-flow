@@ -225,17 +225,26 @@ def log_data(ctgs_data_dict, links_list, in_gfa_file, in_pls_score_file):
     score_list = [ctgs_data_dict[ctg_id][SCORE_KEY] for ctg_id in ctgs_list]
     max_pls_score = max(score_list)
     logging.info(f'File {in_pls_score_file} maximum plasmid score {max_pls_score}')
-    num_seeds = len([ctg_id for ctg_id in ctgs_lis if ctgs_data_dict[ctg_id][SEED_KEY]])
+    num_seeds = len(
+        [ctg_id for ctg_id in ctgs_list if ctgs_data_dict[ctg_id][SEED_KEY]]
+    )
     if num_seeds == 0:
         logging.warning(f'File {in_gfa_file} has no seed')
     else:
-        logging.info(f'File {in_gfa_file} has {num_seeds} seed')
+        logging.info(f'File {in_gfa_file} has {num_seeds} seed(s)')
 
 ## TESTING
 
 if __name__ == '__main__':
     import os
 
+    logging.basicConfig(
+        filename='data_utils.log',
+        filemode='w',
+        level=logging.INFO,
+        format='%(name)s - %(levelname)s - %(message)s'
+    )
+    
     sample = 'SAMD00491646'
     gc_int_file = os.path.join('dev','gc.txt')
     for assembler in ASSEMBLER_COV_TAG.keys():
@@ -253,7 +262,7 @@ if __name__ == '__main__':
         links_list = read_links_data(assembly_file, gfa_gzipped=True)
         capacities = get_capacities(links_list, contigs_dict)
 
-        log_data(ctgs_data_dict, links_list, assembly_file, score_file)
+        log_data(contigs_dict, links_list, assembly_file, score_file)
     
         print(contigs_dict)
         print(seeds_set)
