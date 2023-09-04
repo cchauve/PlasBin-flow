@@ -6,7 +6,8 @@ import pandas as pd
 import logging
 from log_errors_utils import (
     run_cmd,
-    log_file
+    log_file,
+    process_exception
 )
 
 # Thresholds defining good mappings
@@ -96,13 +97,15 @@ def read_blast_outfmt6_file(mappings_file, order_coordinates=True):
                 start,end=end,start
             in_df.at[idx,start_col] = start
             in_df.at[idx,end_col] = end
-        
-    mappings_df = pd.read_csv(
-        mappings_file,
-        sep='\t',
-        names=BLAST6_COL_NAMES,
-        dtype=BLAST6_COL_TYPES
-    )
+    try:
+        mappings_df = pd.read_csv(
+            mappings_file,
+            sep='\t',
+            names=BLAST6_COL_NAMES,
+            dtype=BLAST6_COL_TYPES
+        )
+    except Exception as e:
+        process_exception(f'BLAST\tReading mappings file {mappings_file}: {e}')
     if order_coordinates:
         _order_coordinates(mappings_df, 'qstart', 'qend')
         _order_coordinates(mappings_df, 'sstart', 'send')

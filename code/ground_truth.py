@@ -8,6 +8,10 @@ from mappings_utils import (
     filter_blast_outfmt6
 )
 
+from log_errors_utils import (
+    process_exception
+)
+
 GT_PLS_KEY = 'plasmid'
 GT_CTG_KEY = 'contig'
 GT_COV_KEY = 'contig_coverage'

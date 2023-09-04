@@ -463,15 +463,9 @@ def create_pls_genes_db(out_dir, tmp_dir, samples_df):
         with open(input_file, 'w') as out_file:
             for sample in samples_df.index:
                 pls_fasta_file = _get_pls_fasta(samples_df, sample)
-                try:
-                    pls_ids = read_FASTA_id(pls_fasta_file, gzipped=True)
-                except Exception as e:
-                    process_exception(
-                        f'Reading plasmids FASTA file {pls_fasta_file}: {e}'
-                    )                    
-                else:
-                    pls_ids_str = '\n'.join(pls_ids)
-                    out_file.write(f'{pls_ids_str}\n')
+                pls_ids = read_FASTA_id(pls_fasta_file, gzipped=True)
+                pls_ids_str = '\n'.join(pls_ids)
+                out_file.write(f'{pls_ids_str}\n')
         log_file(input_file)
 
     logging.info(f'## Compute plasmid genes database')
@@ -480,9 +474,7 @@ def create_pls_genes_db(out_dir, tmp_dir, samples_df):
     _create_input_file(samples_df, pls_gb_file)
     logging.info(f'ACTION\tprocess {pls_gb_file}')
     pls_genes_db_file = _pls_genes_db_file(out_dir)
-    cd.create(
-        pls_genes_db_file,
-        pls_gb_file)
+    cd.create(pls_genes_db_file,pls_gb_file)
     log_file(pls_genes_db_file)
 
 def map_pls_genes_to_contigs(out_dir, tmp_dir, samples_df, db_file):

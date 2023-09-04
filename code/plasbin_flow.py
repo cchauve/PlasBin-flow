@@ -1,12 +1,8 @@
-__author__ = 'amane'
+#!/usr/bin/env python
 
-#-------------------
-#USAGE: 
-#time python plasbin_flow.py -ag assembly.gfa 
-# 				-gc gc_probs.csv -map gene_contig_mapping.csv \
-#				-outdir output_dir -outfile output_file \
-# 				-alpha1 alpha_1 -alpha2 alpha_2 -alpha3 alpha_3 \
-# 				-offset offset -rmiter rmiter
+"""
+PlasBin-flow main script
+"""
 
 from re import L
 from gurobipy import *
@@ -15,10 +11,10 @@ import os
 import time
 from random import randint
 import argparse
-#import preprocessing
-#import get_data
-import model_setup
+import logging
 import networkx as nx
+
+import model_setup
 
 from data_utils import (
         LEN_KEY,
@@ -28,15 +24,16 @@ from data_utils import (
         UNICYCLER_TAG,
         DEFAULT_SOURCE,
         DEFAULT_SINK,
+        DEFAULT_HEAD_STR,
+        DEFAULT_TAIL_STR,
+        DEFAULT_SEED_LEN_THRESHOLD,
+        DEFAULT_SEED_SCORE_THRESHOLD,
         read_ctgs_data,
         get_seeds,
         read_gc_data,
         read_links_data,
-        get_capacities
-)
-from seeds import (
-        DEFAULT_SEED_LEN_THRESHOLD,
-        DEFAULST_SEED_SCORE_THRESHOLD
+        get_capacities,
+        log_data
 )
 
 SOURCE = DEFAULT_SOURCE
@@ -51,12 +48,6 @@ DEFAULT_MIN_PLS_LEN = 1500
 DEFAULT_GUROBI_MIP_GAP = 0.05
 DEFAULT_GUROBI_TIME_LIMIT = 2400
 
-def read_file(filename):
-	string = open(filename, "r").read()
-	string_list = string.split("\n")
-	string_list = [line for line in string_list if line and line[0] != '#'] #Read line only if it is nonempty and not a comment.
-	return string_list
-
 if __name__ == "__main__":
 	#Parsing arguments
 	parser = argparse.ArgumentParser()
@@ -65,6 +56,7 @@ if __name__ == "__main__":
 	parser.add_argument("-score", help="Path to plasmid score file")
 	parser.add_argument("-out_dir", help="Path to output dir")
 	parser.add_argument("-out_file", help="Name of output file")
+	parser.add_argument("-log_file", help="Path to log file")
 	parser.add_argument("-p", type=float, default=DEFAULT_SCORE_OFFSET, help="Offset plasmid score term")
 	parser.add_argument("-alpha1", nargs='?', const=1, type=int, default=DEFAULT_ALPHA1, help="Weight of flow term")
 	parser.add_argument("-alpha2", nargs='?', const=1, type=int, default=DEFAULT_ALPHA2, help="Weight of GC content term")
@@ -82,6 +74,7 @@ if __name__ == "__main__":
 
 	output_dir = args.out_dir
 	output_file = args.out_file
+        log_file = args.log_file
 	assembly_file = args.ag
 	gc_prob_file = args.gc
 	score_file = args.score
@@ -98,8 +91,14 @@ if __name__ == "__main__":
         gurobi_mip_gap = args.mip_gap
         gutobi_time_limit = args.time_limit
 
+        logging.basicConfig(
+                filename=log_file,
+                filemode='w',
+                level=logging.INFO,
+                format='%(name)s - %(levelname)s - %(message)s'
+        )
+
 	#Naming and creating output files
-	#ratios = str(alpha1) + '.' + str(alpha2) + '.' + str(alpha3)
 	#output_folder = output_dir + '/' + ratios
 	output_folder = output_dir
 	if not os.path.exists(output_folder):
@@ -119,7 +118,8 @@ if __name__ == "__main__":
 
 	#-----------------------------------------------
 	#Main program
-        
+
+        # Reading data
         contigs_dict = read_ctgs_data(
                 assembly_file, score_file,
                 seed_len=seed_len, seed_score=seed_score,
@@ -128,9 +128,11 @@ if __name__ == "__main__":
         seeds_set = get_seeds(contigs_dict)
         gc_probs, gc_pens = read_gc_data(gc_prob_file, gc_int_file)
         links_list = read_links_data(assembly_file, gfa_gzipped=True)
+
+        log_data(contigs_dict, links_list, assembly_file, score_file)
         
 	# contigs_dict = {}   #Key: contig IDs, Values: Contig attributes (provided as or derived from input)
-	# links_list = []     #List of unordered links: Each link is a pair of extrmeities (e.g. (('1','h'),('2','t')))
+	# links_list = []     #List of unordered links: Each link is a pair of extrmeities (e.g. (('1',DEFAULT_HEAD_STR),('2',DEFAULT_TAIL_STR)))
 	# gc_probs = {}       #Key: contigs IDs, Values: Probability for each GC bin
 	# gc_pens = {}		#Key: contigs IDs, Values: Penalty for each GC bin
 	# capacities = {}     #Key: 
@@ -142,7 +144,7 @@ if __name__ == "__main__":
 	while len(seeds_set) > 0:
 		#For consistency, both extremities for a contig should be part of exactly the same number of links in a plasmid.
 		#For each extremity, we make a list of links that involve the extremity.
-		extr_dict = {}	#Key: Extremity (e.g. ('1','h')), Value: List of unordered links incident on extremity
+		extr_dict = {}	#Key: Extremity (e.g. ('1',DEFAULT_HEAD_STR)), Value: List of unordered links incident on extremity
 		#List of incoming and outgoing edges for each extremity
 		#Including links from S and links to T
 		incoming, outgoing = {}, {}	#Key: Extremity, Value: List of ordered links in/out of extremity
@@ -152,7 +154,7 @@ if __name__ == "__main__":
 			UBD_rd = max(UBD_rd, contigs_dict[c][COV_KEY])
 			LBD_rd = min(LBD_rd, contigs_dict[c][COV_KEY])
 
-			ext1, ext2 = (c, 'h'), (c, 't')
+			ext1, ext2 = (c, DEFAULT_HEAD_STR), (c, DEFAULT_TAIL_STR)
 			extr_dict[ext1], extr_dict[ext2] = [], []
 			incoming[ext1], incoming[ext2] = [], []
 			outgoing[ext1], outgoing[ext2] = [], []
@@ -179,7 +181,6 @@ if __name__ == "__main__":
 		
 		capacities = get_capacities(links_list, contigs_dict)
 
-		print("\n\n\n\n\n")
 		#-----------------------------------------------
 		#Initializing the ILP
 		m = Model("Plasmids")
@@ -192,7 +193,7 @@ if __name__ == "__main__":
 		contigs = model_setup.contig_vars(m, contigs_dict, contigs)
 
 		links = {}		#Key: Directed link from one extremity to another 
-						#(e.g. (('1','h'),('2','t')) ), Value: Gurobi binary variable
+						#(e.g. (('1',DEFAULT_HEAD_STR),('2',DEFAULT_TAIL_STR)) ), Value: Gurobi binary variable
 		links = model_setup.link_vars(m, links_list, links, contigs)
 
 		plas_GC = {}	#Key: GC bin, Value: Gurobi binary variable
@@ -240,7 +241,7 @@ if __name__ == "__main__":
 
 		#Constraint types 5 and 6
 		#6. Conservation constraints
-		#	Flow into ('u','h') (resp. ('u','t') ) should be equal to flow out of ('u','t') (resp. ('u','h') ).
+		#	Flow into ('u',DEFAULT_HEAD_STR) (resp. ('u',DEFAULT_TAIL_STR) ) should be equal to flow out of ('u',DEFAULT_TAIL_STR) (resp. ('u',DEFAULT_HEAD_STR) ).
 		#7. Capacity constraints
 		#	The maximum flow into a vertex should be at most the capacity (read depth) of the vertex itself.
 		#	The maximum flow through an edge has to be at most the capacity (capacities[e]) of the edge. 
@@ -265,26 +266,26 @@ if __name__ == "__main__":
 			m.optimize()
 			stop = time.time()
 			duration = stop - start
-			print(duration)
+			logging.info(f'MILP\tIteration {iter_count}: {duration}')
 
 			iter_count += 1
 
 			#Message if solution not obtained
 			if m.status == GRB.Status.INFEASIBLE:
-				print ('The model cannot be solved because it is infeasible')
+				logging.warning(f'MILP\tThe model cannot be solved because it is infeasible')
 			elif m.status == GRB.Status.UNBOUNDED:
-				print ('The model cannot be solved because it is unbounded')
+				logging.warning(f'MILP\tThe model cannot be solved because it is unbounded')
 			elif m.status == GRB.Status.INF_OR_UNBD:
-				print ('The model cannot be solved because it is infeasible or unbounded ')
+				logging.warning(f'MILP\tThe model cannot be solved because it is infeasible or unbounded ')
 
 			#Storing Irreducible Inconsistent Subsystem in case solution is not obtained
 			if m.status == GRB.Status.INF_OR_UNBD or m.status == GRB.Status.INFEASIBLE:
-				print ('The model cannot be solved because it is infeasible')
+				print(f'MILP\tStoring Irreducible Inconsistent Subsystem in m.ilp')
 				m.computeIIS()
 				m.write("m.ilp")
 				for con in m.getConstrs():
 					if con.IISConstr:
-						print('%s' % con.constrName) 
+						print(f'{con.constrName}') 
 				exit (1)
 
 			print("Solution:\n")
@@ -444,7 +445,7 @@ if __name__ == "__main__":
 
 					temp_list = []
 					for e in links_list:						
-						if (c, 'h') not in e and (c, 't') not in e:
+						if (c, DEFAULT_HEAD_STR) not in e and (c, DEFAULT_TAIL_STR) not in e:
 							temp_list.append(e)
 					links_list = temp_list	
 						
