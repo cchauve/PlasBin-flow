@@ -233,30 +233,31 @@ def log_data(ctgs_data_dict, links_list, in_gfa_file, in_pls_score_file):
 
 ## TESTING
 
-import os
+if __name__ == '__main__':
+    import os
 
-sample = 'SAMD00491646'
-gc_int_file = os.path.join('dev','gc.txt')
-for assembler in ASSEMBLER_COV_TAG.keys():
-    sample_name = f'{sample}-{assembler}'
-    print(f'####{sample_name}')
-    assembly_file = os.path.join('dev', f'{sample_name}.gfa.gz')
-    score_file = os.path.join('dev', f'{sample_name}.gd.tsv')
-    gc_prob_file = os.path.join('dev', f'{sample_name}.gc.tsv')
+    sample = 'SAMD00491646'
+    gc_int_file = os.path.join('dev','gc.txt')
+    for assembler in ASSEMBLER_COV_TAG.keys():
+        sample_name = f'{sample}-{assembler}'
+        print(f'####{sample_name}')
+        assembly_file = os.path.join('dev', f'{sample_name}.gfa.gz')
+        score_file = os.path.join('dev', f'{sample_name}.gd.tsv')
+        gc_prob_file = os.path.join('dev', f'{sample_name}.gc.tsv')
 
-    contigs_dict = read_ctgs_data(
-        assembly_file, score_file, seed_len=100, seed_score=0.1, assembler=assembler, gfa_gzipped=True,
-    )
-    seeds_set = get_seeds(contigs_dict)
-    gc_probs, gc_pens = read_gc_data(gc_prob_file, gc_int_file)
-    links_list = read_links_data(assembly_file, gfa_gzipped=True)
-    capacities = get_capacities(links_list, contigs_dict)
+        contigs_dict = read_ctgs_data(
+            assembly_file, score_file, seed_len=100, seed_score=0.1, assembler=assembler, gfa_gzipped=True,
+        )
+        seeds_set = get_seeds(contigs_dict)
+        gc_probs, gc_pens = read_gc_data(gc_prob_file, gc_int_file)
+        links_list = read_links_data(assembly_file, gfa_gzipped=True)
+        capacities = get_capacities(links_list, contigs_dict)
 
-    log_data(ctgs_data_dict, links_list, assembly_file, score_file)
+        log_data(ctgs_data_dict, links_list, assembly_file, score_file)
     
-    print(contigs_dict)
-    print(seeds_set)
-    print(gc_probs)
-    print(gc_pens)
-    print(links_list)
-    print(capacities)
+        print(contigs_dict)
+        print(seeds_set)
+        print(gc_probs)
+        print(gc_pens)
+        print(links_list)
+        print(capacities)
