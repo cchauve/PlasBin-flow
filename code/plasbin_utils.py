@@ -147,7 +147,8 @@ import create_db as cd
 
 from gc_content import (
     compute_gc_intervals_files,
-    compute_gc_probabilities_file
+    compute_gc_probabilities_file,
+    DEFAULT_N_GCINTS
 )
 from ground_truth import (
     compute_ground_truth_file
@@ -165,7 +166,11 @@ from gfa_fasta_utils import (
     read_FASTA_len,
     read_FASTA_id
 )
-from mappings_utils import run_blast6
+from mappings_utils import (
+    run_blast6,
+    DEFAULT_PID_THRESHOLD,
+    DEFAULT_COV_THRESHOLD
+)
 from log_errors_utils import (
     check_file,
     log_file,
@@ -370,7 +375,8 @@ def create_tmp_data_files(tmp_dir, samples_df):
 
 def create_ground_truth_files(
     out_dir, tmp_dir, samples_df,
-    pid_threshold=0.95, cov_threshold=0.8,
+    pid_threshold=DEFAULT_PID_THRESHOLD,
+    cov_threshold=DEFAULT_COV_THRESHOLD,
     compute_mappings=False
 ):
     """
@@ -413,7 +419,8 @@ def create_ground_truth_files(
 
 def create_gene_density_files(
     out_dir, samples_df,
-    pid_threshold=0.95, cov_threshold=0.8
+    pid_threshold=DEFAULT_PID_THRESHOLD,
+    cov_threshold=DEFAULT_COV_THRESHOLD,
 ):
     """
     Creates a TSV gene density file per sample
@@ -786,14 +793,14 @@ def _read_arguments():
     gt_parser = subparsers.add_parser(CMD_GROUND_TRUTH, parents=[argparser], add_help=False)
     gt_parser.set_defaults(cmd=CMD_GROUND_TRUTH)
     gt_parser.add_argument('--out_file', type=str, help='Path to dataset file with added ground truth files')    
-    gt_parser.add_argument('--pid_threshold', type=float, default=0.95, help='Percent identity threshold in [0,1]')
-    gt_parser.add_argument('--cov_threshold', type=float, default=0.8, help='Percent contig coverage threshold in [0,1]')    
+    gt_parser.add_argument('--pid_threshold', type=float, default=DEFAULT_PID_THRESHOLD, help='Percent identity threshold in [0,1]')
+    gt_parser.add_argument('--cov_threshold', type=float, default=DEFAULT_COV_THRESHOLD, help='Percent contig coverage threshold in [0,1]')    
     # Computing gene density files
     gd_parser = subparsers.add_parser(CMD_GENE_DENSITY, parents=[argparser], add_help=False)
     gd_parser.set_defaults(cmd=CMD_GENE_DENSITY)
     gd_parser.add_argument('--out_file', type=str, help='Path to dataset file with added gene density files')    
-    gd_parser.add_argument('--pid_threshold', type=float, default=0.95, help='Percent identity threshold in [0,1]')
-    gd_parser.add_argument('--cov_threshold', type=float, default=0.8, help='Percent gene coverage threshold in [0,1]')
+    gd_parser.add_argument('--pid_threshold', type=float, default=DEFAULT_PID_THRESHOLD, help='Percent identity threshold in [0,1]')
+    gd_parser.add_argument('--cov_threshold', type=float, default=DEFAULT_COV_THRESHOLD, help='Percent gene coverage threshold in [0,1]')
     gd_parser.add_argument('--db_file', type=str, help='Plasmids genes database FASTA file')
     # Computing seeds parameters
     seeds_parser = subparsers.add_parser(CMD_SEEDS, parents=[argparser], add_help=False)
@@ -802,7 +809,7 @@ def _read_arguments():
     # Computing GC contents intervals
     gci_parser = subparsers.add_parser(CMD_GC_INTERVALS, parents=[argparser], add_help=False)
     gci_parser.set_defaults(cmd=CMD_GC_INTERVALS)
-    gci_parser.add_argument('--n_gcints', type=int, default=6, help='Number of GC content intervals between 0 and 1')
+    gci_parser.add_argument('--n_gcints', type=int, default=DEFAULT_N_GCINTS, help='Number of GC content intervals between 0 and 1')
     # Computing GC contents probabilities
     gcp_parser = subparsers.add_parser(CMD_GC_PROBABILITIES, parents=[argparser], add_help=False)
     gcp_parser.set_defaults(cmd=CMD_GC_PROBABILITIES)
@@ -812,17 +819,17 @@ def _read_arguments():
     tuning_parser = subparsers.add_parser(CMD_TUNING, parents=[argparser], add_help=False)
     tuning_parser.set_defaults(cmd=CMD_TUNING)
     tuning_parser.add_argument('--out_file', type=str, help='Path to dataset file with added mappings and ground truth files')    
-    tuning_parser.add_argument('--pid_threshold', type=float, default=0.95, help='Percent identity threshold in [0,1]')
-    tuning_parser.add_argument('--cov_threshold', type=float, default=0.8, help='Percent gene coverage threshold in [0,1]')
-    tuning_parser.add_argument('--n_gcints', type=int, default=6, help='Number of GC content intervals between 0 and 1')
+    tuning_parser.add_argument('--pid_threshold', type=float, default=DEFAULT_PID_THRESHOLD, help='Percent identity threshold in [0,1]')
+    tuning_parser.add_argument('--cov_threshold', type=float, default=DEFAULT_COV_THRESHOLD, help='Percent gene coverage threshold in [0,1]')
+    tuning_parser.add_argument('--n_gcints', type=int, default=DEFAULT_N_GCINTS, help='Number of GC content intervals between 0 and 1')
     tuning_parser.add_argument('--db_file', type=str, help='Plasmids genes database FASTA file')
     # Preprocessing
     preprocessing_parser = subparsers.add_parser(CMD_PREPROCESSING, parents=[argparser], add_help=False)
     preprocessing_parser.set_defaults(cmd=CMD_PREPROCESSING)
     preprocessing_parser.add_argument('--out_file', type=str, help='Path to augmented dataset file')        
     preprocessing_parser.add_argument('--gc_intervals', type=str, help='GC content intervals file')
-    preprocessing_parser.add_argument('--pid_threshold', type=float, default=0.95, help='Percent identity threshold in [0,1]')
-    preprocessing_parser.add_argument('--cov_threshold', type=float, default=0.8, help='Percent gene coverage threshold in [0,1]')
+    preprocessing_parser.add_argument('--pid_threshold', type=float, default=DEFAULT_PID_THRESHOLD, help='Percent identity threshold in [0,1]')
+    preprocessing_parser.add_argument('--cov_threshold', type=float, default=DEFAULT_COV_THRESHOLD, help='Percent gene coverage threshold in [0,1]')
     preprocessing_parser.add_argument('--db_file', type=str, help='Plasmids genes database FASTA file')
 
     return argparser.parse_args()

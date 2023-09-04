@@ -30,10 +30,6 @@ def link_vars(m, links_list, links, contigs):
 
 #TODO
 def GC_vars(m, gc_probs, plas_GC, contig_GC):
-	#bins = [1,2,3,4,5,6]
-
-	#for b in bins:
-	#	plas_GC[b] = m.addVar(vtype=GRB.BINARY, name='plasmid-GC-bin-'+str(b))
 	for c in gc_probs:
 		contig_GC[c] = {}
 		for b in gc_probs[c]:
@@ -79,9 +75,7 @@ def link_inclusion_constr(m, links, contigs, constraint_count):
 
 def extr_inclusion_constr(m, links, contigs, extr_dict, constraint_count):
 	M = 100	#Big-M bound constant
-	#b = {}		#Auxilliary binary variable dictionary for each extremity
 	for c in contigs:
-		#b[c] = m.addVar(vtype=GRB.BINARY, name='aux-var-'+str(c))
 		x1, x2 = (c, 'h'), (c, 't')	
 		expr = LinExpr()
 		link_count = 0
@@ -94,8 +88,6 @@ def extr_inclusion_constr(m, links, contigs, extr_dict, constraint_count):
 		m.addConstr(contigs[c] <= expr, "extr_ubd-"+str(c)+'-by-expr')
 		m.addConstr(contigs[c] <= 1, "extr_ubd-"+str(c)+'-by-1')
 		m.addConstr(contigs[c] >= expr/link_count, "extr_lbd-"+str(c)+'-by-expr')
-		#m.addConstr(contigs[c] >= expr + M*b[c], "extr_lbd")
-		#m.addConstr(contigs[c] >= 1 + M*(1-b[c]), "extr_lbd")
 		constraint_count += 3
 	return m, constraint_count
 
@@ -190,7 +182,6 @@ def GC_constr(m, contig_GC, plas_GC, contigs, constraint_count):
 	constraint_count += 1
 
 	return m, constraint_count
-
 
 def test_constr(m,a,b,j,k,n):
 	m.addConstr(j*a + k*b <= n, "constr_"+str(j)+str(k)+str(n))

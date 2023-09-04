@@ -30,6 +30,7 @@ MOL_TYPE_CHR = 'chromosome'
 MOL_TYPE_PLS = 'plasmid'
 
 DEFAULT_GC_INTERVALS = [0, 0.4,  0.45, 0.5, 0.55, 0.6, 1]
+DEFAULT_N_GCINTS = 6
 
 def _process_sequence(sequence):
     """

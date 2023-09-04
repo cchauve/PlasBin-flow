@@ -21,6 +21,10 @@ from gc_content import (
     intervals_boundaries_to_str,
     read_gc_probabilities_file
 )
+from seeds import (
+    DEFAULT_SEED_LEN_THRESHOLD,
+    DEFAULST_SEED_SCORE_THRESHOLD
+)
 
 """
 Contigs data structure:
@@ -47,10 +51,6 @@ ASSEMBLER_COV_TAG = {
     SKESA_TAG: None
 }
 
-# Default threshold defining seeds
-DEFAULT_SEED_LEN_THRESHOLD = 2650
-DEFAULST_SEED_SCORE_THRESHOLD = 0.58
-
 # Default name for source and sink
 DEFAULT_SOURCE = 'S'
 DEFAULT_SINK = 'T'
@@ -75,10 +75,9 @@ def read_pls_score_file(in_pls_score_file):
         return pls_scores_dict
 
 def read_ctgs_data(
-    in_gfa_file, in_pls_score_file, gfa_gzipped=True,
-    assembler=UNICYCLER_TAG,
-    seed_len=DEFAULT_SEED_LEN_THRESHOLD,
-    seed_score=DEFAULST_SEED_SCORE_THRESHOLD
+    in_gfa_file, in_pls_score_file, 
+    seed_len, seed_score,
+    assembler=UNICYCLER_TAG, gfa_gzipped=True
 ):
     """
     Reads all data related to contigs
@@ -86,9 +85,9 @@ def read_ctgs_data(
         - in_gfa_file (str): path to a gzipped GFA file
         - in_pls_score_file (str): path to a plasmid score file
         - gfa_gzipped (bool): True if GFA file gzipped
-        - assembler (str): tag of the used assembler
         - seed_len (int): length threshold defining seeds
         - seed_score float): plasmid score threshold defining seeds
+        - assembler (str): tag of the used assembler
     Returns:
         Dictionary described above
     """
@@ -215,31 +214,30 @@ def get_capacities(links_list, ctgs_data_dict):
     return capacities_dict
 
 
-# ## TESTING
+## TESTING
 
-# import os
+import os
 
-# sample = 'SAMD00491646'
-# gc_int_file = os.path.join('dev','gc.txt')
-# for assembler in ASSEMBLER_COV_TAG.keys():
-#     sample_name = f'{sample}-{assembler}'
-#     print(f'####{sample_name}')
-#     assembly_file = os.path.join('dev', f'{sample_name}.gfa.gz')
-#     score_file = os.path.join('dev', f'{sample_name}.gd.tsv')
-#     gc_prob_file = os.path.join('dev', f'{sample_name}.gc.tsv')
+sample = 'SAMD00491646'
+gc_int_file = os.path.join('dev','gc.txt')
+for assembler in ASSEMBLER_COV_TAG.keys():
+    sample_name = f'{sample}-{assembler}'
+    print(f'####{sample_name}')
+    assembly_file = os.path.join('dev', f'{sample_name}.gfa.gz')
+    score_file = os.path.join('dev', f'{sample_name}.gd.tsv')
+    gc_prob_file = os.path.join('dev', f'{sample_name}.gc.tsv')
 
-#     contigs_dict = read_ctgs_data(
-#         assembly_file, score_file, assembler=assembler, gfa_gzipped=True,
-#         seed_len=100, seed_score=0.1
-#     )
-#     seeds_set = get_seeds(contigs_dict)
-#     gc_probs, gc_pens = read_gc_data(gc_prob_file, gc_int_file)
-#     links_list = read_links_data(assembly_file, gfa_gzipped=True)
-#     capacities = get_capacities(links_list, contigs_dict)
+    contigs_dict = read_ctgs_data(
+        assembly_file, score_file, seed_len=100, seed_score=0.1, assembler=assembler, gfa_gzipped=True,
+    )
+    seeds_set = get_seeds(contigs_dict)
+    gc_probs, gc_pens = read_gc_data(gc_prob_file, gc_int_file)
+    links_list = read_links_data(assembly_file, gfa_gzipped=True)
+    capacities = get_capacities(links_list, contigs_dict)
     
-#     print(contigs_dict)
-#     print(seeds_set)
-#     print(gc_probs)
-#     print(gc_pens)
-#     print(links_list)
-#     print(capacities)
+    print(contigs_dict)
+    print(seeds_set)
+    print(gc_probs)
+    print(gc_pens)
+    print(links_list)
+    print(capacities)

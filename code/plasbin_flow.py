@@ -6,7 +6,7 @@ __author__ = 'amane'
 # 				-gc gc_probs.csv -map gene_contig_mapping.csv \
 #				-outdir output_dir -outfile output_file \
 # 				-alpha1 alpha_1 -alpha2 alpha_2 -alpha3 alpha_3 \
-# 				-offset offset -rmiter rmiter -unique unique
+# 				-offset offset -rmiter rmiter
 
 from re import L
 from gurobipy import *
@@ -26,8 +26,6 @@ from data_utils import (
         COV_KEY,
         SCORE_KEY,
         UNICYCLER_TAG,
-        DEFAULT_SEED_LEN_THRESHOLD,
-        DEFAULST_SEED_SCORE_THRESHOLD,
         DEFAULT_SOURCE,
         DEFAULT_SINK,
         read_ctgs_data,
@@ -36,9 +34,22 @@ from data_utils import (
         read_links_data,
         get_capacities
 )
+from seeds import (
+        DEFAULT_SEED_LEN_THRESHOLD,
+        DEFAULST_SEED_SCORE_THRESHOLD
+)
 
 SOURCE = DEFAULT_SOURCE
 SINK = DEFAULT_SINK
+
+DEFAULT_SCORE_OFFSET = 0.5
+DEFAULT_ALPHA1 = 1
+DEFAULT_ALPHA2 = 1
+DEFAULT_ALPHA3 = 1
+DEFAULT_RMITER = 50
+DEFAULT_MIN_PLS_LEN = 1500
+DEFAULT_GUROBI_MIP_GAP = 0.05
+DEFAULT_GUROBI_TIME_LIMIT = 2400
 
 def read_file(filename):
 	string = open(filename, "r").read()
@@ -52,18 +63,20 @@ if __name__ == "__main__":
 	parser.add_argument("-ag", help="Path to assembly graph file")
 	parser.add_argument("-gc", help="Path to GC probabilities file")
 	parser.add_argument("-score", help="Path to plasmid score file")
-	parser.add_argument("-p", type=float, default=0.5, help="Offset plasmid score term")
 	parser.add_argument("-out_dir", help="Path to output dir")
 	parser.add_argument("-out_file", help="Name of output file")
-	parser.add_argument("-alpha1", nargs='?', const=1, type=int, default=1, help="Weight of flow term")
-	parser.add_argument("-alpha2", nargs='?', const=1, type=int, default=1, help="Weight of GC content term")
-	parser.add_argument("-alpha3", nargs='?', const=1, type=int, default=1, help="Weight of log probabilities term")	
-	parser.add_argument("-rmiter", nargs='?', const=1, type=int, default=50, help="Number of iterations to remove circular components")
-	parser.add_argument("-unique", nargs='?', const=1, type=int, default=1, help="Unique bins")
+	parser.add_argument("-p", type=float, default=DEFAULT_SCORE_OFFSET, help="Offset plasmid score term")
+	parser.add_argument("-alpha1", nargs='?', const=1, type=int, default=DEFAULT_ALPHA1, help="Weight of flow term")
+	parser.add_argument("-alpha2", nargs='?', const=1, type=int, default=DEFAULT_ALPHA2, help="Weight of GC content term")
+	parser.add_argument("-alpha3", nargs='?', const=1, type=int, default=DEFAULT_ALPHA3, help="Weight of log probabilities term")	
+	parser.add_argument("-rmiter", nargs='?', const=1, type=int, default=DEFAULT_RMITER, help="Number of iterations to remove circular components")
         parser.add_argument("-assembler", nargs='?', const=1, type=str, default=UNICYCLER_TAG, help="Name of assembler (unicycler/skesa)")
         parser.add_argument("-seed_len", nargs='?', const=1, type=int, default=DEFAULT_SEED_LEN_THRESHOLD, help="Seed length threshold")
         parser.add_argument("-seed_score", nargs='?', const=1, type=float, default=DEFAULT_SEED_SCORE_THRESHOLD, help="Seed plasmid score threshold")
-        parser.add_argument("-gc_intervals", nargs='?', const=1, default=None, help="GC intervals file")        
+        parser.add_argument("-gc_intervals", nargs='?', const=1, default=None, help="GC intervals file")
+        parser.add_argument("-min_pls_len", nargs='?', const=1, type=int, default=DEFAULT_MIN_PLS_LEN, help="Minimum plasmid length to be reported")
+        parser.add_argument("-gurobi_mip_gap", nargs='?', const=1, type=float, default=DEFAULT_GUROBI_MIP_GAP, help="MIPGap parameter for Gurobi")
+        parser.add_argument("-gurobi_time_limit", nargs='?', const=1, type=int, default=DEFAULT_GUROBI_TIME_LIMIT, help="Time limit for Gurobi (in seconds)")        
 
 	args = parser.parse_args()
 
@@ -77,11 +90,13 @@ if __name__ == "__main__":
 	alpha2 = args.alpha2
 	alpha3 = args.alpha3
 	rmiter = int(args.rmiter)
-	unique = int(args.unique)
         assembler = args.assembler
         seed_len = args.seed_len
         seed_score = args.seed_score
         gc_int_file = args.gc_intervals
+        min_pls_len = args.min_pls_len
+        gurobi_mip_gap = args.mip_gap
+        gutobi_time_limit = args.time_limit
 
 	#Naming and creating output files
 	#ratios = str(alpha1) + '.' + str(alpha2) + '.' + str(alpha3)
@@ -106,14 +121,13 @@ if __name__ == "__main__":
 	#Main program
         
         contigs_dict = read_ctgs_data(
-                assembly_file, score_file, gfa_gzipped=True,
-                assembler=assembler,
-                seed_len=seed_len, seed_score=seed_score
+                assembly_file, score_file,
+                seed_len=seed_len, seed_score=seed_score,
+                assembler=assembler, gfa_gzipped=True
         )
         seeds_set = get_seeds(contigs_dict)
         gc_probs, gc_pens = read_gc_data(gc_prob_file, gc_int_file)
         links_list = read_links_data(assembly_file, gfa_gzipped=True)
-
         
 	# contigs_dict = {}   #Key: contig IDs, Values: Contig attributes (provided as or derived from input)
 	# links_list = []     #List of unordered links: Each link is a pair of extrmeities (e.g. (('1','h'),('2','t')))
@@ -124,28 +138,7 @@ if __name__ == "__main__":
 	# contigs_dict = get_data.get_gene_coverage(mapping_file, contigs_dict)
 	# gc_probs, gc_pens = get_data.get_gc_probs(gc_file, gc_probs, gc_pens)
 
-	#Keeping a log of details about contigs in the assembly graph
-	'''
-	input_details = 'details.csv'
-	details_file = open(os.path.join(output_folder, input_details), "w")
-	details_file.write("Contig"+"\t"+"Read_depth"+ "\t"+"GC_cont"+"\t"+ "Length"+"\t"+"Density"+"\n")
-	for c in contigs_dict:
-		details_file.write(c+"\t"+str(contigs_dict[c][COV_KEY])+ "\t"+str(contigs_dict[c]['GC_cont'])+"\t"+ str(contigs_dict[c][LEN_KEY])+"\t"+str(contigs_dict[c][SCORE_KEY])+"\n")
-		details_file.write("Link list:"+"\t")
-		for link in links_list:
-			if c == link[0][0] or c == link[1][0]:
-				details_file.write(str(link)+"\t")
-		details_file.write("\n")
-	'''
-
-	#output_fasta_file = open(os.path.join(output_folder, output_fasta), "w")
-	#score_file = open(os.path.join(output_folder, score_filename), "w")
-	#contigs_file = open(os.path.join(output_folder, output_contigs), "w")
-	#var_file = open(os.path.join(output_folder, var_vals), "w")
-
-	
 	n_comp = 0
-
 	while len(seeds_set) > 0:
 		#For consistency, both extremities for a contig should be part of exactly the same number of links in a plasmid.
 		#For each extremity, we make a list of links that involve the extremity.
@@ -191,8 +184,8 @@ if __name__ == "__main__":
 		#Initializing the ILP
 		m = Model("Plasmids")
 		m.params.LogFile= os.path.join(output_folder,'m.log')
-		m.setParam(GRB.Param.TimeLimit, 2400)
-		m.setParam(GRB.Param.MIPGap, 0.05)
+		m.setParam(GRB.Param.TimeLimit, gurobi_time_limit)
+		m.setParam(GRB.Param.MIPGap, gurobi_mip_gap)
 
 		#Initializing variables
 		contigs = {}	#Key: Contig (e.g. '1'), Value: Gurobi binary variable
@@ -219,9 +212,7 @@ if __name__ == "__main__":
 		expr.addTerms(alpha1, F)
 		for c in contigs:
 			for b in plas_GC:
-				#expr.addTerms(-alpha2*(1-gc_probs[c][b]), contig_GC[c][b])
 				expr.addTerms(alpha2*(gc_pens[c][b]), contig_GC[c][b])
-			#expr.addTerms(alpha3*contigs_dict[c]['log_ratio'], contigs[c])
 			expr.addTerms(alpha3*(contigs_dict[c][SCORE_KEY] - p), contigs[c])
 		m.setObjective(expr, GRB.MAXIMIZE)
 
@@ -268,7 +259,7 @@ if __name__ == "__main__":
 		iter_count = 0
 		dc_count = 0
 		dc_dict = {}
-		while extra_comps >= 1 and iter_count <= 50:
+		while extra_comps >= 1 and iter_count <= rmiter:
 			#Running the MILP
 			start = time.time()
 			m.optimize()
@@ -338,7 +329,6 @@ if __name__ == "__main__":
 				for node in comp:
 					if node != SOURCE and node != SINK:
 						comp_len += contigs_dict[node][LEN_KEY]
-				#print("Conn comp:", comp_count, comp_len)
 				if SOURCE in comp:
 					ST_comp = G.subgraph(comp)
 					print("Edges:",ST_comp.edges())
@@ -348,42 +338,10 @@ if __name__ == "__main__":
 					disconn_comp = G.subgraph(comp)
 					#Muting individual edges
 					for edge in disconn_comp.edges:
-						#print(nx.get_edge_attributes(G,'extremities')[edge])	
 						exts = nx.get_edge_attributes(G,'extremities')[edge]
 						e = ((edge[0],exts[0]),(edge[1],exts[1]))
-						#expr.addTerms(1, links[e])
 						
 						m.addConstr(links[e] == 0, "muted_edge-"+str(e))	
-					'''
-					dc_count += 1
-					dc_dict[dc_count] = m.addVar(vtype=GRB.BINARY, name='dc-binary-'+str(dc_count))
-					eps = 0.001
-					bigM = 1000
-					expr = LinExpr()
-					
-					#print("Disconnected comp:",disconn_comp.edges())
-					nodes = disconn_comp.nodes()
-					#edges = disconn_comp.edges
-					edges_into_comp = LinExpr()
-					for node in nodes:
-						#print(node)
-						h_ext = (node, 'h')
-						t_ext = (node, 't')
-
-						for e in incoming[h_ext]:
-							if e in links:
-								edges_into_comp.addTerms(1, links[e])
-						for e in incoming[t_ext]:		
-							if e in links:
-								edges_into_comp.addTerms(1, links[e])
-
-					m.addConstr(edges_into_comp >= 0 + eps - bigM * dc_dict[dc_count], name="bigM-"+str(dc_count))			
-
-
-					#m.addConstr(x >= y + eps - M * (1 - b), name="bigM_constr1")
-					#m.addConstr(x <= y + M * b, name="bigM_constr2")					
-					'''
-
 
 			#Condition to stop iterating. 
 			#If number of connected components is 1, there are no extra components, thus breaking the while loop.	
@@ -399,39 +357,14 @@ if __name__ == "__main__":
 		#contigs_file = open(os.path.join(output_folder, output_contigs), "a")
 		#components_file = open(os.path.join(output_folder, components), "a")
 
-
 		#Recording variable values (mainly for debugging purposes)
 		plasmid_length = 0
 
-		#Post-processing: Determining if plasmid bin is putative or questionable
-		#Recording the plasmid bin
+		#Recording the plasmid bin if the plasmid is long enough
 		for c in contigs:
 			if contigs[c].x > 0:
-				plasmid_length += contigs_dict[c][LEN_KEY]
-		
-			
-
-		#Sorting into putative and questionable
-		if plasmid_length >= 1500:
-
-			#var_file = open(os.path.join(output_folder, var_vals), "a")
-			#var_file.write("\nIteration "+str(n_iter)+":\n")
-			#for v in m.getVars():
-			#	if v.X > 0:
-			#		var_file.write(v.varName+"\t"+str(v.X)+"\n")
-
-			#output_fasta_file.write(">plasmid_"+str(n_iter)+"\t"+"length="+str(plasmid_length)+"\n")
-			#contigs_file.write("#Contig\tDensity\tFlow\tRead_depth\tLength\n")		
-			#for c in contigs:
-			#	if contigs[c].x > 0.5:			
-			#		contigs_file.write("# "+c+"\t"+str(contigs_dict[c][SCORE_KEY])+"\t"+str(F.x)+"\t"+str(contigs_dict[c][COV_KEY])+"\t"+str(contigs_dict[c][LEN_KEY])+"\n")				
-			#contigs_file.write("\n")
-
-			#contigs_file.write("#Link\tCapacity\n")
-			#for e in links:
-			#	if links[e].x > 0:
-			#		contigs_file.write("# "+str(e)+"\t"+str(capacities[e])+"\n")
-			#contigs_file.write("\n")
+				plasmid_length += contigs_dict[c][LEN_KEY]		
+		if plasmid_length >= min_pls_len:
 
 			#Recording objective function scores
 			GC_sum = 0
@@ -439,15 +372,10 @@ if __name__ == "__main__":
 			for c in contigs:
 				gc_c_sum = 0
 				for b in contig_GC[c]:
-					#GC_sum += -alpha2*(1-gc_probs[c][b])*contig_GC[c][b].x
 					GC_sum += alpha2*(gc_pens[c][b])*contig_GC[c][b].x
 					gc_c_sum += alpha2*(gc_pens[c][b])*contig_GC[c][b].x
 				gd_sum += alpha3*(contigs_dict[c][SCORE_KEY]-0.5)*contigs[c].x
 				lr_gd = (contigs_dict[c][SCORE_KEY]-0.5)*contigs[c].x
-				#score_file.write("putative_plasmid_"+str(n_iter)+"\t\t"+str(c)+"\t"+str(gc_c_sum)+"\t"+str(lr_gd)+"\n")
-			#score_file.write("Overall\nputative_plasmid_"+str(n_iter)+"\t\t"+str(m.objVal)+"\t"+str(F.x)+"\t"+str(GC_sum)+"\t"+str(gd_sum)+"\n\n")
-				
-
 
 			#Recording components in the solution
 			G = nx.DiGraph()
@@ -489,15 +417,11 @@ if __name__ == "__main__":
 				pbf_bins[n_iter] = {'Flow': F.x, 'GC_bin': GC_bin, 'Contigs': {}}
 
 				comp_count += 1
-				#print(comp)
 				comp_len = 0
-				#components_file.write("Component "+str(comp_count)+":\t")
 				for node in comp:
 					if node != SOURCE and node != SINK:
 						if node not in pbf_bins[n_iter]['Contigs']:
 							pbf_bins[n_iter]['Contigs'][node] = 0
-					#components_file.write(str(node)+",")
-				#components_file.write("\n")				
 
 		#Updating assembly graph and formulation
 		for e in flows:
@@ -506,7 +430,6 @@ if __name__ == "__main__":
 				contigs_dict[c][COV_KEY] = max(0, contigs_dict[c][COV_KEY] - flows[e].x)
 				if c in pbf_bins[n_iter]['Contigs']:
 					pbf_bins[n_iter]['Contigs'][c] += round(flows[e].x / F.x, 2)
-
 			
 		for c in contigs:
 			if contigs[c].x > 0:
@@ -524,11 +447,7 @@ if __name__ == "__main__":
 						if (c, 'h') not in e and (c, 't') not in e:
 							temp_list.append(e)
 					links_list = temp_list	
-		
-
-				
-		#For debugging purposes
-		#seeds_set = set()	
+						
 	output_bins.write('#Pls_ID\tFlow\tGC_bin\t\tContigs\n')		
 	for p in pbf_bins:
 		fval = "%.2f" %pbf_bins[p]['Flow']
@@ -536,7 +455,6 @@ if __name__ == "__main__":
 		print(p, fval, gcb, pbf_bins[p]['Contigs'])
 		
 		output_bins.write('P'+str(p)+'\t\t'+str(fval)+'\t'+str(gcb)+'\t\t')
-		#nctg = len(pbf_bins[p]['Contigs'])
 		nctg = 0
 		for c in pbf_bins[p]['Contigs']:
 			ctg_mul = pbf_bins[p]['Contigs'][c]
@@ -548,7 +466,4 @@ if __name__ == "__main__":
 		output_bins.write('\n')
 		
 	print("Out of while loop")
-
-
-	#print(pbf_bins)
 		

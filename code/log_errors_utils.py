@@ -5,6 +5,9 @@ import os
 import logging
 import subprocess
 
+# Maximum number of attempts for an external command
+DEFAULT_RUN_ATTEMPTS = 5
+
 class CustomException(Exception):
     def __init__(self, msg):
         # Call the base class constructor with the custom message
@@ -77,11 +80,11 @@ def _run_cmd(cmd, output, num_attempts, exit_on_error):
         attempt += 1
     return process_returncode
     
-def run_cmd(cmd, num_attempts=5, exit_on_error=True):
+def run_cmd(cmd, num_attempts=DEFAULT_RUN_ATTEMPTS, exit_on_error=True):
     """ Run external command, trying at most num_attempts=5 times  """
     return _run_cmd(cmd, None, num_attempts, exit_on_error)
     
-def run_cmd_redirect(cmd, out_file_name, num_attempts=5, exit_on_error=True):
+def run_cmd_redirect(cmd, out_file_name, num_attempts=DEFAULT_RUN_ATTEMPTS, exit_on_error=True):
     """ Run external command with redirection, trying at most num_attempts=5 times  """
     return _run_cmd(cmd, out_file_name, num_attempts, exit_on_error)
 

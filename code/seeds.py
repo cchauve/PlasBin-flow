@@ -20,6 +20,10 @@ from get_data import (
     read_pls_score_file
 )
 
+# Default thresholds defining seeds used in the paper experiments
+DEFAULT_SEED_LEN_THRESHOLD = 2650
+DEFAULST_SEED_SCORE_THRESHOLD = 0.58
+
 """
 Reading data
 """

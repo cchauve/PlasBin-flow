@@ -2,7 +2,6 @@
 Manipulating FASTA and GFA files
 """
 
-import csv
 import gzip
 import os
 import shutil

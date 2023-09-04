@@ -9,6 +9,10 @@ from log_errors_utils import (
     log_file
 )
 
+# Thresholds defining good mappings
+DEFAULT_PID_THRESHOLD = 0.95
+DEFAULT_COV_THRESHOLD = 0.8
+
 BLAST6_COL_NAMES = [
     'qseqid', 'sseqid', 'pident', 'length', 'mismatch',
     'gapopen', 'qstart', 'qend', 'sstart', 'send',
