@@ -3,6 +3,7 @@
 from __future__ import division
 import math
 from collections import defaultdict
+import logging
 
 from log_errors_utils import (
     process_exception
@@ -110,7 +111,7 @@ def read_ctgs_data(
         score_test = ctg_data[SCORE_KEY] >= seed_score
         ctg_data[SEED_KEY] = len_test and score_test
     return ctgs_data_dict
-
+    
 def get_seeds(ctgs_data_dict):
     """
     Computes the set of seed contigs
@@ -213,6 +214,22 @@ def get_capacities(links_list, ctgs_data_dict):
         capacities_dict[(ext_t,DEFAULT_SINK)] = capacity
     return capacities_dict
 
+def log_data(ctgs_data_dict, links_list, in_gfa_file, in_pls_score_file):
+    ctgs_list = ctgs_data_dict.keys()
+    num_ctgs = len(ctgs_list)
+    num_links = sum([len(links) for links in links_list])
+    logging.info(f'File {in_gfa_file} contains {num_ctgs} contigs and {num_links} edges')
+    cov_list = [ctgs_data_dict[ctg_id][COV_KEY] for ctg_id in ctgs_list]
+    min_cov,max_cov = min(cov_list),max(cov_list)
+    logging.info(f'File {in_gfa_file} minimum coverage {min_cov} maximum coverage {max_cov}')
+    score_list = [ctgs_data_dict[ctg_id][SCORE_KEY] for ctg_id in ctgs_list]
+    max_pls_score = max(score_list)
+    logging.info(f'File {in_pls_score_file} maximum plasmid score {max_pls_score}')
+    num_seeds = len([ctg_id for ctg_id in ctgs_lis if ctgs_data_dict[ctg_id][SEED_KEY]])
+    if num_seeds == 0:
+        logging.warning(f'File {in_gfa_file} has no seed')
+    else:
+        logging.info(f'File {in_gfa_file} has {num_seeds} seed')
 
 ## TESTING
 
@@ -234,6 +251,8 @@ for assembler in ASSEMBLER_COV_TAG.keys():
     gc_probs, gc_pens = read_gc_data(gc_prob_file, gc_int_file)
     links_list = read_links_data(assembly_file, gfa_gzipped=True)
     capacities = get_capacities(links_list, contigs_dict)
+
+    log_data(ctgs_data_dict, links_list, assembly_file, score_file)
     
     print(contigs_dict)
     print(seeds_set)
