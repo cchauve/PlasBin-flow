@@ -8,7 +8,8 @@ import logging
 from log_errors_utils import (
     process_exception,
     CustomException,
-    compare_lists
+    check_lists,
+    check_num_fields
 )
 from gfa_fasta_utils import (
     read_GFA_len,
@@ -67,24 +68,27 @@ def read_pls_score_file(in_pls_score_file):
         in_pls_score_file (str): path to a plasmid score file
     Returns: 
         Dictionary contig (str): plasmid score (float)
+    Assumption:
+        File existence and non-emptyness has been checked
     """
-    try:
-        pls_scores_dict = {}
-        with open(in_pls_score_file) as in_file:
-            for line in in_file.readlines():
+    pls_scores_dict = {}
+    with open(in_pls_score_file) as in_file:
+        for line in in_file.readlines():
+            try:
                 line_split = line.rstrip().split('\t')
+                check_num_fields(line_split, 2)
                 ctg_id = line_split[0]
                 score = float(line_split[1])
-                if score < 0.0 or score > 1.0:
-                    raise CustomException(
-                        f'Contig {ctg_id} has score {score} not in [0,1]'
-                    )
-                else:
-                    pls_scores_dict[ctg_id] = score
-    except Exception as e:
-        process_exception(f'Reading plasmid score file {in_pls_score_file}: {e}')
-    else:
-        return pls_scores_dict
+                check_number(
+                    score, (0.0,1.0), f'Contig {ctg_id} score {score}'
+                )
+            except Exception as e:
+                process_exception(
+                    f'File {in_pls_score_file}, line {line.rstrip()}: {e}'
+                )
+            else:
+                pls_scores_dict[ctg_id] = score
+    return pls_scores_dict
 
 def read_ctgs_data(
     in_gfa_file, in_pls_score_file,
@@ -114,13 +118,6 @@ def read_ctgs_data(
     _update_ctgs_dictionary(ctgs_data_dict, ctgs_cov_dict, COV_KEY)
     ctgs_score_dict = read_pls_score_file(in_pls_score_file)
     _update_ctgs_dictionary(ctgs_data_dict, ctgs_score_dict, SCORE_KEY)
-    # Data checking
-    compare_lists(
-        ctgs_len_dict.keys(),
-        ctgs_score_dict.keys(),
-        'Inconsistent contigs sets',
-        f'Reading {in_gfa_file} and {in_pls_score_file}'
-    )
     return ctgs_data_dict
     
 def get_seeds(ctgs_data_dict, seed_len, seed_score,):

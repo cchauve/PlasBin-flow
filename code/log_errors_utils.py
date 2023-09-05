@@ -21,6 +21,7 @@ EXCEPTION_BELOW_RANGE = CustomException('Lower than allowed range')
 EXCEPTION_ABOVE_RANGE = CustomException('Greater than allowed range')
 EXCEPTION_UNEQUAL_SETS = CustomException('Inconsistents sets')
 EXCEPTION_EMPTY_SET = CustomException('Empty set')
+EXCEPTION_NUM_FIELDS = CustomException('Line has too few fields')
         
 def check_file(in_file):
     if not os.path.isfile(in_file):
@@ -28,7 +29,7 @@ def check_file(in_file):
     elif os.path.getsize(in_file) == 0:
         raise EXCEPTION_EMPTY_FILE
 
-def check_number(x, allowed_range=(0,1)):
+def check_number(x, allowed_range=(None,None)):
     """
     Check that number x is in an allowed range
     Args:
@@ -46,6 +47,10 @@ def check_lists(list1, list2):
     if sorted(list1) != sorted(list2):
         raise EXCEPTION_UNEQUAL_SETS
 
+def check_num_fields(in_list, min_size):
+    if len(in_list) < min_size:
+        raise EXCEPTION_NUM_FIELDS
+    
 def process_exception(msg):
     logging.exception(msg)
     print(f'EXCEPTION\t{msg}', file=sys.stderr)
