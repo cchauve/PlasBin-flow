@@ -86,8 +86,7 @@ def read_pls_score_file(in_pls_score_file):
         return pls_scores_dict
 
 def read_ctgs_data(
-    in_gfa_file, in_pls_score_file, 
-    seed_len, seed_score,
+    in_gfa_file, in_pls_score_file,
     assembler=UNICYCLER_TAG, gfa_gzipped=True
 ):
     """
@@ -96,11 +95,9 @@ def read_ctgs_data(
         - in_gfa_file (str): path to a gzipped GFA file
         - in_pls_score_file (str): path to a plasmid score file
         - gfa_gzipped (bool): True if GFA file gzipped
-        - seed_len (int): length threshold defining seeds
-        - seed_score float): plasmid score threshold defining seeds
         - assembler (str): tag of the used assembler
     Returns:
-        Dictionary described above
+        Dictionary described above without the SEEDS field
     """
     def _update_ctgs_dictionary(ctgs_data_dict, add_field_dict, add_key):
         for ctg_id,ctg_value in add_field_dict.items():
@@ -125,22 +122,25 @@ def read_ctgs_data(
         process_exception(
             f'Reading {in_gfa_file} and {in_pls_score_file}: {e}'
         )
+    else:
+        return ctgs_data_dict
+    
+def get_seeds(ctgs_data_dict, seed_len, seed_score,):
+    """
+    Computes the set of seed contigs and updates the contigs data
+    Args:
+        - ctgs_data_dict (Dictionary): see above
+        - seed_len (int): length threshold defining seeds
+        - seed_score float): plasmid score threshold defining seeds
+    Returns:
+        Set(contig names)
+        Updates the fild SEED_KEY of ctgs_data_dict
+    """
+    seeds = set()
     for ctg_id,ctg_data in ctgs_data_dict.items():
         len_test = ctg_data[LEN_KEY] >= seed_len            
         score_test = ctg_data[SCORE_KEY] >= seed_score
         ctg_data[SEED_KEY] = len_test and score_test
-    return ctgs_data_dict
-    
-def get_seeds(ctgs_data_dict):
-    """
-    Computes the set of seed contigs
-    Args:
-        - ctgs_data_dict (Dictionary): see above
-    Returns:
-        Set(contig names)
-    """
-    seeds = set()
-    for ctg_id,ctg_data in ctgs_data_dict.items():
         if ctg_data[SEED_KEY]:
             seeds.add(ctg_id)
     return seeds
