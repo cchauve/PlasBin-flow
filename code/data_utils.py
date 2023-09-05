@@ -6,7 +6,8 @@ from collections import defaultdict
 import logging
 
 from log_errors_utils import (
-    process_exception
+    process_exception,
+    CustomException
 )
 from gfa_fasta_utils import (
     read_GFA_len,
@@ -71,7 +72,14 @@ def read_pls_score_file(in_pls_score_file):
         with open(in_pls_score_file) as in_file:
             for line in in_file.readlines():
                 line_split = line.rstrip().split('\t')
-                pls_scores_dict[line_split[0]] = float(line_split[1])
+                ctg_id = line_split[0]
+                score = float(line_split[1])
+                if score < 0.0 or score > 1.0:
+                    raise CustomException(
+                        f'Contig {ctg_id} has score {score} not in [0,1]'
+                    )
+                else:
+                    pls_scores_dict[ctg_id] = score
     except Exception as e:
         process_exception(f'Reading plasmid score file {in_pls_score_file}: {e}')
     else:
@@ -108,10 +116,20 @@ def read_ctgs_data(
     _update_ctgs_dictionary(ctgs_data_dict, ctgs_cov_dict, COV_KEY)
     ctgs_score_dict = read_pls_score_file(in_pls_score_file)
     _update_ctgs_dictionary(ctgs_data_dict, ctgs_score_dict, SCORE_KEY)
-    for ctg_id,ctg_data in ctgs_data_dict.items():
-        len_test = ctg_data[LEN_KEY] >= seed_len
-        score_test = ctg_data[SCORE_KEY] >= seed_score
-        ctg_data[SEED_KEY] = len_test and score_test
+    try:
+        sorted_keys = sorted([LEN_KEY,COV_KEY,SCORE_KEY,SEED_KEY])
+        for ctg_id,ctg_data in ctgs_data_dict.items():
+            ctg_data[SEED_KEY] = False
+            if sorted(ctg_data.keys()) != sorted_keys:
+                raise CustomException(f'Contig {ctg_id} data inconsistency')
+            else:
+                len_test = ctg_data[LEN_KEY] >= seed_len            
+                score_test = ctg_data[SCORE_KEY] >= seed_score
+                ctg_data[SEED_KEY] = len_test and score_test
+    except Exception as e:
+        process_exception(
+            f'Reading {in_gfa_file} and {in_pls_score_file}: {e}'
+        )
     return ctgs_data_dict
     
 def get_seeds(ctgs_data_dict):
@@ -150,6 +168,19 @@ def read_gc_data(gc_probabilities_file, gc_intervals_file):
     intervals_str_list = intervals_boundaries_to_str(gc_intervals_boundaries)
 
     __gc_probs_dict = read_gc_probabilities_file(gc_probabilities_file)
+    try:
+        num_intervals = len(intervals_str_list)
+        num_gc_prob = len(next(iter(__gc_probs_dict.values())))
+        if num_intervals != num_gc_prob:
+            raise CustomException(
+                f'# GC intervals {num_intervals} != # GC probabilities {num_gc_prob}'
+            )
+    except:
+        e_intervals = 'Default' if gc_intervals is None else gc_intervals_file
+        process_exception(
+            f'Reading GC intervals ({e_intervals}) and GC probabilities ({gc_probabilities_file}): {e}'
+        )
+        
     gc_probs_dict,gc_pens_dict = {},{}
     for ctg_id,ctg_gc_probs in __gc_probs_dict.items():
         gc_probs_dict[ctg_id] = {
