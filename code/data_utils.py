@@ -117,19 +117,18 @@ def read_ctgs_data(
     ctgs_score_dict = read_pls_score_file(in_pls_score_file)
     _update_ctgs_dictionary(ctgs_data_dict, ctgs_score_dict, SCORE_KEY)
     try:
-        sorted_keys = sorted([LEN_KEY,COV_KEY,SCORE_KEY,SEED_KEY])
-        for ctg_id,ctg_data in ctgs_data_dict.items():
-            ctg_data[SEED_KEY] = False
-            if sorted(ctg_data.keys()) != sorted_keys:
-                raise CustomException(f'Contig {ctg_id} data inconsistency')
-            else:
-                len_test = ctg_data[LEN_KEY] >= seed_len            
-                score_test = ctg_data[SCORE_KEY] >= seed_score
-                ctg_data[SEED_KEY] = len_test and score_test
+        sorted_gfa_keys = sorted(ctgs_len_dict.keys())
+        sorted_score_key = sorted(ctgs_score_dict.keys())
+        if sorted_gfa_keys != sorted_score_keys:
+            raise CustomException(f'Inconsistent contigs sets')
     except Exception as e:
         process_exception(
             f'Reading {in_gfa_file} and {in_pls_score_file}: {e}'
         )
+    for ctg_id,ctg_data in ctgs_data_dict.items():
+        len_test = ctg_data[LEN_KEY] >= seed_len            
+        score_test = ctg_data[SCORE_KEY] >= seed_score
+        ctg_data[SEED_KEY] = len_test and score_test
     return ctgs_data_dict
     
 def get_seeds(ctgs_data_dict):
