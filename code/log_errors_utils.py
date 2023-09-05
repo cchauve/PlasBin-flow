@@ -15,22 +15,30 @@ class CustomException(Exception):
         # Call the base class constructor with the custom message
         super().__init__(msg)
 
-EXCEPTION_MISSING_FILE = CustomException('File is missing')
-EXCEPTION_EMPTY_FILE = CustomException('File is empty')
-EXCEPTION_NOTEQ_NUM = CustomException('Unequal numbers')
-EXCEPTION_BELOW_RANGE = CustomException('Lower than allowed range')
-EXCEPTION_ABOVE_RANGE = CustomException('Greater than allowed range')
 EXCEPTION_UNEQUAL_SETS = CustomException('Inconsistents sets')
 EXCEPTION_EMPTY_SET = CustomException('Empty set')
 EXCEPTION_NUM_FIELDS = CustomException('Line has too few fields')
+EXCEPTION_NUM_FIELDS_EQ = CustomException('Line does not have the expected number of fields')
         
+def _check_file(in_file, log=False, msg='FILE'):
+    try:
+        if not os.path.isfile(in_file):
+            raise CustomException('File is missing')
+        elif os.path.getsize(in_file) == 0:
+            process_warning(f'{msg}\t{in_file}: is empty')
+    except Exception as e:
+        process_exception(f'{msg}\t{in_file}: {e}')
+    else:
+        if log:
+            logging.info(f'{msg}\t{in_file}')
+            
 def check_file(in_file):
-    if not os.path.isfile(in_file):
-        raise EXCEPTION_MISSING_FILE
-    elif os.path.getsize(in_file) == 0:
-        raise EXCEPTION_EMPTY_FILE
+    _check_file(in_file, log=False)
 
-def check_number_range(x, allowed_range=(None,None)):
+def log_file(in_file):
+    _check_file(in_file, log=True)
+        
+def check_number_range(x, allowed_range=(None,None), msg='CHECK_RANGE'):
     """
     Check that number x is in an allowed range
     Args:
@@ -38,23 +46,66 @@ def check_number_range(x, allowed_range=(None,None)):
         - allowed_range = List((None or number),(None or number))
           if a boundary of the range is None, it is not checked
     """
-    y,z = allowed_range[0],allowed_range[1]
-    if y is not None and x < y:
-        raise EXCEPTION_BELOW_RANGE
-    if z is not None and x > z:
-        raise EXCEPTION_ABOVE_RANGE
+    try:
+        y,z = allowed_range[0],allowed_range[1]
+        if y is not None and x < y:
+            raise CustomException(
+                f'{x} outside of allowed range: {x} < {y}'
+            )
+        if z is not None and x > z:
+            raise CustomException(
+                f'{x} outside of allowed range: {x} > {z}'
+            )
+    except Exception as e:
+        process_exception(f'{msg}: {e}')
+        
+def check_number_eq(x, y, msg='CHECK_EQ'):
+    try:
+        if x != y:
+            raise CustomException(f'{x} != {y}')
+    except Exception as e:
+        process_exception(f'{msg}: {e}')
 
-def check_number_eq(x, y):
-    if x != y:
-        raise EXCEPTION_NOTEQ_NUM
-    
-def check_lists_content(list1, list2):
-    if sorted(list1) != sorted(list2):
-        raise EXCEPTION_UNEQUAL_SETS
-    
-def check_num_fields(in_list, min_size):
-    if len(in_list) < min_size:
-        raise EXCEPTION_NUM_FIELDS
+def check_number_gt(x, y, msg='CHECK_EQ'):
+    try:
+        if x <= y:
+            raise CustomException(f'{x} <= {y}')
+    except Exception as e:
+        process_exception(f'{msg}: {e}')
+
+def check_number_lt(x, y, msg='CHECK_EQ'):
+    try:
+        if x >= y:
+            raise CustomException(f'{x} >= {y}')
+    except Exception as e:
+        process_exception(f'{msg}: {e}')    
+        
+def check_lists(list1, list2, msg='CHECK_LISTS_EQ'):
+    try:
+        if sorted(list1) != sorted(list2):
+            raise CustomException(f'Unequal sets')
+    except Exception as e:
+        process_exception(f'{msg}: {e}')
+        
+def check_num_fields(in_list, min_num_fields, msg='CHECK_NUM_FIELDS'):
+    try:
+        num_fields = len(in_list)
+        if num_fields < min_num_fields:
+            raise CustomException(
+                f'At least {min_num_fields} expected fields, {num_fields} read'
+            )
+    except Exception as e:
+        process_exception(f'{msg}: {e}')
+        
+def check_num_fields_eq(in_list, exact_num_fields, msg='CHECK_NUM_FIELDS'):
+    try:
+        num_fields = len(in_list)
+        if num_fields != exact_num_fields:
+            raise CustomException(
+                f'Eaxctly {min_num_fields} expected fields, {num_fields} read'
+            )
+    except Exception as e:
+        process_exception(f'{msg}: {e}')
     
 def process_exception(msg):
     logging.exception(msg)
@@ -69,29 +120,12 @@ def process_error(msg):
 def process_warning(msg):
     logging.warning(msg)
     print(f'WARNING\t{msg}', file=sys.stderr)
-    
-""" Logging functions """
-        
-def log_file(in_file):
-    """ Write logging message for creating file in_file """
-    try:
-        check_file(in_file)
-    except EXCEPTION_MISSING_FILE as e:
-        process_exception(f'FILE\t{in_file}: {e}')
-    except EXCEPTION_EMPTY_FILE as e:
-        process_warning(f'FILE\t{in_file}: {e}')
-    else:
-        logging.info(f'FILE\t{in_file}')
 
 """ Files and directories function """
         
-def clean_files(files2clean, msg='Deleting file'):
+def clean_files(files2clean):
     for in_file in files2clean:
-        try:
-            check_file(in_file)
-        except EXCEPTION_MISSING_FILE as e:
-            process_exception(f'{msg}, {in_file}: {e}')
-        else:
+        if os.path.isfile(in_file):
             os.remove(in_file)
 
 def create_directory(in_dir_list):

@@ -58,7 +58,7 @@ def run_blast6(query_file, db_file, mappings_file):
     _ = run_cmd(cmd_megablast)
     log_file(mappings_file)
     db_files = glob.glob(f'{db_prefix}.n*')
-    clean_files(db_files, msg='Removing BLAST files')
+    clean_files(db_files)
 
 def _df_modify_col(in_df, col_name, modif_fun):
     """
