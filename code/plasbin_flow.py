@@ -36,11 +36,10 @@ from data_utils import (
     log_data
 )
 from log_errors_utils import (
-    CustomException,
     process_exception,
-    compare_lists,
-    check_number,
-    check_file
+    check_number_range,
+    check_file,
+    create_directory
 )
 
 SOURCE = DEFAULT_SOURCE
@@ -98,21 +97,7 @@ if __name__ == "__main__":
     gurobi_mip_gap = args.gurobi_mip_gap
     gurobi_time_limit = args.gurobi_time_limit
 
-    check_file(assembly_file)
-    check_file(score_file)
-    check_file(gc_prob_file)
-    if gc_int_file is not None:
-        check_file(gc_int_file)
-    check_number(p, msg2='Plasmid score offset, paramater "-p": ')
-    check_number(alpha1, z=None, msg1='Negatif', msg2='Flow term, paramater "-alpha1": ')
-    check_number(alpha2, z=None, msg1='Negatif', msg2='GC term, paramater "-alpha2": ')
-    check_number(alpha2, z=None, msg1='Negatif', msg2='Plasmid score term, paramater "-alpha3": ')
-    check_number(seed_len, z=None, msg1='Negatif', msg2='Seed length threshold, paramater "-seed_len": ')
-    check_number(seed_score, msg2='Seed score threshold, paramater "-seed_score": ') 
-    check_number(min_pls_len, z=None, msg1='Negatif', msg2='Minimum plasmid bin length, paramater "-min_pls_len": ')
-    check_number(gurobi_mip_gap, msg2='Gurobi optimality gap, paramater "-gurobi_mip_gap": ')
-    check_number(gurobi_time_limit, z=None, msg1='Negatif', msg2='Gurobi time limit, parameter "-gurobi_time_limit": ')
-    
+    # Initialize logging
     logging.basicConfig(
         filename=log_file,
         filemode='w',
@@ -120,11 +105,84 @@ if __name__ == "__main__":
         format='%(name)s - %(levelname)s - %(message)s'
     )
 
+    # Checking the values of parameters
+    check_number_range(
+        p, (0.0,1.0), msg='INPUT\tParameter "-p", {p}: '
+    )
+    check_number_range(
+        alpha1, (0.0,None),
+        msg='INPUT\tParameter "-alpha1", {alpha1}: '
+    )
+    check_number_range(
+        alpha2, (0.0,None),
+        msg='INPUT\tParameter "-alpha2", {alpha2}: '
+    )
+    check_number_range(
+        alpha3, (0.0,None),
+        msg='INPUT\tParameter "-alpha3", {alpha3}: '
+    )
+    check_number_range(
+        seed_len, (0,None),
+        msg='INPUT\tParameter "-seed_len", {seed_len}: '
+    )
+    check_number_range(
+        seed_score, (0.0,1.0),
+        msg='INPUT\tParameter "-seed_score", {seed_score}: '
+    ) 
+    check_number_range(
+        min_pls_len, (0.0,None),
+        msg='INPUT\tParameter "-min_pls_len", {min_pls_len}: '
+    )
+    check_number_range(
+        gurobi_mip_gap, (0.0,1.0),
+        msg='INPUT\tParameter "-gurobi_mip_gap", {gurobi_mip_gap}: '
+    )
+    check_number_range(
+        gurobi_time_limit, (0.0,None),
+        msg='INPUT\tParameter "-gurobi_time_limit", {gurobi_time_limit}: '
+    )
+
+    # Checking that input files exist and are not empty (warning if empty)
+    input_files = [
+        assembly_file, score_file, gc_prob_file
+    ] + [gc_int_file] if (gc_int_file is not None) else []
+    for in_file in input_files:
+        check_file(in_file)
+    
+    # Reading and checking data
+    contigs_dict = read_ctgs_data(
+        assembly_file, score_file,
+        assembler=assembler, gfa_gzipped=True
+    )
+    seeds_set = get_seeds(
+        contigs_dict,
+        seed_len=seed_len,
+        seed_score=seed_score
+    )
+    gc_probs, gc_pens = read_gc_data(
+        gc_prob_file, gc_int_file,
+        contigs_dict.keys()
+    )
+    links_list = read_links_data(
+        assembly_file, gfa_gzipped=True
+    )
+    log_data(
+        contigs_dict, links_list, assembly_file, score_file
+    )
+    
+    # contigs_dict = {}   #Key: contig IDs, Values: Contig attributes (provided as or derived from input)
+    # links_list = []     #List of unordered links: Each link is a pair of extrmeities (e.g. (('1',DEFAULT_HEAD_STR),('2',DEFAULT_TAIL_STR)))
+    # gc_probs = {}       #Key: contigs IDs, Values: Probability for each GC bin
+    # gc_pens = {}		#Key: contigs IDs, Values: Penalty for each GC bin
+    # capacities = {}     #Key: 
+    # contigs_dict, links_list = get_data.get_ag_details(assembly_file, contigs_dict, links_list)
+    # contigs_dict = get_data.get_gene_coverage(mapping_file, contigs_dict)
+    # gc_probs, gc_pens = get_data.get_gc_probs(gc_file, gc_probs, gc_pens)
+
     #Naming and creating output files
     #output_folder = output_dir + '/' + ratios
     output_folder = output_dir
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
+    create_directory([output_folder])
         
     output_bins = open(os.path.join(output_folder, output_file), "w")
     
@@ -140,30 +198,6 @@ if __name__ == "__main__":
     
     #-----------------------------------------------
     #Main program
-
-    # Reading data
-    contigs_dict = read_ctgs_data(
-        assembly_file, score_file,
-        assembler=assembler, gfa_gzipped=True
-    )
-    seeds_set = get_seeds(contigs_dict, seed_len=seed_len, seed_score=seed_score)
-    gc_probs, gc_pens = read_gc_data(gc_prob_file, gc_int_file)
-    links_list = read_links_data(assembly_file, gfa_gzipped=True)
-    compare_lists(
-        contigs_dict.keys(), gc_probs.keys(),
-        'Inconsistent contigs sets',
-        f'Reading {assembly_file} and {gc_prob_file}'
-    )
-    log_data(contigs_dict, links_list, assembly_file, score_file)
-    
-    # contigs_dict = {}   #Key: contig IDs, Values: Contig attributes (provided as or derived from input)
-    # links_list = []     #List of unordered links: Each link is a pair of extrmeities (e.g. (('1',DEFAULT_HEAD_STR),('2',DEFAULT_TAIL_STR)))
-    # gc_probs = {}       #Key: contigs IDs, Values: Probability for each GC bin
-    # gc_pens = {}		#Key: contigs IDs, Values: Penalty for each GC bin
-    # capacities = {}     #Key: 
-    # contigs_dict, links_list = get_data.get_ag_details(assembly_file, contigs_dict, links_list)
-    # contigs_dict = get_data.get_gene_coverage(mapping_file, contigs_dict)
-    # gc_probs, gc_pens = get_data.get_gc_probs(gc_file, gc_probs, gc_pens)
 
     n_comp = 0
     while len(seeds_set) > 0:

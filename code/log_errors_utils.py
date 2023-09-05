@@ -8,14 +8,108 @@ import subprocess
 # Maximum number of attempts for an external command
 DEFAULT_RUN_ATTEMPTS = 5
 
+""" Exceptions handling """
+
 class CustomException(Exception):
     def __init__(self, msg):
         # Call the base class constructor with the custom message
         super().__init__(msg)
 
+EXCEPTION_UNEQUAL_SETS = CustomException('Inconsistents sets')
+EXCEPTION_EMPTY_SET = CustomException('Empty set')
+EXCEPTION_NUM_FIELDS = CustomException('Line has too few fields')
+EXCEPTION_NUM_FIELDS_EQ = CustomException('Line does not have the expected number of fields')
+        
+def _check_file(in_file, log=False, msg='FILE'):
+    try:
+        if not os.path.isfile(in_file):
+            raise CustomException('File is missing')
+        elif os.path.getsize(in_file) == 0:
+            process_warning(f'{msg}\t{in_file}: is empty')
+    except Exception as e:
+        process_exception(f'{msg}\t{in_file}: {e}')
+    else:
+        if log:
+            logging.info(f'{msg}\t{in_file}')
+            
+def check_file(in_file):
+    _check_file(in_file, log=False)
+
+def log_file(in_file):
+    _check_file(in_file, log=True)
+        
+def check_number_range(x, allowed_range=(None,None), msg='CHECK_RANGE'):
+    """
+    Check that number x is in an allowed range
+    Args:
+        - x: int or float
+        - allowed_range = List((None or number),(None or number))
+          if a boundary of the range is None, it is not checked
+    """
+    try:
+        y,z = allowed_range[0],allowed_range[1]
+        if y is not None and x < y:
+            raise CustomException(
+                f'{x} outside of allowed range: {x} < {y}'
+            )
+        if z is not None and x > z:
+            raise CustomException(
+                f'{x} outside of allowed range: {x} > {z}'
+            )
+    except Exception as e:
+        process_exception(f'{msg}: {e}')
+        
+def check_number_eq(x, y, msg='CHECK_EQ'):
+    try:
+        if x != y:
+            raise CustomException(f'{x} != {y}')
+    except Exception as e:
+        process_exception(f'{msg}: {e}')
+
+def check_number_gt(x, y, msg='CHECK_EQ'):
+    try:
+        if x <= y:
+            raise CustomException(f'{x} <= {y}')
+    except Exception as e:
+        process_exception(f'{msg}: {e}')
+
+def check_number_lt(x, y, msg='CHECK_EQ'):
+    try:
+        if x >= y:
+            raise CustomException(f'{x} >= {y}')
+    except Exception as e:
+        process_exception(f'{msg}: {e}')    
+        
+def check_lists(list1, list2, msg='CHECK_LISTS_EQ'):
+    try:
+        if sorted(list1) != sorted(list2):
+            raise CustomException(f'Unequal sets')
+    except Exception as e:
+        process_exception(f'{msg}: {e}')
+        
+def check_num_fields(in_list, min_num_fields, msg='CHECK_NUM_FIELDS'):
+    try:
+        num_fields = len(in_list)
+        if num_fields < min_num_fields:
+            raise CustomException(
+                f'At least {min_num_fields} expected fields, {num_fields} read'
+            )
+    except Exception as e:
+        process_exception(f'{msg}: {e}')
+        
+def check_num_fields_eq(in_list, exact_num_fields, msg='CHECK_NUM_FIELDS'):
+    try:
+        num_fields = len(in_list)
+        if num_fields != exact_num_fields:
+            raise CustomException(
+                f'Eaxctly {min_num_fields} expected fields, {num_fields} read'
+            )
+    except Exception as e:
+        process_exception(f'{msg}: {e}')
+    
 def process_exception(msg):
     logging.exception(msg)
-    print(f'ERROR\t{msg}', file=sys.stderr)
+    print(f'EXCEPTION\t{msg}', file=sys.stderr)
     sys.exit(1)
 
 def process_error(msg):
@@ -23,65 +117,44 @@ def process_error(msg):
     print(f'ERROR\t{msg}', file=sys.stderr)
     sys.exit(1)
 
-def check_file(in_file):
-    if not os.path.isfile(in_file):
-        process_error(f'{in_file} is missing')
-    elif os.path.getsize(in_file) == 0:
-        logging.warning('File {in_file} is empty')
+def process_warning(msg):
+    logging.warning(msg)
+    print(f'WARNING\t{msg}', file=sys.stderr)
 
-def check_number(x, y=0, z=1, msg1='not in [0,1]', msg2=''):
-    try:
-        if (y is not None and x < y) or (z is not None and x > z):
-           raise CustomException(msg1)
-    except Exception as e:
-        process_exception(f'{msg2}: {e}') 
-
-def compare_lists(list1, list2, msg1, msg2):
-    try:
-        if sorted(list1) != sorted(list2):
-            raise CustomException(msg1)
-    except Exception as e:
-        process_exception(f'{msg2}: {e}')
+""" Files and directories function """
         
-def log_file(in_file):
-    """ Write logging message for creating file in_file """
-    if os.path.isfile(in_file) and os.path.getsize(in_file) > 0:
-        logging.info(f'FILE\t{in_file}')
-    elif os.path.isfile(in_file) and os.path.getsize(in_file) == 0:
-        logging.warning(f'FILE\t{in_file} empty')
-    else:
-        process_error(f'File\t{in_file} is missing')
-
 def clean_files(files2clean):
     for in_file in files2clean:
         if os.path.isfile(in_file):
             os.remove(in_file)
-        
+
 def create_directory(in_dir_list):
     for in_dir in in_dir_list:
         if not os.path.exists(in_dir):
             os.makedirs(in_dir)
 
+""" Subprocess functions """
+            
 def _run_cmd(cmd, output, num_attempts, exit_on_error):
     """ 
     Run external command, trying at most num_attempts times  
     If output is None, write output in logging file
     """
     cmd_str = ' '.join(cmd)
-    logging.info(f'COMMAND {cmd_str}')
+    logging.info(f'COMMAND\t{cmd_str}')
     attempt = 1
     process_returncode = -1
     while attempt <= num_attempts:
         try:
             process = subprocess.run(cmd, capture_output=True, text=True, check=True)
         except subprocess.CalledProcessError as e:
-            msg = f'Running {cmd_str}: {e} attempt #{attempt}'
+            msg = f'COMMAND\t{cmd_str} attempt #{attempt} {e}'
             if attempt < num_attempts:
-                logging.warning(f'{msg}: retrying')
+                process_warning(f'{msg}: retrying')
             elif exit_on_error:
                 process_exception(f'{msg}: aborting')
             else:
-                logging.error(f'{msg}: failed but not aborting')
+                process_warning(f'{msg}: failed but not aborting')
         else:
             if output is None:
                 logging.info(f'STDOUT:\n{process.stdout}')
