@@ -14,11 +14,6 @@ class CustomException(Exception):
     def __init__(self, msg):
         # Call the base class constructor with the custom message
         super().__init__(msg)
-
-EXCEPTION_UNEQUAL_SETS = CustomException('Inconsistents sets')
-EXCEPTION_EMPTY_SET = CustomException('Empty set')
-EXCEPTION_NUM_FIELDS = CustomException('Line has too few fields')
-EXCEPTION_NUM_FIELDS_EQ = CustomException('Line does not have the expected number of fields')
         
 def _check_file(in_file, log=False, msg='FILE'):
     try:
