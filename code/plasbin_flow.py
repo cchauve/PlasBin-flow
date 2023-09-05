@@ -36,11 +36,11 @@ from data_utils import (
     log_data
 )
 from log_errors_utils import (
-    CustomException,
     process_exception,
-    compare_lists,
+    check_lists,
     check_number,
-    check_file
+    check_file,
+    create_directory
 )
 
 SOURCE = DEFAULT_SOURCE
@@ -98,21 +98,7 @@ if __name__ == "__main__":
     gurobi_mip_gap = args.gurobi_mip_gap
     gurobi_time_limit = args.gurobi_time_limit
 
-    check_file(assembly_file)
-    check_file(score_file)
-    check_file(gc_prob_file)
-    if gc_int_file is not None:
-        check_file(gc_int_file)
-    check_number(p, msg2='Plasmid score offset, paramater "-p": ')
-    check_number(alpha1, z=None, msg1='Negatif', msg2='Flow term, paramater "-alpha1": ')
-    check_number(alpha2, z=None, msg1='Negatif', msg2='GC term, paramater "-alpha2": ')
-    check_number(alpha2, z=None, msg1='Negatif', msg2='Plasmid score term, paramater "-alpha3": ')
-    check_number(seed_len, z=None, msg1='Negatif', msg2='Seed length threshold, paramater "-seed_len": ')
-    check_number(seed_score, msg2='Seed score threshold, paramater "-seed_score": ') 
-    check_number(min_pls_len, z=None, msg1='Negatif', msg2='Minimum plasmid bin length, paramater "-min_pls_len": ')
-    check_number(gurobi_mip_gap, msg2='Gurobi optimality gap, paramater "-gurobi_mip_gap": ')
-    check_number(gurobi_time_limit, z=None, msg1='Negatif', msg2='Gurobi time limit, parameter "-gurobi_time_limit": ')
-    
+    # Initialize logging
     logging.basicConfig(
         filename=log_file,
         filemode='w',
@@ -120,11 +106,55 @@ if __name__ == "__main__":
         format='%(name)s - %(levelname)s - %(message)s'
     )
 
+    # Checking that input files exist and are not empty
+    input_files = [
+        assembly_file, score_file, gc_prob_file
+    ] + [gc_int_file] if (gc_int_file is not None) else []
+    for in_file in input_files:
+        try:
+            check_file(in_file)
+        except Exception as e:
+            process_exception(f'INPUT\t{in_file}')
+            
+    # Checking the values of parameters
+    def _check_parameter(x, allowed_range, msg):
+        try:
+            check_number(x, allowed_range=allowed_range)
+        except Exception as e:
+            process_exception(f'{msg}: {e}')
+
+    _check_parameter(
+        p, (0.0,1.0), 'INPUT\tParameter "-p", {p}: '
+    )
+    _check_parameter(
+        alpha1, (0.0,None), 'INPUT\tParameter "-alpha1", {alpha1}: '
+    )
+    _check_paramater(
+        alpha2, (0.0,None), 'INPUT\tParameter "-alpha2", {alpha2}: '
+    )
+    _check_parameter(
+        alpha3, (0.0,None), 'INPUT\tParameter "-alpha3", {alpha3}: '
+    )
+    _check_parameter(
+        seed_len, (0,None), 'INPUT\tParameter "-seed_len", {seed_len}: '
+    )
+    _check_parameter(
+        seed_score, (0.0,1.0), 'INPUT\tParameter "-seed_score", {seed_score}: '
+    ) 
+    _check_parameter(
+        min_pls_len, (0.0,None), 'INPUT\tParameter "-min_pls_len", {min_pls_len}: '
+    )
+    _check_parameter(
+        gurobi_mip_gap, (0.0,1.0), 'INPUT\tParameter "-gurobi_mip_gap", {gurobi_mip_gap}: '
+    )
+    _check_parameter(
+        gurobi_time_limit, (0.0,None), 'INPUT\tParameter "-gurobi_time_limit", {gurobi_time_limit}: '
+    )
+    
     #Naming and creating output files
     #output_folder = output_dir + '/' + ratios
     output_folder = output_dir
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
+    create_directory([output_folder])
         
     output_bins = open(os.path.join(output_folder, output_file), "w")
     
@@ -149,11 +179,7 @@ if __name__ == "__main__":
     seeds_set = get_seeds(contigs_dict, seed_len=seed_len, seed_score=seed_score)
     gc_probs, gc_pens = read_gc_data(gc_prob_file, gc_int_file)
     links_list = read_links_data(assembly_file, gfa_gzipped=True)
-    compare_lists(
-        contigs_dict.keys(), gc_probs.keys(),
-        'Inconsistent contigs sets',
-        f'Reading {assembly_file} and {gc_prob_file}'
-    )
+
     log_data(contigs_dict, links_list, assembly_file, score_file)
     
     # contigs_dict = {}   #Key: contig IDs, Values: Contig attributes (provided as or derived from input)
