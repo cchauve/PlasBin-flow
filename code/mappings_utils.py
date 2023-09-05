@@ -7,7 +7,8 @@ import logging
 from log_errors_utils import (
     run_cmd,
     log_file,
-    process_exception
+    process_exception,
+    clean_files
 )
 
 # Thresholds defining good mappings
@@ -57,11 +58,7 @@ def run_blast6(query_file, db_file, mappings_file):
     _ = run_cmd(cmd_megablast)
     log_file(mappings_file)
     db_files = glob.glob(f'{db_prefix}.n*')
-    for file_to_clean in db_files:
-        try:
-            os.remove(file_to_clean)
-        except Exception as e:
-            process_exception('Removing BLAST file {file_to_clean}: (e)')
+    clean_files(db_files, msg='Removing BLAST files')
 
 def _df_modify_col(in_df, col_name, modif_fun):
     """
@@ -72,19 +69,18 @@ def _df_modify_col(in_df, col_name, modif_fun):
         new_val = modif_fun(prev_val)
         in_df.at[idx, col_name] = new_val
 
-            
 def read_blast_outfmt6_file(mappings_file, order_coordinates=True):
     """
     Reads a BLAST format 6 file
-
     Args:
         - mappings_file (str): BLAST format 6 output file
-        - order_doordinates (bool): if True, reorder coordinates increasingly for each hit
-
+        - order_doordinates (bool): if True, reorder coordinates increasingly 
+          for each mapping
     Returns:
         (DataFrame) with columns as in BLAST format 6 
         https://www.metagenomics.wiki/tools/blast/blastn-output-format-6
-        and start and end positions in increasing order
+        start and end positions in increasing order for both query and subject
+        pident defined by dividing field nident by 100.0 to be a percentage
     """
     
     def _order_coordinates(in_df, start_col, end_col):
@@ -105,38 +101,61 @@ def read_blast_outfmt6_file(mappings_file, order_coordinates=True):
             dtype=BLAST6_COL_TYPES
         )
     except Exception as e:
-        process_exception(f'BLAST\tReading mappings file {mappings_file}: {e}')
-    if order_coordinates:
-        _order_coordinates(mappings_df, 'qstart', 'qend')
-        _order_coordinates(mappings_df, 'sstart', 'send')
-    _df_modify_col(mappings_df, 'pident', modif_fun=lambda x: x/100.0)
-    return mappings_df
+        process_exception(
+            f'BLAST\tReading mappings file {mappings_file}: {e}'
+        )
+    else:
+        if order_coordinates:
+            _order_coordinates(mappings_df, 'qstart', 'qend')
+            _order_coordinates(mappings_df, 'sstart', 'send')
+        _df_modify_col(mappings_df, 'pident', modif_fun=lambda x: x/100.0)
+        return mappings_df
 
 def filter_blast_outfmt6(
         mappings_df, q_len_dict=None, s_len_dict=None,
-        min_len=0, min_pident=0, min_q_cov=0.0, min_s_cov=0.0
+        min_len=0, min_pident=0.0, min_q_cov=0.0, min_s_cov=0.0
 ):
+    """
+    Remove from a mappings DataFrame mappings that do not pass some thresholds
+    Args:
+        - mappings_df (DataFrame): mappings dataframe obtained from read_blast_outfmt6_file
+        - q_len_dict (Dictionary): query id (str): query length (int)
+        - s_len_dict (Dictionary): subject id (str): subject length (int)
+        - min_len (int): minimum length of the mapping
+        - min_pident (float, in [0,1]): minimum percent identity
+        - min_q_cov (float, in [0,1]): minimum covered portion of the query 
+          tested if q_len_dict is not None
+        - min_s_cov (float, in [0,1]): minimum covered portion of the subject
+          tested if s_len_dict is not None
+    Returns:
+        DataFrame
+    """
     for mapping_index,mapping in mappings_df.iterrows():
         test_pident = mapping['pident'] < min_pident
         test_len = mapping['length'] < min_len
-        q_id = mapping['qseqid']
         q_len = mapping['qend'] - mapping['qstart'] + 1
-        test_q_cov = (q_len_dict) is not None and (q_len_dict[q_id]/q_len < min_q_cov)
-        s_id = mapping['sseqid']
+        test_q_cov = (
+            (q_len_dict is not None)
+            and
+            (q_len / q_len_dict[mapping['qseqid']] < min_q_cov)
+        )
         s_len = mapping['send'] - mapping['sstart'] + 1
-        test_s_cov = (s_len_dict) is not None and (s_len_dict[s_id]/s_len < min_s_cov)
+        test_s_cov = (
+            (s_len_dict is not None)
+            and
+            (s_len / s_len_dict[mapping['sseqid']] < min_s_cov)
+        )
         if test_pident or test_len or test_q_cov or test_s_cov:
             mappings_df.drop(mapping_index, inplace=True)
         
 def compute_blast_qs_intervals(mappings_df):
     """
     From a mappings dataframe computes the intervals of each subject covered by each query
-
     Args: 
         mappings_df (DataFrame): mappings dataframe
-
     Returns:
-        (Dictionary): subject id -> (Dictionary) query id -> List((qstart,qend,sstart,ssend)) of intervals 
+        (Dictionary): subject id -> 
+                      (Dictionary) query id -> List((qstart,qend,sstart,ssend)) of intervals 
                       of the subject covered by the query
     """
     s_ids = sorted(mappings_df.sseqid.unique())
