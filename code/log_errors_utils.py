@@ -17,6 +17,7 @@ class CustomException(Exception):
 
 EXCEPTION_MISSING_FILE = CustomException('File is missing')
 EXCEPTION_EMPTY_FILE = CustomException('File is empty')
+EXCEPTION_NOTEQ_NUM = CustomException('Unequal numbers')
 EXCEPTION_BELOW_RANGE = CustomException('Lower than allowed range')
 EXCEPTION_ABOVE_RANGE = CustomException('Greater than allowed range')
 EXCEPTION_UNEQUAL_SETS = CustomException('Inconsistents sets')
@@ -29,7 +30,7 @@ def check_file(in_file):
     elif os.path.getsize(in_file) == 0:
         raise EXCEPTION_EMPTY_FILE
 
-def check_number(x, allowed_range=(None,None)):
+def check_number_range(x, allowed_range=(None,None)):
     """
     Check that number x is in an allowed range
     Args:
@@ -43,10 +44,14 @@ def check_number(x, allowed_range=(None,None)):
     if z is not None and x > z:
         raise EXCEPTION_ABOVE_RANGE
 
-def check_lists(list1, list2):
+def check_number_eq(x, y):
+    if x != y:
+        raise EXCEPTION_NOTEQ_NUM
+    
+def check_lists_content(list1, list2):
     if sorted(list1) != sorted(list2):
         raise EXCEPTION_UNEQUAL_SETS
-
+    
 def check_num_fields(in_list, min_size):
     if len(in_list) < min_size:
         raise EXCEPTION_NUM_FIELDS

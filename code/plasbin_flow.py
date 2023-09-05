@@ -38,7 +38,7 @@ from data_utils import (
 from log_errors_utils import (
     process_exception,
     check_lists,
-    check_number,
+    check_number_range,
     check_file,
     create_directory
 )
@@ -119,7 +119,7 @@ if __name__ == "__main__":
     # Checking the values of parameters
     def _check_parameter(x, allowed_range, msg):
         try:
-            check_number(x, allowed_range=allowed_range)
+            check_number_range(x, allowed_range=allowed_range)
         except Exception as e:
             process_exception(f'{msg}: {e}')
 
