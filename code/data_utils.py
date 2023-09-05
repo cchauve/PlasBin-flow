@@ -6,7 +6,9 @@ from collections import defaultdict
 import logging
 
 from log_errors_utils import (
-    process_exception
+    process_exception,
+    CustomException,
+    compare_lists
 )
 from gfa_fasta_utils import (
     read_GFA_len,
@@ -71,15 +73,21 @@ def read_pls_score_file(in_pls_score_file):
         with open(in_pls_score_file) as in_file:
             for line in in_file.readlines():
                 line_split = line.rstrip().split('\t')
-                pls_scores_dict[line_split[0]] = float(line_split[1])
+                ctg_id = line_split[0]
+                score = float(line_split[1])
+                if score < 0.0 or score > 1.0:
+                    raise CustomException(
+                        f'Contig {ctg_id} has score {score} not in [0,1]'
+                    )
+                else:
+                    pls_scores_dict[ctg_id] = score
     except Exception as e:
         process_exception(f'Reading plasmid score file {in_pls_score_file}: {e}')
     else:
         return pls_scores_dict
 
 def read_ctgs_data(
-    in_gfa_file, in_pls_score_file, 
-    seed_len, seed_score,
+    in_gfa_file, in_pls_score_file,
     assembler=UNICYCLER_TAG, gfa_gzipped=True
 ):
     """
@@ -88,11 +96,9 @@ def read_ctgs_data(
         - in_gfa_file (str): path to a gzipped GFA file
         - in_pls_score_file (str): path to a plasmid score file
         - gfa_gzipped (bool): True if GFA file gzipped
-        - seed_len (int): length threshold defining seeds
-        - seed_score float): plasmid score threshold defining seeds
         - assembler (str): tag of the used assembler
     Returns:
-        Dictionary described above
+        Dictionary described above without the SEEDS field
     """
     def _update_ctgs_dictionary(ctgs_data_dict, add_field_dict, add_key):
         for ctg_id,ctg_value in add_field_dict.items():
@@ -108,22 +114,31 @@ def read_ctgs_data(
     _update_ctgs_dictionary(ctgs_data_dict, ctgs_cov_dict, COV_KEY)
     ctgs_score_dict = read_pls_score_file(in_pls_score_file)
     _update_ctgs_dictionary(ctgs_data_dict, ctgs_score_dict, SCORE_KEY)
-    for ctg_id,ctg_data in ctgs_data_dict.items():
-        len_test = ctg_data[LEN_KEY] >= seed_len
-        score_test = ctg_data[SCORE_KEY] >= seed_score
-        ctg_data[SEED_KEY] = len_test and score_test
+    # Data checking
+    compare_lists(
+        ctgs_len_dict.keys(),
+        ctgs_score_dict.keys(),
+        'Inconsistent contigs sets',
+        f'Reading {in_gfa_file} and {in_pls_score_file}'
+    )
     return ctgs_data_dict
     
-def get_seeds(ctgs_data_dict):
+def get_seeds(ctgs_data_dict, seed_len, seed_score,):
     """
-    Computes the set of seed contigs
+    Computes the set of seed contigs and updates the contigs data
     Args:
         - ctgs_data_dict (Dictionary): see above
+        - seed_len (int): length threshold defining seeds
+        - seed_score float): plasmid score threshold defining seeds
     Returns:
         Set(contig names)
+        Updates the fild SEED_KEY of ctgs_data_dict
     """
     seeds = set()
     for ctg_id,ctg_data in ctgs_data_dict.items():
+        len_test = ctg_data[LEN_KEY] >= seed_len            
+        score_test = ctg_data[SCORE_KEY] >= seed_score
+        ctg_data[SEED_KEY] = len_test and score_test
         if ctg_data[SEED_KEY]:
             seeds.add(ctg_id)
     return seeds
@@ -150,6 +165,19 @@ def read_gc_data(gc_probabilities_file, gc_intervals_file):
     intervals_str_list = intervals_boundaries_to_str(gc_intervals_boundaries)
 
     __gc_probs_dict = read_gc_probabilities_file(gc_probabilities_file)
+    try:
+        num_intervals = len(intervals_str_list)
+        num_gc_prob = len(next(iter(__gc_probs_dict.values())))
+        if num_intervals != num_gc_prob:
+            raise CustomException(
+                f'# GC intervals {num_intervals} != # GC probabilities {num_gc_prob}'
+            )
+    except Exception as e:
+        e_intervals = 'Default' if gc_intervals is None else str(gc_intervals_file)
+        process_exception(
+            f'Reading GC intervals ({e_intervals}) and GC probabilities ({gc_probabilities_file}): {e}'
+        )
+        
     gc_probs_dict,gc_pens_dict = {},{}
     for ctg_id,ctg_gc_probs in __gc_probs_dict.items():
         gc_probs_dict[ctg_id] = {
@@ -234,41 +262,3 @@ def log_data(ctgs_data_dict, links_list, in_gfa_file, in_pls_score_file):
         logging.warning(f'DATA\tFile {in_gfa_file} has no seed')
     else:
         logging.info(f'DATA\tFile {in_gfa_file} has {num_seeds} seed(s)')
-
-## TESTING
-
-if __name__ == '__main__':
-    import os
-
-    logging.basicConfig(
-        filename='data_utils.log',
-        filemode='w',
-        level=logging.INFO,
-        format='%(name)s - %(levelname)s - %(message)s'
-    )
-    
-    sample = 'SAMD00491646'
-    gc_int_file = os.path.join('dev','gc.txt')
-    for assembler in ASSEMBLER_COV_TAG.keys():
-        sample_name = f'{sample}-{assembler}'
-        print(f'####{sample_name}')
-        assembly_file = os.path.join('dev', f'{sample_name}.gfa.gz')
-        score_file = os.path.join('dev', f'{sample_name}.gd.tsv')
-        gc_prob_file = os.path.join('dev', f'{sample_name}.gc.tsv')
-
-        contigs_dict = read_ctgs_data(
-            assembly_file, score_file, seed_len=100, seed_score=0.1, assembler=assembler, gfa_gzipped=True,
-        )
-        seeds_set = get_seeds(contigs_dict)
-        gc_probs, gc_pens = read_gc_data(gc_prob_file, gc_int_file)
-        links_list = read_links_data(assembly_file, gfa_gzipped=True)
-        capacities = get_capacities(links_list, contigs_dict)
-
-        log_data(contigs_dict, links_list, assembly_file, score_file)
-    
-        print(contigs_dict)
-        print(seeds_set)
-        print(gc_probs)
-        print(gc_pens)
-        print(links_list)
-        print(capacities)
