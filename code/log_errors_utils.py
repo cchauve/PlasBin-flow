@@ -8,14 +8,40 @@ import subprocess
 # Maximum number of attempts for an external command
 DEFAULT_RUN_ATTEMPTS = 5
 
+""" Exceptions handling """
+
 class CustomException(Exception):
     def __init__(self, msg):
         # Call the base class constructor with the custom message
         super().__init__(msg)
 
+EXCEPTION_MISSING_FILE = CustomException('File is missing')
+EXCEPTION_EMPTY_FILE = CustomException('File is empty')
+EXCEPTION_BELOW_RANGE = CustomException('Lower than allowed range')
+EXCEPTION_ABOVE_RANGE = CustomException('Greater than allowed range')
+EXCEPTION_UNEQUAL_SETS = CustomException('Inconsistents sets')
+EXCEPTION_EMPTY_SET = CustomException('Empty set')
+        
+def check_file(in_file):
+    if not os.path.isfile(in_file):
+        raise EXCEPTION_MISSING_FILE
+    elif os.path.getsize(in_file) == 0:
+        raise EXCEPTION_EMPTY_FILE
+
+def check_number(x, allowed_range=(0,1)):
+    y,z = allowed_range[0],allowed_range[1]
+    if y is not None and x < y:
+        raise EXCEPTION_BELOW_RANGE
+    if z is not None and x > z:
+        raise EXCEPTION_ABOVE_RANGE
+
+def check_lists(list1, list2):
+    if sorted(list1) != sorted(list2):
+        raise EXCEPTION_UNEQUAL_SETS
+
 def process_exception(msg):
     logging.exception(msg)
-    print(f'ERROR\t{msg}', file=sys.stderr)
+    print(f'EXCEPTION\t{msg}', file=sys.stderr)
     sys.exit(1)
 
 def process_error(msg):
@@ -23,65 +49,61 @@ def process_error(msg):
     print(f'ERROR\t{msg}', file=sys.stderr)
     sys.exit(1)
 
-def check_file(in_file):
-    if not os.path.isfile(in_file):
-        process_error(f'{in_file} is missing')
-    elif os.path.getsize(in_file) == 0:
-        logging.warning('File {in_file} is empty')
-
-def check_number(x, y=0, z=1, msg1='not in [0,1]', msg2=''):
-    try:
-        if (y is not None and x < y) or (z is not None and x > z):
-           raise CustomException(msg1)
-    except Exception as e:
-        process_exception(f'{msg2}: {e}') 
-
-def compare_lists(list1, list2, msg1, msg2):
-    try:
-        if sorted(list1) != sorted(list2):
-            raise CustomException(msg1)
-    except Exception as e:
-        process_exception(f'{msg2}: {e}')
+def process_warning(msg):
+    logging.warning(msg)
+    print(f'WARNING\t{msg}', file=sys.stderr)
+    
+""" Logging functions """
         
 def log_file(in_file):
     """ Write logging message for creating file in_file """
-    if os.path.isfile(in_file) and os.path.getsize(in_file) > 0:
-        logging.info(f'FILE\t{in_file}')
-    elif os.path.isfile(in_file) and os.path.getsize(in_file) == 0:
-        logging.warning(f'FILE\t{in_file} empty')
+    try:
+        check_file(in_file)
+    except EXCEPTION_MISSING_FILE as e:
+        process_exception(f'FILE\t{in_file}: {e}')
+    except EXCEPTION_EMPTY_FILE as e:
+        process_warning(f'FILE\t{in_file}: {e}')
     else:
-        process_error(f'File\t{in_file} is missing')
+        logging.info(f'FILE\t{in_file}')
 
-def clean_files(files2clean):
-    for in_file in files2clean:
-        if os.path.isfile(in_file):
-            os.remove(in_file)
+""" Files and directories function """
         
+def clean_files(files2clean, msg=''):
+    for in_file in files2clean:
+        try:
+            check_file(in_file)
+        except EXCEPTION_MISSING_FILE as e:
+            process_exception(f'{msg}: {e}')
+        else:
+            os.remove(in_file)
+
 def create_directory(in_dir_list):
     for in_dir in in_dir_list:
         if not os.path.exists(in_dir):
             os.makedirs(in_dir)
 
+""" Subprocess functions """
+            
 def _run_cmd(cmd, output, num_attempts, exit_on_error):
     """ 
     Run external command, trying at most num_attempts times  
     If output is None, write output in logging file
     """
     cmd_str = ' '.join(cmd)
-    logging.info(f'COMMAND {cmd_str}')
+    logging.info(f'COMMAND\t{cmd_str}')
     attempt = 1
     process_returncode = -1
     while attempt <= num_attempts:
         try:
             process = subprocess.run(cmd, capture_output=True, text=True, check=True)
         except subprocess.CalledProcessError as e:
-            msg = f'Running {cmd_str}: {e} attempt #{attempt}'
+            msg = f'COMMAND\t{cmd_str} attempt #{attempt} {e}'
             if attempt < num_attempts:
-                logging.warning(f'{msg}: retrying')
+                process_warning(f'{msg}: retrying')
             elif exit_on_error:
                 process_exception(f'{msg}: aborting')
             else:
-                logging.error(f'{msg}: failed but not aborting')
+                process_warning(f'{msg}: failed but not aborting')
         else:
             if output is None:
                 logging.info(f'STDOUT:\n{process.stdout}')
