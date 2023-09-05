@@ -122,10 +122,9 @@ if __name__ == "__main__":
     # Reading data
     contigs_dict = read_ctgs_data(
         assembly_file, score_file,
-        seed_len=seed_len, seed_score=seed_score,
         assembler=assembler, gfa_gzipped=True
     )
-    seeds_set = get_seeds(contigs_dict)
+    seeds_set = get_seeds(contigs_dict, seed_len=seed_len, seed_score=seed_score)
     gc_probs, gc_pens = read_gc_data(gc_prob_file, gc_int_file)
     links_list = read_links_data(assembly_file, gfa_gzipped=True)
     
