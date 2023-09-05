@@ -29,6 +29,13 @@ def check_file(in_file):
         raise EXCEPTION_EMPTY_FILE
 
 def check_number(x, allowed_range=(0,1)):
+    """
+    Check that number x is in an allowed range
+    Args:
+        - x: int or float
+        - allowed_range = List((None or number),(None or number))
+          if a boundary of the range is None, it is not checked
+    """
     y,z = allowed_range[0],allowed_range[1]
     if y is not None and x < y:
         raise EXCEPTION_BELOW_RANGE
@@ -68,12 +75,12 @@ def log_file(in_file):
 
 """ Files and directories function """
         
-def clean_files(files2clean, msg=''):
+def clean_files(files2clean, msg='Deleting file'):
     for in_file in files2clean:
         try:
             check_file(in_file)
         except EXCEPTION_MISSING_FILE as e:
-            process_exception(f'{msg}: {e}')
+            process_exception(f'{msg}, {in_file}: {e}')
         else:
             os.remove(in_file)
 
