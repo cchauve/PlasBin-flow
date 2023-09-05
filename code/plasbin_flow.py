@@ -35,6 +35,10 @@ from data_utils import (
     get_capacities,
     log_data
 )
+from log_errors_utils import (
+    CustomException,
+    process_exception
+)
 
 SOURCE = DEFAULT_SOURCE
 SINK = DEFAULT_SINK
@@ -127,7 +131,13 @@ if __name__ == "__main__":
     seeds_set = get_seeds(contigs_dict, seed_len=seed_len, seed_score=seed_score)
     gc_probs, gc_pens = read_gc_data(gc_prob_file, gc_int_file)
     links_list = read_links_data(assembly_file, gfa_gzipped=True)
-    
+    try:
+        gc_prob_ctgs_list = sorted(gc_probs.keys())
+	ctgs_data_ctgs_list = sorted(ctgs_data_dict.keys())
+	if gc_prob_ctgs_list != ctgs_data_ctgs_list:
+	    raise CustomException(f'Inconsistent contigs sets')
+    except Exception as e:
+	process_exception(f'Files {assembly_file} and {gc_prob_file}')
     log_data(contigs_dict, links_list, assembly_file, score_file)
     
     # contigs_dict = {}   #Key: contig IDs, Values: Contig attributes (provided as or derived from input)
