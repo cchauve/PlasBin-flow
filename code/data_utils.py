@@ -7,7 +7,8 @@ import logging
 
 from log_errors_utils import (
     process_exception,
-    CustomException
+    CustomException,
+    compare_lists
 )
 from gfa_fasta_utils import (
     read_GFA_len,
@@ -113,17 +114,14 @@ def read_ctgs_data(
     _update_ctgs_dictionary(ctgs_data_dict, ctgs_cov_dict, COV_KEY)
     ctgs_score_dict = read_pls_score_file(in_pls_score_file)
     _update_ctgs_dictionary(ctgs_data_dict, ctgs_score_dict, SCORE_KEY)
-    try:
-        sorted_gfa_keys = sorted(ctgs_len_dict.keys())
-        sorted_score_key = sorted(ctgs_score_dict.keys())
-        if sorted_gfa_keys != sorted_score_keys:
-            raise CustomException(f'Inconsistent contigs sets')
-    except Exception as e:
-        process_exception(
-            f'Reading {in_gfa_file} and {in_pls_score_file}: {e}'
-        )
-    else:
-        return ctgs_data_dict
+    # Data checking
+    compare_lists(
+        ctgs_len_dict.keys(),
+        ctgs_score_dict.keys(),
+        'Inconsistent contigs sets',
+        f'Reading {in_gfa_file} and {in_pls_score_file}'
+    )
+    return ctgs_data_dict
     
 def get_seeds(ctgs_data_dict, seed_len, seed_score,):
     """
@@ -174,8 +172,8 @@ def read_gc_data(gc_probabilities_file, gc_intervals_file):
             raise CustomException(
                 f'# GC intervals {num_intervals} != # GC probabilities {num_gc_prob}'
             )
-    except:
-        e_intervals = 'Default' if gc_intervals is None else gc_intervals_file
+    except Exception as e:
+        e_intervals = 'Default' if gc_intervals is None else str(gc_intervals_file)
         process_exception(
             f'Reading GC intervals ({e_intervals}) and GC probabilities ({gc_probabilities_file}): {e}'
         )
@@ -264,41 +262,3 @@ def log_data(ctgs_data_dict, links_list, in_gfa_file, in_pls_score_file):
         logging.warning(f'DATA\tFile {in_gfa_file} has no seed')
     else:
         logging.info(f'DATA\tFile {in_gfa_file} has {num_seeds} seed(s)')
-
-## TESTING
-
-if __name__ == '__main__':
-    import os
-
-    logging.basicConfig(
-        filename='data_utils.log',
-        filemode='w',
-        level=logging.INFO,
-        format='%(name)s - %(levelname)s - %(message)s'
-    )
-    
-    sample = 'SAMD00491646'
-    gc_int_file = os.path.join('dev','gc.txt')
-    for assembler in ASSEMBLER_COV_TAG.keys():
-        sample_name = f'{sample}-{assembler}'
-        print(f'####{sample_name}')
-        assembly_file = os.path.join('dev', f'{sample_name}.gfa.gz')
-        score_file = os.path.join('dev', f'{sample_name}.gd.tsv')
-        gc_prob_file = os.path.join('dev', f'{sample_name}.gc.tsv')
-
-        contigs_dict = read_ctgs_data(
-            assembly_file, score_file, seed_len=100, seed_score=0.1, assembler=assembler, gfa_gzipped=True,
-        )
-        seeds_set = get_seeds(contigs_dict)
-        gc_probs, gc_pens = read_gc_data(gc_prob_file, gc_int_file)
-        links_list = read_links_data(assembly_file, gfa_gzipped=True)
-        capacities = get_capacities(links_list, contigs_dict)
-
-        log_data(contigs_dict, links_list, assembly_file, score_file)
-    
-        print(contigs_dict)
-        print(seeds_set)
-        print(gc_probs)
-        print(gc_pens)
-        print(links_list)
-        print(capacities)

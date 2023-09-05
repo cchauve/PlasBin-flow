@@ -28,6 +28,20 @@ def check_file(in_file):
         process_error(f'{in_file} is missing')
     elif os.path.getsize(in_file) == 0:
         logging.warning('File {in_file} is empty')
+
+def check_number(x, y=0, z=1, msg1='not in [0,1]', msg2=''):
+    try:
+        if (y is not None and x < y) or (z is not None and x > z):
+           raise CustomException(msg1)
+    except Exception as e:
+        process_exception(f'{msg2}: {e}') 
+
+def compare_lists(list1, list2, msg1, msg2):
+    try:
+        if sorted(list1) != sorted(list2):
+            raise CustomException(msg1)
+    except Exception as e:
+        process_exception(f'{msg2}: {e}')
         
 def log_file(in_file):
     """ Write logging message for creating file in_file """

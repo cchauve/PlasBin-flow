@@ -37,7 +37,10 @@ from data_utils import (
 )
 from log_errors_utils import (
     CustomException,
-    process_exception
+    process_exception,
+    compare_lists,
+    check_number,
+    check_file
 )
 
 SOURCE = DEFAULT_SOURCE
@@ -64,7 +67,7 @@ if __name__ == "__main__":
     parser.add_argument("-p", type=float, default=DEFAULT_SCORE_OFFSET, help="Offset plasmid score term")
     parser.add_argument("-alpha1", nargs='?', const=1, type=int, default=DEFAULT_ALPHA1, help="Weight of flow term")
     parser.add_argument("-alpha2", nargs='?', const=1, type=int, default=DEFAULT_ALPHA2, help="Weight of GC content term")
-    parser.add_argument("-alpha3", nargs='?', const=1, type=int, default=DEFAULT_ALPHA3, help="Weight of log probabilities term")	
+    parser.add_argument("-alpha3", nargs='?', const=1, type=int, default=DEFAULT_ALPHA3, help="Weight of plasmid score term")	
     parser.add_argument("-rmiter", nargs='?', const=1, type=int, default=DEFAULT_RMITER, help="Number of iterations to remove circular components")
     parser.add_argument("-assembler", nargs='?', const=1, type=str, default=UNICYCLER_TAG, help="Name of assembler (unicycler/skesa)")
     parser.add_argument("-seed_len", nargs='?', const=1, type=int, default=DEFAULT_SEED_LEN_THRESHOLD, help="Seed length threshold")
@@ -93,7 +96,22 @@ if __name__ == "__main__":
     gc_int_file = args.gc_intervals
     min_pls_len = args.min_pls_len
     gurobi_mip_gap = args.gurobi_mip_gap
-    gutobi_time_limit = args.gurobi_time_limit
+    gurobi_time_limit = args.gurobi_time_limit
+
+    check_file(assembly_file)
+    check_file(score_file)
+    check_file(gc_prob_file)
+    if gc_int_file is not None:
+        check_file(gc_int_file)
+    check_number(p, msg2='Plasmid score offset, paramater "-p": ')
+    check_number(alpha1, z=None, msg1='Negatif', msg2='Flow term, paramater "-alpha1": ')
+    check_number(alpha2, z=None, msg1='Negatif', msg2='GC term, paramater "-alpha2": ')
+    check_number(alpha2, z=None, msg1='Negatif', msg2='Plasmid score term, paramater "-alpha3": ')
+    check_number(seed_len, z=None, msg1='Negatif', msg2='Seed length threshold, paramater "-seed_len": ')
+    check_number(seed_score, msg2='Seed score threshold, paramater "-seed_score": ') 
+    check_number(min_pls_len, z=None, msg1='Negatif', msg2='Minimum plasmid bin length, paramater "-min_pls_len": ')
+    check_number(gurobi_mip_gap, msg2='Gurobi optimality gap, paramater "-gurobi_mip_gap": ')
+    check_number(gurobi_time_limit, z=None, msg1='Negatif', msg2='Gurobi time limit, parameter "-gurobi_time_limit": ')
     
     logging.basicConfig(
         filename=log_file,
@@ -131,13 +149,11 @@ if __name__ == "__main__":
     seeds_set = get_seeds(contigs_dict, seed_len=seed_len, seed_score=seed_score)
     gc_probs, gc_pens = read_gc_data(gc_prob_file, gc_int_file)
     links_list = read_links_data(assembly_file, gfa_gzipped=True)
-    try:
-        gc_prob_ctgs_list = sorted(gc_probs.keys())
-	ctgs_data_ctgs_list = sorted(ctgs_data_dict.keys())
-	if gc_prob_ctgs_list != ctgs_data_ctgs_list:
-	    raise CustomException(f'Inconsistent contigs sets')
-    except Exception as e:
-	process_exception(f'Files {assembly_file} and {gc_prob_file}')
+    compare_lists(
+        contigs_dict.keys(), gc_probs.keys(),
+        'Inconsistent contigs sets',
+        f'Reading {assembly_file} and {gc_prob_file}'
+    )
     log_data(contigs_dict, links_list, assembly_file, score_file)
     
     # contigs_dict = {}   #Key: contig IDs, Values: Contig attributes (provided as or derived from input)
