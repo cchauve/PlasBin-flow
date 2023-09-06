@@ -252,13 +252,15 @@ def log_data(ctgs_data_dict, links_list, in_gfa_file, in_pls_score_file):
     ctgs_list = ctgs_data_dict.keys()
     num_ctgs = len(ctgs_list)
     num_links = sum([len(links) for links in links_list])
-    logging.info(f'DATA\tFile {in_gfa_file} contains {num_ctgs} contigs and {num_links} edges')
+    logging.info(
+        f'DATA\tFile {in_gfa_file} contains {num_ctgs} contigs and {num_links} edges'
+    )
     cov_list = [ctgs_data_dict[ctg_id][COV_KEY] for ctg_id in ctgs_list]
-    min_cov,max_cov = min(cov_list),max(cov_list)
-    logging.info(f'DATA\tFile {in_gfa_file} minimum coverage {min_cov} maximum coverage {max_cov}')
+    logging.info(
+        f'DATA\tFile {in_gfa_file} minimum coverage {min(cov_list)} maximum coverage {max(cov_list)}'
+    )
     score_list = [ctgs_data_dict[ctg_id][SCORE_KEY] for ctg_id in ctgs_list]
-    max_pls_score = max(score_list)
-    logging.info(f'DATA\tFile {in_pls_score_file} maximum plasmid score {max_pls_score}')
+    logging.info(f'DATA\tFile {in_pls_score_file} maximum plasmid score {max(score_list)}')
     num_seeds = len(
         [ctg_id for ctg_id in ctgs_list if ctgs_data_dict[ctg_id][SEED_KEY]]
     )
