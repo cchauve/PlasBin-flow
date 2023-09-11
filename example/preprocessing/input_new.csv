@@ -1,0 +1,4 @@
+sample,assembler,gfa
+DRR065947,unicycler,data/DRR065947.gfa.gz
+SRR3222213,unicycler,data/SRR3222213.gfa.gz
+SRR3682071,unicycler,data/SRR3682071.gfa.gz

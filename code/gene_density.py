@@ -66,11 +66,11 @@ def compute_gene_density(
         for ctg_id in ctg_len.keys()
     }
     for ctg_id,intervals in ctg_intervals.items():
-        sorted_intervals = sorted(intervals, key=lambda x: x[0])
+        sorted_intervals = sorted(intervals, key=lambda x: x[1])
         intervals_union = _get_union(sorted_intervals)
         ctg_gd = _compute_gd(
             intervals_union, ctg_len[ctg_id]
-        )
+        )      
         ctg_gd_dict[ctg_id] = {
             GD_DENSITY_KEY: ctg_gd,
             GD_INTERVALS_KEY: intervals_union

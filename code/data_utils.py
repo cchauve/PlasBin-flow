@@ -234,7 +234,7 @@ def get_capacities(links_list, ctgs_data_dict):
             ctgs_data_dict[ctg_to_id][COV_KEY]
         )
         capacities_dict[(ext_from,ext_to)] = capacity
-        capacities_dict[(ext_from,ext_to)] = capacity
+        capacities_dict[(ext_to,ext_from)] = capacity
     for ctg_id,ctg_data in ctgs_data_dict.items():
         ext_h,ext_t = (ctg_id, DEFAULT_HEAD_STR),(ctg_id, DEFAULT_TAIL_STR)
         capacity = ctg_data[COV_KEY]
