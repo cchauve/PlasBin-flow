@@ -35,7 +35,7 @@ Values: Dictionary:
 LEN_KEY: Length of the contig (int)
 COV_KEY: Normalized coverage of the contig (float)
 SCORE_KEY: Plasmid score (float)
-SEED_LEN: Seed key (bool)
+SEED_KEY: Seed key (bool)
 """
 
 LEN_KEY = 'length'

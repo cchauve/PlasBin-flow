@@ -3,7 +3,9 @@ from data_utils import (
     DEFAULT_HEAD_STR,
     DEFAULT_TAIL_STR,
     DEFAULT_SOURCE,
-    DEFAULT_SINK
+    DEFAULT_SINK,
+    COV_KEY,
+    SEED_KEY
 )
 
 #-----------------------------------------------------------	
@@ -100,7 +102,7 @@ def extr_inclusion_constr(m, links, contigs, extr_dict, constraint_count):
 def seed_inclusion_constr(m, contigs, contigs_dict, constraint_count):
     seed_expr = LinExpr()
     for c in contigs:
-        seed_expr.addTerms(contigs_dict[c]['seed'], contigs[c])
+        seed_expr.addTerms(contigs_dict[c][SEED_KEY], contigs[c])
     m.addConstr(seed_expr >= 1, "at-least-one-seed")
     constraint_count += 1
     return m, constraint_count
@@ -149,7 +151,7 @@ def flow_conservation_constraints(m, links, contigs, flows, incoming, outgoing, 
 
         m.addConstr(hin_flow == tout_flow, "contig-"+c+"-flow-conservation-h2t")
         m.addConstr(tin_flow == hout_flow, "contig-"+c+"-flow-conservation-t2h")
-        m.addConstr(hin_flow + tin_flow <= contigs_dict[c]['normalized_coverage'], "cap-"+c)
+        m.addConstr(hin_flow + tin_flow <= contigs_dict[c][COV_KEY], "cap-"+c)
         constraint_count += 3
 
     for e in links:
