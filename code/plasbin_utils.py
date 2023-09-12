@@ -178,7 +178,6 @@ from log_errors_utils import (
     clean_files,
     create_directory,
     run_cmd,
-    process_error,
     process_exception
 )
 
@@ -363,8 +362,10 @@ def create_tmp_data_files(tmp_dir, samples_df):
     logging.info(f'## Prepare temporary FASTA/GFA files')
     for sample in samples_df.index:
         logging.info(f'ACTION\tcopy assembly files for sample {sample}')
+        gfagz_file = _get_gfa(samples_df,sample)
+        check_file(gfagz_file)
         gfa_file = _gfa_file(tmp_dir, sample)
-        gunzip_GFA(_get_gfa(samples_df,sample), gfa_file)
+        gunzip_GFA(gfagz_file, gfa_file)
         log_file(gfa_file)
         gfa_fasta_file = _gfa_fasta_file(tmp_dir, sample)
         write_GFA_to_FASTA(
@@ -399,9 +400,14 @@ def create_ground_truth_files(
     for sample in samples_df.index:
         logging.info(f'ACTION\tground truth for {sample}')
         logging.info(f'ACTION\tMapping contigs to plasmids')
-        pls_fasta_file = _pls_fasta_file(tmp_dir, sample)
-        gunzip_FASTA(_get_pls_fasta(samples_df, sample), pls_fasta_file)
+
         gfa_fasta_file = _gfa_fasta_file(tmp_dir, sample)
+        check_file(gfa_fasta_file)
+        pls_fastagz_file = _get_pls_fasta(samples_df, sample)
+        check_file(pls_fastagz_file)
+        
+        pls_fasta_file = _pls_fasta_file(tmp_dir, sample)
+        gunzip_FASTA(pls_fastagz_file, pls_fasta_file)
         pls_mappings_file = _pls_mappings_file(tmp_dir, sample)
         run_blast6(gfa_fasta_file, pls_fasta_file, pls_mappings_file)
         logging.info(f'ACTION\tcompute ground truth file')                
@@ -436,8 +442,12 @@ def create_gene_density_files(
     logging.info(f'## Compute gene density and create new dataset CSV file')
     for sample in samples_df.index:
         logging.info(f'ACTION\tcompute gene density for {sample}')
+        
         gfa_file = _get_gfa(samples_df, sample)
         mappings_file = _get_genes2ctgs_mappings(samples_df, sample)
+        check_file(gfa_file)
+        check_file(mappings_file)
+        
         gd_out_file = _gene_density_file(out_dir, sample)
         compute_gene_density_file(
             gfa_file, mappings_file, gd_out_file,
@@ -463,18 +473,22 @@ def create_pls_genes_db(out_dir, tmp_dir, samples_df):
         with open(input_file, 'w') as out_file:
             for sample in samples_df.index:
                 pls_fasta_file = _get_pls_fasta(samples_df, sample)
+                check_file(pls_fasta_file)
                 pls_ids = read_FASTA_id(pls_fasta_file, gzipped=True)
                 pls_ids_str = '\n'.join(pls_ids)
                 out_file.write(f'{pls_ids_str}\n')
         log_file(input_file)
 
     logging.info(f'## Compute plasmid genes database')
+    
     logging.info(f'ACTION\tcreate plasmid GenBank accessions file')
     pls_gb_file = os.path.join(tmp_dir, 'pls.genbank.txt')
     _create_input_file(samples_df, pls_gb_file)
+    
     logging.info(f'ACTION\tprocess {pls_gb_file}')
     pls_genes_db_file = _pls_genes_db_file(out_dir)
-    cd.create(pls_genes_db_file,pls_gb_file)
+    cd.create(pls_genes_db_file, pls_gb_file)
+    
     log_file(pls_genes_db_file)
 
 def map_pls_genes_to_contigs(out_dir, tmp_dir, samples_df, db_file):
@@ -493,8 +507,10 @@ def map_pls_genes_to_contigs(out_dir, tmp_dir, samples_df, db_file):
     logging.info(f'## Mapping plasmid genes database to sample contigs')
     for sample in samples_df.index:
         logging.info(f'ACTION Computing genes to contigs mappings for {sample}')
-        genes_mappings_file = _genes_mappings_file(out_dir, sample)
         gfa_fasta_file = _gfa_fasta_file(tmp_dir, sample)
+        check_file(gfa_fasta_file)
+        
+        genes_mappings_file = _genes_mappings_file(out_dir, sample)        
         run_blast6(db_file, gfa_fasta_file, genes_mappings_file)
         _set_genes2ctgs_mappings(samples_df, sample, genes_mappings_file)
         
@@ -525,9 +541,9 @@ def create_GC_content_intervals_file(out_dir, tmp_dir, samples_df, n_gcints):
         __get_file = {'chr': _get_chr_fasta, 'pls': _get_pls_fasta}
         with open(input_file, 'w') as out_file:
             for sample in samples_df.index:
-                out_file.write(
-                    f'{__get_file[file_type](samples_df, sample)}\n'
-                )
+                file_name = __get_file[file_type](samples_df, sample)
+                check_file(file_name)
+                out_file.write(f'{file_name}\n')
         log_file(input_file)
     
     logging.info(f'## Compute GC content intervals files')
@@ -569,9 +585,11 @@ def create_GC_content_probabilities_files(
     logging.info(f'## GC content probabilities files')
     for sample in samples_df.index:
         logging.info(f'ACTION\tcompute GC content probabilities file for sample {sample}')
+        gfa_file = _get_gfa(samples_df, sample)
+        check_file(gfa_file)
         gc_proba_file = _gc_proba_file(out_dir, sample)
         compute_gc_probabilities_file(
-            _get_gfa(samples_df, sample),
+            gfa_file,
             gc_intervals_file,
             gc_proba_file,
             gfa_gzipped=True
@@ -597,6 +615,9 @@ def create_seeds_parameters_file(out_dir, tmp_dir, samples_df):
                 pls_score_file = _get_pls_score(samples_df, sample)
                 gt_file = _get_ground_truth(samples_df, sample)
                 gfa_file = _get_gfa(samples_df, sample)
+                check_file(pls_score_file)
+                check_file(gt_file)
+                check_file(gfa_file)
                 out_file.write(
                     f'{sample},{gfa_file},{pls_score_file},{gt_file}\n'
                 )
@@ -829,7 +850,7 @@ def _read_arguments():
 def main(args):    
     samples_df = _read_input_samples_file(args.cmd, args.input_file)
     create_directory([args.out_dir,args.tmp_dir])
-    
+
     if args.cmd == CMD_PLS_GENES_DB:
         _cmd_pls_genes_db(args, samples_df)
         
@@ -863,10 +884,10 @@ def main(args):
     elif args.cmd == CMD_PREPROCESSING:
         _cmd_preprocessing(args, samples_df)        
         _write_output_samples_file(args, samples_df)
-
+        
     if not args.keep_tmp_dir:
         shutil.rmtree(args.tmp_dir)
-        
+            
 if __name__ == "__main__":
     
     args = _read_arguments()

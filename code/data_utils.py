@@ -8,7 +8,9 @@ import logging
 from log_errors_utils import (
     process_exception,
     CustomException,
-    compare_lists
+    check_lists,
+    check_num_fields,
+    check_number_range
 )
 from gfa_fasta_utils import (
     read_GFA_len,
@@ -67,24 +69,20 @@ def read_pls_score_file(in_pls_score_file):
         in_pls_score_file (str): path to a plasmid score file
     Returns: 
         Dictionary contig (str): plasmid score (float)
+    Assumption:
+        File existence and non-emptyness has been checked
     """
-    try:
-        pls_scores_dict = {}
-        with open(in_pls_score_file) as in_file:
-            for line in in_file.readlines():
-                line_split = line.rstrip().split('\t')
-                ctg_id = line_split[0]
-                score = float(line_split[1])
-                if score < 0.0 or score > 1.0:
-                    raise CustomException(
-                        f'Contig {ctg_id} has score {score} not in [0,1]'
-                    )
-                else:
-                    pls_scores_dict[ctg_id] = score
-    except Exception as e:
-        process_exception(f'Reading plasmid score file {in_pls_score_file}: {e}')
-    else:
-        return pls_scores_dict
+    pls_scores_dict = {}
+    with open(in_pls_score_file) as in_file:
+        for score_line in in_file.readlines():
+            line = score_line.rstrip()
+            line_split = line.split('\t')
+            check_num_fields(line_split, 2)
+            ctg_id = line_split[0]
+            score = float(line_split[1])
+            check_number_range(score, (0.0,1.0))
+            pls_scores_dict[ctg_id] = score
+    return pls_scores_dict
 
 def read_ctgs_data(
     in_gfa_file, in_pls_score_file,
@@ -103,24 +101,25 @@ def read_ctgs_data(
     def _update_ctgs_dictionary(ctgs_data_dict, add_field_dict, add_key):
         for ctg_id,ctg_value in add_field_dict.items():
             ctgs_data_dict[ctg_id][add_key] = ctg_value
-        
+
     ctgs_data_dict = defaultdict(dict)
     ctgs_len_dict = read_GFA_len(in_gfa_file, gzipped=gfa_gzipped)
-    _update_ctgs_dictionary(ctgs_data_dict, ctgs_len_dict, LEN_KEY)
     ctgs_cov_dict = read_GFA_normalized_coverage(
         in_gfa_file, gzipped=gfa_gzipped,
         cov_key=ASSEMBLER_COV_TAG[assembler]
     )
+    _update_ctgs_dictionary(ctgs_data_dict, ctgs_len_dict, LEN_KEY)
     _update_ctgs_dictionary(ctgs_data_dict, ctgs_cov_dict, COV_KEY)
+        
     ctgs_score_dict = read_pls_score_file(in_pls_score_file)
     _update_ctgs_dictionary(ctgs_data_dict, ctgs_score_dict, SCORE_KEY)
-    # Data checking
-    compare_lists(
-        ctgs_len_dict.keys(),
+        
+    check_lists(
+        ctgs_data_dict.keys(),
         ctgs_score_dict.keys(),
-        'Inconsistent contigs sets',
-        f'Reading {in_gfa_file} and {in_pls_score_file}'
+        msg=f'{in_gfa_file} {in_pls_score_file} have inconsistent contig sets'
     )
+
     return ctgs_data_dict
     
 def get_seeds(ctgs_data_dict, seed_len, seed_score,):
@@ -143,7 +142,7 @@ def get_seeds(ctgs_data_dict, seed_len, seed_score,):
             seeds.add(ctg_id)
     return seeds
 
-def read_gc_data(gc_probabilities_file, gc_intervals_file):
+def read_gc_data(gc_probabilities_file, gc_intervals_file, gfa_ctgs_list):
     """
     Reads the GC probabilities and intervals
     Computes the GC objective penalty for all contigs of a sample
@@ -151,6 +150,7 @@ def read_gc_data(gc_probabilities_file, gc_intervals_file):
         gc_probabilities_file (str): path to GC probabilities file
         gc_intervals_file (str/None): path to GC intervals file
            if None, default intervals are used
+        gfa_ctgs_list (List(str)) List of contig ids from GFA file
     Returns
         Dictionary contig id -> 
           Dictionary: interval string (str): GC probability for this interval
@@ -158,26 +158,16 @@ def read_gc_data(gc_probabilities_file, gc_intervals_file):
           Dictionary: interval string (str): objective penalty for this interval
           Penalty = GC probability - max(GC probabilities for the contig)
     """
-    if gc_intervals_file is not None:
-        gc_intervals_boundaries = read_gc_intervals_file(gc_intervals_file)
-    else:
-        gc_intervals_boundaries = DEFAULT_GC_INTERVALS
+    gc_intervals_boundaries = (
+        DEFAULT_GC_INTERVALS if gc_intervals_file is None 
+        else read_gc_intervals_file(gc_intervals_file)
+    )
     intervals_str_list = intervals_boundaries_to_str(gc_intervals_boundaries)
+    num_intervals = len(intervals_str_list)
 
-    __gc_probs_dict = read_gc_probabilities_file(gc_probabilities_file)
-    try:
-        num_intervals = len(intervals_str_list)
-        num_gc_prob = len(next(iter(__gc_probs_dict.values())))
-        if num_intervals != num_gc_prob:
-            raise CustomException(
-                f'# GC intervals {num_intervals} != # GC probabilities {num_gc_prob}'
-            )
-    except Exception as e:
-        e_intervals = 'Default' if gc_intervals is None else str(gc_intervals_file)
-        process_exception(
-            f'Reading GC intervals ({e_intervals}) and GC probabilities ({gc_probabilities_file}): {e}'
-        )
-        
+    __gc_probs_dict = read_gc_probabilities_file(
+        gc_probabilities_file, num_intervals
+    )
     gc_probs_dict,gc_pens_dict = {},{}
     for ctg_id,ctg_gc_probs in __gc_probs_dict.items():
         gc_probs_dict[ctg_id] = {
@@ -189,6 +179,13 @@ def read_gc_data(gc_probabilities_file, gc_intervals_file):
             int_str: ctg_gc_prob - max_ctg_gc_prob
             for int_str,ctg_gc_prob in gc_probs_dict[ctg_id].items()
         }
+        
+    check_lists(
+        gfa_ctgs_list,
+        gc_probs_dict.keys(),
+        msg=f'GFA file and {gc_probabilities_file} have inconsistent contig sets'
+    )
+
     return gc_probs_dict,gc_pens_dict
 
 def read_links_data(in_gfa_file, gfa_gzipped=True):
@@ -198,7 +195,9 @@ def read_links_data(in_gfa_file, gfa_gzipped=True):
         - in_gfa_file (str): path to a GFA file
         - gfa_gzipped (bool): True if GFA file gzipped
     Returns:
-        - List((ctg1 (str),{DEFAULT_HEAD_STR,DEFAULT_TAIL_STR}),(ctg2 (str),{DEFAULT_HEAD_STR,DEFAULT_TAIL_STR})): list of edges
+        - List(
+            (ctg1 (str),{DEFAULT_HEAD_STR,DEFAULT_TAIL_STR}),
+            (ctg2 (str),{DEFAULT_HEAD_STR,DEFAULT_TAIL_STR})): list of edges
     """
     ctg_from_ext = {'+': DEFAULT_HEAD_STR, '-': DEFAULT_TAIL_STR}
     ctg_to_ext = {'+': DEFAULT_TAIL_STR, '-': DEFAULT_HEAD_STR}    
@@ -209,9 +208,14 @@ def read_links_data(in_gfa_file, gfa_gzipped=True):
     )
     for ctg_id,ctg_links_from_list in __links_dict.items():
         for link in ctg_links_from_list:
-            ctg_from_id,ctg_to_id = ctg_id,link[GFA_TO_KEY]
-            ext_from = (ctg_from_id,ctg_from_ext[link[GFA_FROM_ORIENT_KEY]])
-            ext_to = (ctg_to_id,ctg_to_ext[link[GFA_TO_ORIENT_KEY]])
+            ext_from = (
+                ctg_id,
+                ctg_from_ext[link[GFA_FROM_ORIENT_KEY]]
+            )
+            ext_to = (
+                link[GFA_TO_KEY],
+                ctg_to_ext[link[GFA_TO_ORIENT_KEY]]
+            )
             links_list.append((ext_from,ext_to))
     return links_list
 
@@ -248,13 +252,15 @@ def log_data(ctgs_data_dict, links_list, in_gfa_file, in_pls_score_file):
     ctgs_list = ctgs_data_dict.keys()
     num_ctgs = len(ctgs_list)
     num_links = sum([len(links) for links in links_list])
-    logging.info(f'DATA\tFile {in_gfa_file} contains {num_ctgs} contigs and {num_links} edges')
+    logging.info(
+        f'DATA\tFile {in_gfa_file} contains {num_ctgs} contigs and {num_links} edges'
+    )
     cov_list = [ctgs_data_dict[ctg_id][COV_KEY] for ctg_id in ctgs_list]
-    min_cov,max_cov = min(cov_list),max(cov_list)
-    logging.info(f'DATA\tFile {in_gfa_file} minimum coverage {min_cov} maximum coverage {max_cov}')
+    logging.info(
+        f'DATA\tFile {in_gfa_file} minimum coverage {min(cov_list)} maximum coverage {max(cov_list)}'
+    )
     score_list = [ctgs_data_dict[ctg_id][SCORE_KEY] for ctg_id in ctgs_list]
-    max_pls_score = max(score_list)
-    logging.info(f'DATA\tFile {in_pls_score_file} maximum plasmid score {max_pls_score}')
+    logging.info(f'DATA\tFile {in_pls_score_file} maximum plasmid score {max(score_list)}')
     num_seeds = len(
         [ctg_id for ctg_id in ctgs_list if ctgs_data_dict[ctg_id][SEED_KEY]]
     )

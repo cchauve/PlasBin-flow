@@ -9,16 +9,18 @@ from mappings_utils import (
     filter_blast_outfmt6
 )
 from log_errors_utils import (
-    process_exception
+    process_exception,
+    check_number_range,
+    check_num_fields
 )
 
 GD_INTERVALS_KEY = 'intervals'
 GD_DENSITY_KEY = 'gd'
 
 def compute_gene_density(
-        gfa_file, mappings_file,
-        pid_threshold, cov_threshold,
-        gfa_gzipped=True
+    gfa_file, mappings_file,
+    pid_threshold, cov_threshold,
+    gfa_gzipped=True
 ):
     """
     Computes gene density and covering intervals for all contigs
@@ -70,7 +72,7 @@ def compute_gene_density(
         intervals_union = _get_union(sorted_intervals)
         ctg_gd = _compute_gd(
             intervals_union, ctg_len[ctg_id]
-        )      
+        )
         ctg_gd_dict[ctg_id] = {
             GD_DENSITY_KEY: ctg_gd,
             GD_INTERVALS_KEY: intervals_union
@@ -139,13 +141,13 @@ def compute_gene_density_file(
     )
     _write_gene_density_file(ctg_gd_dict, gd_out_file)
 
-def read_gene_density_file(gd_file, read_intervals=True):
+def read_gene_density_file(gd_file, read_intervals=False):
     """
     Reads a gene density file
 
     Args:
         - gd_file (str): path to the gene density file in format 
-         <contig id><TAB><gene density><TAB><space separated intervals <gene id>:<start>:<end>
+         <contig id><TAB><gene density>[OPTIONAL<TAB><space separated intervals <gene id>:<start>:<end>>]
         - read_intervals (bool): if False, does not read covering intervals
 
     Returns:
@@ -153,21 +155,30 @@ def read_gene_density_file(gd_file, read_intervals=True):
         - else: (Dictionary) contig id -> gene density (float)
     """
     ctg_gd_dict = {}
-    try:
-        with open(gd_file, 'r') as in_file:
-            for ctg_line in in_file.readlines():
-                ctg_data = ctg_line.rstrip().split('\t')
-                ctg_id = ctg_data[0]
-                ctg_gd = float(ctg_data[1])
-                if read_intervals:
-                    ctg_intervals = _read_intervals(ctg_data[2])
-                    ctg_gd_dict[ctg_id] = {
-                        GD_DENSITY_KEY: ctg_gd,
-                        GD_INTERVALS_KEY: ctg_intervals
-                    }
-                else:
-                    ctg_gd_dict[ctg_id] = ctg_gd
-    except Exception as e:
-        process_exception(f'Reading gene density file {gd_file}: {e}')
-    else:
-        return ctg_gd_dict
+    with open(gd_file, 'r') as in_file:
+        for ctg_line in in_file.readlines():
+            line = ctg_line.rstrip()
+            ctg_data = line.rstrip().split('\t')
+            check_num_fields(
+                ctg_data, 2,
+                msg=f'GD\t{gd_file} {line}'
+            )
+            ctg_id = ctg_data[0]
+            ctg_gd = float(ctg_data[1])
+            check_number_range(
+                ctg_gd, (0.0,1.0),
+                msg=f'GD\t{gd_file} {line}'
+            )
+            if read_intervals:
+                check_num_fields(
+                    ctg_data, 3,
+                    msg=f'GD\t{gd_file} {line}'
+                )
+                ctg_intervals = _read_intervals(ctg_data[2])
+                ctg_gd_dict[ctg_id] = {
+                    GD_DENSITY_KEY: ctg_gd,
+                    GD_INTERVALS_KEY: ctg_intervals
+                }
+            else:
+                ctg_gd_dict[ctg_id] = ctg_gd
+    return ctg_gd_dict
