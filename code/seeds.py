@@ -16,7 +16,7 @@ from ground_truth import (
     GT_CTG_KEY
 )
 
-from get_data import (
+from data_utils import (
     read_pls_score_file
 )
 

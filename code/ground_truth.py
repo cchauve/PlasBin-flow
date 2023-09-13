@@ -8,6 +8,10 @@ from mappings_utils import (
     filter_blast_outfmt6
 )
 
+from log_errors_utils import (
+    process_exception
+)
+
 GT_PLS_KEY = 'plasmid'
 GT_CTG_KEY = 'contig'
 GT_COV_KEY = 'contig_coverage'
@@ -71,20 +75,18 @@ def _write_ground_truth_file(true_positive_dict, ctg_len, pls_len, ground_truth_
         process_exception(f'Writing ground truth file {ground_truth_file}: {e}')
 
 def read_ground_truth_file(ground_truth_file):
-    try:
-        return pd.read_csv(
-            ground_truth_file,
-            sep='\t',
-            names=GT_COL_NAMES,
-            dtype=GT_COL_TYPES
-        )
-    except Exception as e:
-        process_exception(f'Reading ground truth file {ground_truth_file}: {e}')
+    return pd.read_csv(
+        ground_truth_file,
+        sep='\t',
+        names=GT_COL_NAMES,
+        dtype=GT_COL_TYPES
+    )
 
 def compute_ground_truth_file(
         sample, pls_mappings_file,
         ctg_len, pls_len, pid_threshold, cov_threshold,
-        ground_truth_file):
+        ground_truth_file
+):
     """
     Computes the ground truth file for a sample
 
