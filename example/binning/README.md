@@ -69,9 +69,7 @@ but samples could be processed on a HPC system, using for example the
 array feature of the SLURM scheduler.
 
 The output of the binning command are the files
-```
-binning_output/SAMEA12292472-skesa.pred.txt
-binning_output/SAMEA12292472-unicycler.pred.txt
-```
+[binning_output/SAMEA12292472-skesa.pred.txt](binning_output/SAMEA12292472-skesa.pred.txt) and
+[binning_output/SAMEA12292472-unicycler.pred.txt](binning_output/SAMEA12292472-unicycler.pred.txt)
 that each contains the predicted bins for the input
 assembly graph.
