@@ -173,8 +173,7 @@ if __name__ == "__main__":
     #Naming and creating output files
     #output_folder = output_dir + '/' + ratios
     output_folder = output_dir
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
+    create_directory([output_folder])
         
     output_bins = open(os.path.join(output_folder, output_file), "w")
     
