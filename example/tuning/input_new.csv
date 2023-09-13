@@ -1,0 +1,4 @@
+sample,gfa,chr_fasta,pls_fasta
+DRR065947,data/DRR065947.gfa.gz,data/DRR065947.chr.fasta.gz,data/DRR065947.pls.fasta.gz
+SRR3222213,data/SRR3222213.gfa.gz,data/SRR3222213.chr.fasta.gz,data/SRR3222213.pls.fasta.gz
+SRR3682071,data/SRR3682071.gfa.gz,data/SRR3682071.chr.fasta.gz,data/SRR3682071.pls.fasta.gz

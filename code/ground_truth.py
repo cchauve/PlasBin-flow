@@ -1,4 +1,4 @@
-''' Functions to manipulate ground truth files '''
+""" Functions to manipulate ground truth files """
 
 import pandas as pd
 
@@ -6,6 +6,10 @@ from mappings_utils import (
     read_blast_outfmt6_file,
     compute_blast_qs_intervals,
     filter_blast_outfmt6
+)
+
+from log_errors_utils import (
+    process_exception
 )
 
 GT_PLS_KEY = 'plasmid'
@@ -23,7 +27,7 @@ GT_COL_TYPES = {
 }
 
 def compute_ground_truth(pls_intervals, ctg_len, cov_threshold):
-    '''
+    """
     Computes ground truth dictionary
 
     Args:
@@ -37,11 +41,11 @@ def compute_ground_truth(pls_intervals, ctg_len, cov_threshold):
     Returns:
         (Dictionary): (plasmid id, contig id) -> contig coverage by hits with plasmid
                       for true positive pairs (plasmid id, contig id)
-    '''
+    """
     def _num_covered_positions(intervals):
-        ''' 
+        """ 
         Computes the number of positions of a contig covered by a list of intervals 
-        '''
+        """
         num_pos_covered,last_pos_covered = 0,0
         for qstart,qend,_,_ in intervals:
             if qend > last_pos_covered:
@@ -71,21 +75,19 @@ def _write_ground_truth_file(true_positive_dict, ctg_len, pls_len, ground_truth_
         process_exception(f'Writing ground truth file {ground_truth_file}: {e}')
 
 def read_ground_truth_file(ground_truth_file):
-    try:
-        return pd.read_csv(
-            ground_truth_file,
-            sep='\t',
-            names=GT_COL_NAMES,
-            dtype=GT_COL_TYPES
-        )
-    except Exception as e:
-        process_exception(f'Reading ground truth file {ground_truth_file}: {e}')
+    return pd.read_csv(
+        ground_truth_file,
+        sep='\t',
+        names=GT_COL_NAMES,
+        dtype=GT_COL_TYPES
+    )
 
 def compute_ground_truth_file(
         sample, pls_mappings_file,
         ctg_len, pls_len, pid_threshold, cov_threshold,
-        ground_truth_file):
-    '''
+        ground_truth_file
+):
+    """
     Computes the ground truth file for a sample
 
     Args:
@@ -99,7 +101,7 @@ def compute_ground_truth_file(
 
     Returns:
       None, creates the file _ground_truth_file(out_dir, sample)
-    '''
+    """
     pls_mappings_df = read_blast_outfmt6_file(
         pls_mappings_file, order_coordinates=True
     )
