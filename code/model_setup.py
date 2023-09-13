@@ -3,7 +3,9 @@ from data_utils import (
     DEFAULT_HEAD_STR,
     DEFAULT_TAIL_STR,
     DEFAULT_SOURCE,
-    DEFAULT_SINK
+    DEFAULT_SINK,
+    COV_KEY,
+    SEED_KEY
 )
 
 #-----------------------------------------------------------	
@@ -29,9 +31,9 @@ def link_vars(m, links_list, links, contigs):
         t_ext = (c, DEFAULT_TAIL_STR)
 
         links[(DEFAULT_SOURCE,h_ext)] = m.addVar(vtype=GRB.BINARY, name='link-S-to-'+c+'-h')
-        links[(h_ext,DEFAULT_TAIL_STR)] = m.addVar(vtype=GRB.BINARY, name='link-'+c+'-h-to-T')
+        links[(h_ext,DEFAULT_SINK)] = m.addVar(vtype=GRB.BINARY, name='link-'+c+'-h-to-T')
         links[(DEFAULT_SOURCE,t_ext)] = m.addVar(vtype=GRB.BINARY, name='link-S-to-'+c+'-t')
-        links[(t_ext,DEFAULT_TAIL_STR)] = m.addVar(vtype=GRB.BINARY, name='link-'+c+'-t-to-T')
+        links[(t_ext,DEFAULT_SINK)] = m.addVar(vtype=GRB.BINARY, name='link-'+c+'-t-to-T')
     return links
 
 #TODO
@@ -80,7 +82,6 @@ def link_inclusion_constr(m, links, contigs, constraint_count):
 	return m, constraint_count
 
 def extr_inclusion_constr(m, links, contigs, extr_dict, constraint_count):
-    M = 100	#Big-M bound constant
     for c in contigs:
         x1, x2 = (c, DEFAULT_HEAD_STR), (c, DEFAULT_TAIL_STR)
         expr = LinExpr()
@@ -93,14 +94,16 @@ def extr_inclusion_constr(m, links, contigs, extr_dict, constraint_count):
                 expr.addTerms(1, links[link])
         m.addConstr(contigs[c] <= expr, "extr_ubd-"+str(c)+'-by-expr')
         m.addConstr(contigs[c] <= 1, "extr_ubd-"+str(c)+'-by-1')
-        m.addConstr(contigs[c] >= expr/link_count, "extr_lbd-"+str(c)+'-by-expr')
-        constraint_count += 3
+        constraint_count += 2
+        if link_count > 0:
+            m.addConstr(contigs[c] >= expr/link_count, "extr_lbd-"+str(c)+'-by-expr')
+            constraint_count += 1
     return m, constraint_count
 
 def seed_inclusion_constr(m, contigs, contigs_dict, constraint_count):
     seed_expr = LinExpr()
     for c in contigs:
-        seed_expr.addTerms(contigs_dict[c]['Seed'], contigs[c])
+        seed_expr.addTerms(contigs_dict[c][SEED_KEY], contigs[c])
     m.addConstr(seed_expr >= 1, "at-least-one-seed")
     constraint_count += 1
     return m, constraint_count
@@ -149,7 +152,7 @@ def flow_conservation_constraints(m, links, contigs, flows, incoming, outgoing, 
 
         m.addConstr(hin_flow == tout_flow, "contig-"+c+"-flow-conservation-h2t")
         m.addConstr(tin_flow == hout_flow, "contig-"+c+"-flow-conservation-t2h")
-        m.addConstr(hin_flow + tin_flow <= contigs_dict[c]['Read_depth'], "cap-"+c)
+        m.addConstr(hin_flow + tin_flow <= contigs_dict[c][COV_KEY], "cap-"+c)
         constraint_count += 3
 
     for e in links:

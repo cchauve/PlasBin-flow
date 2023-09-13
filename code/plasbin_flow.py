@@ -128,7 +128,7 @@ if __name__ == "__main__":
     check_number_range(
         seed_score, (0.0,1.0),
         msg='INPUT\tParameter "-seed_score", {seed_score}: '
-    ) 
+    )
     check_number_range(
         min_pls_len, (0.0,None),
         msg='INPUT\tParameter "-min_pls_len", {min_pls_len}: '
@@ -169,15 +169,6 @@ if __name__ == "__main__":
     log_data(
         contigs_dict, links_list, assembly_file, score_file
     )
-    
-    # contigs_dict = {}   #Key: contig IDs, Values: Contig attributes (provided as or derived from input)
-    # links_list = []     #List of unordered links: Each link is a pair of extrmeities (e.g. (('1',DEFAULT_HEAD_STR),('2',DEFAULT_TAIL_STR)))
-    # gc_probs = {}       #Key: contigs IDs, Values: Probability for each GC bin
-    # gc_pens = {}		#Key: contigs IDs, Values: Penalty for each GC bin
-    # capacities = {}     #Key: 
-    # contigs_dict, links_list = get_data.get_ag_details(assembly_file, contigs_dict, links_list)
-    # contigs_dict = get_data.get_gene_coverage(mapping_file, contigs_dict)
-    # gc_probs, gc_pens = get_data.get_gc_probs(gc_file, gc_probs, gc_pens)
 
     #Naming and creating output files
     #output_folder = output_dir + '/' + ratios
@@ -190,22 +181,23 @@ if __name__ == "__main__":
     #score_filename = 'MILP_objective.csv'
     #var_vals = 'var_values.txt'
 
+    #-----------------------------------------------
+    #Main program
+    
     #Dictionary for storing bins
     #Key = Plasmid id, Value = Dictionary of attributes
     #Flow (float), GC bin id, List of contigs with multiplicities
     pbf_bins = {}
     n_iter = 0
-    
-    #-----------------------------------------------
-    #Main program
 
     n_comp = 0
     while len(seeds_set) > 0:
         #For consistency, both extremities for a contig should be part of exactly the same number of links in a plasmid.
         #For each extremity, we make a list of links that involve the extremity.
         extr_dict = {}	#Key: Extremity (e.g. ('1',DEFAULT_HEAD_STR)), Value: List of unordered links incident on extremity
-	#List of incoming and outgoing edges for each extremity
-	#Including links from S and links to T
+
+        #List of incoming and outgoing edges for each extremity
+        #Including links from S and links to T
         incoming, outgoing = {}, {}   #Key: Extremity, Value: List of ordered links in/out of extremity
 
         UBD_rd, LBD_rd = 0, 100
@@ -230,281 +222,272 @@ if __name__ == "__main__":
                 if link[0] == ext2 or link[1] == ext2:
                     extr_dict[ext2].append(link)
                     extr_dict[ext2].append(link[::-1])
+            
+        for link in links_list:
+            ext1, ext2 = link[0], link[1]
+            incoming[ext1].append(link[::-1])
+            outgoing[ext1].append(link)
+            incoming[ext2].append(link)
+            outgoing[ext2].append(link[::-1])	
+            
 
-            for link in links_list:
-                ext1, ext2 = link[0], link[1]
-                incoming[ext1].append(link[::-1])
-                outgoing[ext1].append(link)
-                incoming[ext2].append(link)
-                outgoing[ext2].append(link[::-1])		
+        capacities = get_capacities(links_list, contigs_dict)
 
-            capacities = get_capacities(links_list, contigs_dict)
+        #-----------------------------------------------
+	#Initializing the ILP
+        m = Model("Plasmids")
+        m.params.LogFile= os.path.join(output_folder,'m.log')
+        m.setParam(GRB.Param.TimeLimit, gurobi_time_limit)
+        m.setParam(GRB.Param.MIPGap, gurobi_mip_gap)
 
-            #-----------------------------------------------
-	    #Initializing the ILP
-            m = Model("Plasmids")
-            m.params.LogFile= os.path.join(output_folder,'m.log')
-            m.setParam(GRB.Param.TimeLimit, gurobi_time_limit)
-            m.setParam(GRB.Param.MIPGap, gurobi_mip_gap)
+	#Initializing variables
+        contigs = {}	#Key: Contig (e.g. '1'), Value: Gurobi binary variable
+        contigs = model_setup.contig_vars(m, contigs_dict, contigs)
 
-	    #Initializing variables
-            contigs = {}	#Key: Contig (e.g. '1'), Value: Gurobi binary variable
-            contigs = model_setup.contig_vars(m, contigs_dict, contigs)
-
-            links = {}		#Key: Directed link from one extremity to another
+        links = {}		#Key: Directed link from one extremity to another
             #(e.g. (('1',DEFAULT_HEAD_STR),('2',DEFAULT_TAIL_STR)) ), Value: Gurobi binary variable
-            links = model_setup.link_vars(m, links_list, links, contigs)
+        links = model_setup.link_vars(m, links_list, links, contigs)
 
-            plas_GC = {}	#Key: GC bin, Value: Gurobi binary variable
-            contig_GC = {}	#Nested Dict: Key: Contig, Value: Dict of GC bins (Key: GC bin, Value: Gurobi binary variable)
-            plas_GC, contig_GC = model_setup.GC_vars(m, gc_probs, plas_GC, contig_GC)
+        plas_GC = {}	#Key: GC bin, Value: Gurobi binary variable
+        contig_GC = {}	#Nested Dict: Key: Contig, Value: Dict of GC bins (Key: GC bin, Value: Gurobi binary variable)
+        plas_GC, contig_GC = model_setup.GC_vars(m, gc_probs, plas_GC, contig_GC)
 
-            flows = {}		#Key: Directed link, Value: Gurobi continuous variable
-            counted_F = {}	#Key: Directed link, Value: Gurobi continuous variable
-            flows, counted_F = model_setup.flow_vars(m, links, flows, counted_F)
-            F = m.addVar(vtype=GRB.CONTINUOUS, name='overall-flow')	
+        flows = {}		#Key: Directed link, Value: Gurobi continuous variable
+        counted_F = {}	#Key: Directed link, Value: Gurobi continuous variable
+        flows, counted_F = model_setup.flow_vars(m, links, flows, counted_F)
+        F = m.addVar(vtype=GRB.CONTINUOUS, name='overall-flow')	
 
-            #-----------------------------------------------
-	    #Setting up the expression for the objective function
-            expr = LinExpr()
-            # alpha1, alpha2, alpha3 = float(alpha1), float(alpha2), float(alpha3)
+        #-----------------------------------------------
+	#Setting up the expression for the objective function
+        expr = LinExpr()
 
-            expr.addTerms(alpha1, F)
-            for c in contigs:
-                for b in plas_GC:
-                    expr.addTerms(alpha2*(gc_pens[c][b]), contig_GC[c][b])
-                expr.addTerms(alpha3*(contigs_dict[c][SCORE_KEY] - p), contigs[c])
-            m.setObjective(expr, GRB.MAXIMIZE)
+        expr.addTerms(alpha1, F)
+        for c in contigs:
+            for b in plas_GC:
+                expr.addTerms(alpha2*(gc_pens[c][b]), contig_GC[c][b])
+            expr.addTerms(alpha3*(contigs_dict[c][SCORE_KEY] - p), contigs[c])
+        m.setObjective(expr, GRB.MAXIMIZE)
 
-            #-----------------------------------------------
-	    #Setting up constraints
+        #-----------------------------------------------
+	#Setting up constraints
 
-            constraint_count = 0
-	    #Constraint type 1
-	    #A link 'e' is in the plasmid only if both its endpoints are in the plasmid.
-            m, constraint_count = model_setup.link_inclusion_constr(m, links, contigs, constraint_count)
+        constraint_count = 0
+        
+	#Constraint type 1
+	#A link 'e' is in the plasmid only if both its endpoints are in the plasmid.
+        m, constraint_count = model_setup.link_inclusion_constr(m, links, contigs, constraint_count)
 
-	    #Constraint type 2
-	    #An extremity is in the plasmid only if at least one link is incident on it.
-            m, constraint_count = model_setup.extr_inclusion_constr(m, links, contigs, extr_dict, constraint_count)
+	#Constraint type 2
+	#An extremity is in the plasmid only if at least one link is incident on it.
+        m, constraint_count = model_setup.extr_inclusion_constr(m, links, contigs, extr_dict, constraint_count)
 
-	    #Constraint type 3
-	    #A contig is considered to be a ”counted” seed if it is eligible to be a seed contig
-	    #and is considered to be part of the solution
-            m, constraint_count = model_setup.seed_inclusion_constr(m, contigs, contigs_dict, constraint_count)
+	#Constraint type 3
+	#A contig is considered to be a ”counted” seed if it is eligible to be a seed contig
+	#and is considered to be part of the solution
+        m, constraint_count = model_setup.seed_inclusion_constr(m, contigs, contigs_dict, constraint_count)
 
-	    #Constraint type 4
-	    #'F' should equal the flow out of SOURCE and into SINK. 
-	    #Exactly one edge exits SOURCE and exactly one enters SINK.
-            m, constraint_count = model_setup.min_flow_constr(m, links, flows, F, LBD_rd, constraint_count)
+	#Constraint type 4
+	#'F' should equal the flow out of SOURCE and into SINK. 
+	#Exactly one edge exits SOURCE and exactly one enters SINK.
+        m, constraint_count = model_setup.min_flow_constr(m, links, flows, F, LBD_rd, constraint_count)
 
-	    #Constraint types 5 and 6
-	    #6. Conservation constraints
-	    #	Flow into ('u',DEFAULT_HEAD_STR) (resp. ('u',DEFAULT_TAIL_STR) ) should be equal to flow out of ('u',DEFAULT_TAIL_STR) (resp. ('u',DEFAULT_HEAD_STR) ).
-	    #7. Capacity constraints
-	    #	The maximum flow into a vertex should be at most the capacity (read depth) of the vertex itself.
-	    #	The maximum flow through an edge has to be at most the capacity (capacities[e]) of the edge.
-            m, constraint_count = model_setup.flow_conservation_constraints(m, links, contigs, flows, incoming, outgoing, capacities, contigs_dict, constraint_count)
+	#Constraint types 5 and 6
+	#6. Conservation constraints
+	#	Flow into ('u',DEFAULT_HEAD_STR) (resp. ('u',DEFAULT_TAIL_STR) ) should be equal to flow out of ('u',DEFAULT_TAIL_STR) (resp. ('u',DEFAULT_HEAD_STR) ).
+	#7. Capacity constraints
+	#	The maximum flow into a vertex should be at most the capacity (read depth) of the vertex itself.
+	#	The maximum flow through an edge has to be at most the capacity (capacities[e]) of the edge.
+        m, constraint_count = model_setup.flow_conservation_constraints(m, links, contigs, flows, incoming, outgoing, capacities, contigs_dict, constraint_count)
 
-	    #Constraint types 7 and 8
-	    #8. The overall flow 'F' through link 'e' is ”counted” only if 'e' is part of the solution.
-	    #9. The overall flow 'F' cannot exceed the flow through any active link 'e'.
-            m, constraint_count = model_setup.counted_flow_constr(m, links, flows, counted_F, F, UBD_rd, constraint_count)
+	#Constraint types 7 and 8
+	#8. The overall flow 'F' through link 'e' is ”counted” only if 'e' is part of the solution.
+	#9. The overall flow 'F' cannot exceed the flow through any active link 'e'.
+        m, constraint_count = model_setup.counted_flow_constr(m, links, flows, counted_F, F, UBD_rd, constraint_count)
 
-	    #Constraint type 9
-	    #Handling the GC-content term in the objective function
-            m, constraint_count = model_setup.GC_constr(m, contig_GC, plas_GC, contigs, constraint_count)
+	#Constraint type 9
+	#Handling the GC-content term in the objective function
+        m, constraint_count = model_setup.GC_constr(m, contig_GC, plas_GC, contigs, constraint_count)
 
-            extra_comps = 1	#default
-            iter_count = 0
-            dc_count = 0
-            dc_dict = {}
-            while extra_comps >= 1 and iter_count <= rmiter:
-		#Running the MILP
-                start = time.time()
-                m.optimize()
-                stop = time.time()
-                duration = stop - start
-                logging.info(f'MILP\tIteration {iter_count}: {duration}')
+        extra_comps = 1	#default
+        iter_count = 0
+        dc_count = 0
+        dc_dict = {}
+        while extra_comps >= 1 and iter_count <= rmiter:
+	    #Running the MILP
+            start = time.time()
+            m.optimize()
+            stop = time.time()
+            duration = stop - start
+            logging.info(f'MILP\tIteration {iter_count}: {duration}')
 
-                iter_count += 1
+            iter_count += 1
 
-		#Message if solution not obtained
-                if m.status == GRB.Status.INFEASIBLE:
-                    logging.warning(f'MILP\tThe model cannot be solved because it is infeasible')
-                elif m.status == GRB.Status.UNBOUNDED:
-                    logging.warning(f'MILP\tThe model cannot be solved because it is unbounded')
-                elif m.status == GRB.Status.INF_OR_UNBD:
-                    logging.warning(f'MILP\tThe model cannot be solved because it is infeasible or unbounded ')
+	    #Message if solution not obtained
+            if m.status == GRB.Status.INFEASIBLE:
+                logging.warning(f'MILP\tThe model cannot be solved because it is infeasible')
+            elif m.status == GRB.Status.UNBOUNDED:
+                logging.warning(f'MILP\tThe model cannot be solved because it is unbounded')
+            elif m.status == GRB.Status.INF_OR_UNBD:
+                logging.warning(f'MILP\tThe model cannot be solved because it is infeasible or unbounded ')
 
-		#Storing Irreducible Inconsistent Subsystem in case solution is not obtained
-                if m.status == GRB.Status.INF_OR_UNBD or m.status == GRB.Status.INFEASIBLE:
-                    print(f'MILP\tStoring Irreducible Inconsistent Subsystem in m.ilp')
-                    m.computeIIS()
-                    m.write("m.ilp")
-                    for con in m.getConstrs():
-                        if con.IISConstr:
-                            print(f'{con.constrName}')
-                    exit(1)
+	    #Storing Irreducible Inconsistent Subsystem in case solution is not obtained
+            if m.status == GRB.Status.INF_OR_UNBD or m.status == GRB.Status.INFEASIBLE:
+                print(f'MILP\tStoring Irreducible Inconsistent Subsystem in m.ilp')
+                m.computeIIS()
+                m.write("m.ilp")
+                for con in m.getConstrs():
+                    if con.IISConstr:
+                        print(f'{con.constrName}')
+                exit(1)
 
-                print("Solution:\n")
-                m.printAttr('x')
+            print("Solution:\n")
+            m.printAttr('x')
 
-		#Flow zero condition
-                if F.x == 0:
-                    exit(1)			
+	    #Flow zero condition
+            if F.x == 0:
+                exit(1)			
 
-		#Finding components in the solution
-                G = nx.DiGraph()
-                for c in contigs:
-                    if contigs[c].x > 0:
-                        G.add_node(c)
-                    G.add_node(SOURCE)
-                    G.add_node(SINK)
-
-                for e in links:
-                    if links[e].x > 0:
-                        end1, end2 = e[0], e[1]
-                        if end1 == SOURCE:
-                            c1 = SOURCE
-                            ext1 = None
-                        else:
-                            c1 = end1[0]
-                            ext1 = end1[1]
-                        if end2 == SINK:
-                            c2 = SINK
-                            ext2 = None
-                        else:
-                            c2 = end2[0]
-                            ext2 = end2[1]
-                        G.add_edge(c1,c2)
-                        nx.set_edge_attributes(G, {(c1, c2): {"extremities": (ext1, ext2)}})
-                conn_comps = nx.weakly_connected_components(G)
-
-		#components_file = open(os.path.join(output_folder, components), "a")
-                comp_count = 0
-                for comp in conn_comps:
-                    comp_count += 1
-                    comp_len = 0
-                    for node in comp:
-                        if node != SOURCE and node != SINK:
-                            comp_len += contigs_dict[node][LEN_KEY]
-                    if SOURCE in comp:
-                        ST_comp = G.subgraph(comp)
-                        print("Edges:",ST_comp.edges())
-                        for edge in ST_comp.edges:
-                            print(nx.get_edge_attributes(G,'extremities')[edge])
-                    else:
-                        disconn_comp = G.subgraph(comp)
-                        #Muting individual edges
-                        for edge in disconn_comp.edges:
-                            exts = nx.get_edge_attributes(G,'extremities')[edge]
-                            e = ((edge[0],exts[0]),(edge[1],exts[1]))
-                            m.addConstr(links[e] == 0, "muted_edge-"+str(e))	
-
-		#Condition to stop iterating. 
-		#If number of connected components is 1, there are no extra components, thus breaking the while loop.
-                extra_comps = comp_count - 1			
-
-	    #Plasmid bin obtained for the iteration.
-	    #Out of while loop to remove extra circular components. 
-	    #Proceeding to output
-
-	    #Retrieving plasmid bin
-	    #output_fasta_file = open(os.path.join(output_folder, output_fasta), "a")
-	    #score_file = open(os.path.join(output_folder, score_filename), "a")
-	    #contigs_file = open(os.path.join(output_folder, output_contigs), "a")
-	    #components_file = open(os.path.join(output_folder, components), "a")
-
-	    #Recording variable values (mainly for debugging purposes)
-            plasmid_length = 0
-
-	    #Recording the plasmid bin if the plasmid is long enough
+	    #Finding components in the solution
+            G = nx.DiGraph()
             for c in contigs:
                 if contigs[c].x > 0:
-                    plasmid_length += contigs_dict[c][LEN_KEY]
-
-            if plasmid_length >= min_pls_len:
-		#Recording objective function scores
-                GC_sum = 0
-                gd_sum = 0
-                for c in contigs:
-                    gc_c_sum = 0
-                    for b in contig_GC[c]:
-                        GC_sum += alpha2*(gc_pens[c][b])*contig_GC[c][b].x
-                        gc_c_sum += alpha2*(gc_pens[c][b])*contig_GC[c][b].x
-                    gd_sum += alpha3*(contigs_dict[c][SCORE_KEY]-0.5)*contigs[c].x
-                    lr_gd = (contigs_dict[c][SCORE_KEY]-0.5)*contigs[c].x
-
-		#Recording components in the solution
-                G = nx.DiGraph()
-                for c in contigs:
-                    if contigs[c].x > 0:
-                        G.add_node(c)
+                    G.add_node(c)
                 G.add_node(SOURCE)
                 G.add_node(SINK)
 
-                for e in links:
-                    if links[e].x > 0:
-                        end1, end2 = e[0], e[1]
-                        if end1 == SOURCE:
-                            c1 = SOURCE
-                            ext1 = None
-                        else:
-                            c1 = end1[0]
-                            ext1 = end1[1]
-                        if end2 == SINK:
-                            c2 = SINK
-                            ext2 = None
-                        else:
-                            c2 = end2[0]
-                            ext2 = end2[1]
-                        #print(c1, c2)
-                        G.add_edge(c1,c2)
-                        nx.set_edge_attributes(G, {(c1, c2): {"extremities": (ext1, ext2)}})
-                conn_comps = nx.weakly_connected_components(G)
+            for e in links:
+                if links[e].x > 0:
+                    end1, end2 = e[0], e[1]
+                    if end1 == SOURCE:
+                        c1 = SOURCE
+                        ext1 = None
+                    else:
+                        c1 = end1[0]
+                        ext1 = end1[1]
+                    if end2 == SINK:
+                        c2 = SINK
+                        ext2 = None
+                    else:
+                        c2 = end2[0]
+                        ext2 = end2[1]
+                    G.add_edge(c1,c2)
+                    nx.set_edge_attributes(G, {(c1, c2): {"extremities": (ext1, ext2)}})
+            conn_comps = nx.weakly_connected_components(G)
 
-		#components_file = open(os.path.join(output_folder, components), "a")
-                GC_bin = 0
-                for b in plas_GC:
-                    if plas_GC[b].x == 1:
-                        GC_bin = b
+	    #components_file = open(os.path.join(output_folder, components), "a")
+            comp_count = 0
+            for comp in conn_comps:
+                comp_count += 1
+                comp_len = 0                    
+                for node in comp:
+                    if node != SOURCE and node != SINK:
+                        comp_len += contigs_dict[node][LEN_KEY]
+                if SOURCE in comp:
+                    ST_comp = G.subgraph(comp)
+                    print("Edges:",ST_comp.edges())
+                    for edge in ST_comp.edges:
+                        print(nx.get_edge_attributes(G,'extremities')[edge])
+                else:
+                    disconn_comp = G.subgraph(comp)
+                    #Muting individual edges
+                    for edge in disconn_comp.edges:
+                        exts = nx.get_edge_attributes(G,'extremities')[edge]
+                        e = ((edge[0],exts[0]),(edge[1],exts[1]))
+                        m.addConstr(links[e] == 0, "muted_edge-"+str(e))	
 
-                comp_count = 0
-                for comp in conn_comps:
-                    n_iter += 1
-                    pbf_bins[n_iter] = {'Flow': F.x, 'GC_bin': GC_bin, 'Contigs': {}}
-                    comp_count += 1
-                    comp_len = 0
-                    for node in comp:
-                        if node != SOURCE and node != SINK:
-                            if node not in pbf_bins[n_iter]['Contigs']:
-                                pbf_bins[n_iter]['Contigs'][node] = 0
+	    #Condition to stop iterating. 
+	    #If number of connected components is 1, there are no extra components, thus breaking the while loop.
+            extra_comps = comp_count - 1			
 
-	    #Updating assembly graph and formulation
-            for e in flows:
-                if e[1] != SINK:
-                    c = e[1][0]
-                    contigs_dict[c][COV_KEY] = max(0, contigs_dict[c][COV_KEY] - flows[e].x)
-                    if c in pbf_bins[n_iter]['Contigs']:
-                        pbf_bins[n_iter]['Contigs'][c] += round(flows[e].x / F.x, 2)
+	#Recording variable values (mainly for debugging purposes)
+        plasmid_length = 0
 
+	#Recording the plasmid bin if the plasmid is long enough
+        for c in contigs:
+            if contigs[c].x > 0:
+                plasmid_length += contigs_dict[c][LEN_KEY]
+
+        if plasmid_length >= min_pls_len:
+	    #Recording objective function scores
+            GC_sum = 0
+            gd_sum = 0
+            for c in contigs:
+                gc_c_sum = 0
+                for b in contig_GC[c]:
+                    GC_sum += alpha2*(gc_pens[c][b])*contig_GC[c][b].x
+                    gc_c_sum += alpha2*(gc_pens[c][b])*contig_GC[c][b].x
+                gd_sum += alpha3*(contigs_dict[c][SCORE_KEY]-0.5)*contigs[c].x
+                lr_gd = (contigs_dict[c][SCORE_KEY]-0.5)*contigs[c].x
+
+	    #Recording components in the solution
+            G = nx.DiGraph()
             for c in contigs:
                 if contigs[c].x > 0:
-                    if c in seeds_set and contigs_dict[c][COV_KEY] <= 0.5:
-                        contigs_dict[c][SEED_KEY] = 0
-                        seeds_set.remove(c)
+                    G.add_node(c)
+            G.add_node(SOURCE)
+            G.add_node(SINK)
 
-                    if contigs_dict[c][COV_KEY] <= 0.05:
-                        del(contigs_dict[c])
-                        del(gc_probs[c])
-                        del(gc_pens[c])
+            for e in links:
+                if links[e].x > 0:
+                    end1, end2 = e[0], e[1]
+                    if end1 == SOURCE:
+                        c1 = SOURCE
+                        ext1 = None
+                    else:
+                        c1 = end1[0]
+                        ext1 = end1[1]
+                    if end2 == SINK:
+                        c2 = SINK
+                        ext2 = None
+                    else:
+                        c2 = end2[0]
+                        ext2 = end2[1]
 
-                        temp_list = []
-                        for e in links_list:
-                            if (c, DEFAULT_HEAD_STR) not in e and (c, DEFAULT_TAIL_STR) not in e:
-                                temp_list.append(e)
-                        links_list = temp_list	
+                    G.add_edge(c1,c2)
+                    nx.set_edge_attributes(G, {(c1, c2): {"extremities": (ext1, ext2)}})
+            conn_comps = nx.weakly_connected_components(G)
+
+	    #components_file = open(os.path.join(output_folder, components), "a")
+            GC_bin = 0
+            for b in plas_GC:
+                if plas_GC[b].x == 1:
+                    GC_bin = b
+
+            comp_count = 0
+            for comp in conn_comps:
+                n_iter += 1
+                pbf_bins[n_iter] = {'Flow': F.x, 'GC_bin': GC_bin, 'Contigs': {}}
+                comp_count += 1
+                comp_len = 0
+                for node in comp:
+                    if node != SOURCE and node != SINK:
+                        if node not in pbf_bins[n_iter]['Contigs']:
+                            pbf_bins[n_iter]['Contigs'][node] = 0
+
+	#Updating assembly graph and formulation
+        for e in flows:
+            if e[1] != SINK:
+                c = e[1][0]
+                contigs_dict[c][COV_KEY] = max(0, contigs_dict[c][COV_KEY] - flows[e].x)
+                if c in pbf_bins[n_iter]['Contigs']:
+                    pbf_bins[n_iter]['Contigs'][c] += round(flows[e].x / F.x, 2)
+
+        for c in contigs:
+            if contigs[c].x > 0:
+                if c in seeds_set and contigs_dict[c][COV_KEY] <= 0.5:
+                    contigs_dict[c][SEED_KEY] = 0
+                    seeds_set.remove(c)
+
+                if contigs_dict[c][COV_KEY] <= 0.05:
+                    del(contigs_dict[c])
+                    del(gc_probs[c])
+                    del(gc_pens[c])
+
+                    temp_list = []
+                    for e in links_list:
+                        if (c, DEFAULT_HEAD_STR) not in e and (c, DEFAULT_TAIL_STR) not in e:
+                            temp_list.append(e)
+                    links_list = temp_list	
 
 
     output_bins.write('#Pls_ID\tFlow\tGC_bin\t\tContigs\n')
