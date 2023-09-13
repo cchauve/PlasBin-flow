@@ -1,4 +1,4 @@
-# Preprocessing samples for PlasBin-flow
+# Preprocessing and processing samples for PlasBin-flow
 
 The file `input.csv` contains an example (composed of two
 assemblies of a *Pseudomonas aeruginosa* sample, one Unicycler
