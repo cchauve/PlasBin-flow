@@ -82,7 +82,6 @@ def link_inclusion_constr(m, links, contigs, constraint_count):
 	return m, constraint_count
 
 def extr_inclusion_constr(m, links, contigs, extr_dict, constraint_count):
-    M = 100	#Big-M bound constant
     for c in contigs:
         x1, x2 = (c, DEFAULT_HEAD_STR), (c, DEFAULT_TAIL_STR)
         expr = LinExpr()
@@ -95,8 +94,10 @@ def extr_inclusion_constr(m, links, contigs, extr_dict, constraint_count):
                 expr.addTerms(1, links[link])
         m.addConstr(contigs[c] <= expr, "extr_ubd-"+str(c)+'-by-expr')
         m.addConstr(contigs[c] <= 1, "extr_ubd-"+str(c)+'-by-1')
-        m.addConstr(contigs[c] >= expr/link_count, "extr_lbd-"+str(c)+'-by-expr')
-        constraint_count += 3
+        constraint_count += 2
+        if link_count > 0:
+            m.addConstr(contigs[c] >= expr/link_count, "extr_lbd-"+str(c)+'-by-expr')
+            constraint_count += 1
     return m, constraint_count
 
 def seed_inclusion_constr(m, contigs, contigs_dict, constraint_count):
