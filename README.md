@@ -103,6 +103,16 @@ The plasmid score of a contig can be obtained using a plasmid contig
 classifier, such as <a
 href="https://github.com/cchauve/plASgraph2">plASgraph2</a>.
 
+As some plasmid contigs classifiers do not provide a score, or provide
+an unreliable score, for short contigs, PlasBin-flow handles such cases
+as follow:
+- contigs present in the GFA file but not in the plasmid scores
+  file: such contigs receive a default plasmid score (optional parameter
+  `default_pls_score`, default value: 0.5).;
+- for short contigs (defined as contigs of length strictly below the
+  optional parameter `min_ctg_len` (default value 0)) receive the default
+  plasmid score (as above).
+
 Alternatively, PlasBin-flow can compute this plasmid score using
 the notion of *plasmid gene density*, described in the PlasBin-flow
 paper (See section Preprocessing below).
@@ -184,6 +194,8 @@ optimization model of PlasBin-flow:
 -alpha3            Weight of plasmid score term of the objective function. (float, default: 1)
 -p                 Plasmid score offset (float in [0,1], default: 0.5)
 -min_pls_len       Minimum plasmid length (integer, default: 1500); plasmid bins of smaller length are not reported
+-default_pls_score Default plasmid score for short contigs or contigs not present in the the plasmid score file (float, default: 0.5)
+-min_ctg_len       Contigs of length below min_ctg_len receive plasmid score default_pls_score (int, default: 0)
 -gurobi_mip_gap    MIPGap parameter of Gurobi (optimality gap, float, default value: 0.05)
 -gurobi_time_limit Time limit after which Gurobi stops (integer, default: 2400)
 ```
