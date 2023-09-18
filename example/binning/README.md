@@ -150,6 +150,8 @@ The output of the binning command for each sample are the files
 `binning_output/<sample>.<tool>.pred.txt` where `tool` is in
 `[gene_density,PlasClass,plASgraph,RFPlasmid]`.  The results are
 generally quite different illustrating the impact of the method chosen
-to compute the plasmid score.
+to compute the plasmid score. Note however that this example aims at
+illustrating how to use PlasBin-flow and the experiment have not been
+optimized (e.g. through specific *Pseudomonas* tuning) for accuracy.
 
 
