@@ -196,7 +196,9 @@ if __name__ == "__main__":
     # Reading and checking data
     contigs_dict = read_ctgs_data(
         assembly_file, score_file,
-        assembler=assembler, gfa_gzipped=True
+        assembler=assembler, gfa_gzipped=True,
+        default_pls_score=default_pls_score,
+        min_ctg_len=min_ctg_len
     )
     seeds_set = get_seeds(
         contigs_dict,
