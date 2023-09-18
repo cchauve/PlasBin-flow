@@ -82,8 +82,8 @@ the three classification tools), we generate 4 different plasmid bins
 file per sample. Moreover, to account for the unreliability of plasmid
 scores for short contigs, we assign the default plasmid score (0.5) to
 all contigs of length shorter than 100bp (parameter `-min_ctg_len
-100`), a time limit for Gurobi of 10 minutes (parameter
-`-gurobi_time_limit 600`) and an upper bound of at most 20 iterations
+100`), a time limit for Gurobi of 5 minutes (parameter
+`-gurobi_time_limit 300`) and an upper bound of at most 20 iterations
 of Gurobi to exclude circular components (parameter `rmiter_max 20`);
 this parameters choice is intended to illustrate their use,
 although we recommend to use the default values unless Gurobi
@@ -132,7 +132,7 @@ do
 	       -log_file binning_${SAMPLE}.${SCORE_SOURCE}.log \
 	       -assembler ${ASSEMBLER} \
 	       -min_ctg_len 100 \
-	       -gurobi_time_limit 600 \
+	       -gurobi_time_limit 300 \
 	       -rmiter_max 20
     done
 
