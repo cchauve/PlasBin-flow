@@ -136,8 +136,8 @@ do
     done
 
     # Renaming the plasmid bins file and log file obtained with gene density for plasmid score
-    mv ${SAMPLE}.pls_score.pred.txt ${SAMPLE}.gene_density.pred.txt
-    mv ${SAMPLE}.pls_score.log ${SAMPLE}.gene_density.log
+    mv ${OUT_DIR}/${SAMPLE}.pls_score.pred.txt ${OUT_DIR}/${SAMPLE}.gene_density.pred.txt
+    mv ${OUT_DIR}/${SAMPLE}.pls_score.log ${OUT_DIR}/${SAMPLE}.gene_density.log
 done
 ```
 

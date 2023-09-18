@@ -1,0 +1,619 @@
+root - INFO - DATA	File data/SAMEA12292472-unicycler.gfa.gz contains 407 contigs and 1036 edges
+root - INFO - DATA	File data/SAMEA12292472-unicycler.gfa.gz minimum coverage 0.409751768726019 maximum coverage 54.39724425435728
+root - INFO - DATA	File data/SAMEA12292472-unicycler.RFPlasmid.pls_score.csv maximum plasmid score 0.8422
+root - INFO - DATA	File data/SAMEA12292472-unicycler.gfa.gz has 10 seed(s)
+root - INFO - Number of vertices: 407
+root - INFO - Number of edges: 518
+gurobipy.gurobipy - INFO - Using license file /cvmfs/restricted.computecanada.ca/config/licenses/gurobi/clusters/cedar.lic
+gurobipy.gurobipy - INFO - Set parameter TokenServer to value license1.computecanada.ca
+gurobipy.gurobipy - INFO - Changed value of parameter LogFile to binning_output/m.log
+gurobipy.gurobipy - INFO -    Prev:   Default: 
+gurobipy.gurobipy - INFO - Changed value of parameter TimeLimit to 300.0
+gurobipy.gurobipy - INFO -    Prev: inf  Min: 0.0  Max: inf  Default: inf
+gurobipy.gurobipy - INFO - Changed value of parameter MIPGap to 0.05
+gurobipy.gurobipy - INFO -    Prev: 0.0001  Min: 0.0  Max: inf  Default: 0.0001
+gurobipy.gurobipy - INFO - Gurobi Optimizer version 9.1.2 build v9.1.2rc0 (linux64)
+gurobipy.gurobipy - INFO - Thread count: 32 physical cores, 32 logical processors, using up to 32 threads
+gurobipy.gurobipy - INFO - Optimize a model with 29417 rows, 10848 columns and 68942 nonzeros
+gurobipy.gurobipy - INFO - Model fingerprint: 0x8d8869a8
+gurobipy.gurobipy - INFO - Variable types: 5329 continuous, 5519 integer (5519 binary)
+gurobipy.gurobipy - INFO - Coefficient statistics:
+gurobipy.gurobipy - INFO -   Matrix range     [2e-03, 5e+01]
+gurobipy.gurobipy - INFO -   Objective range  [2e-16, 1e+00]
+gurobipy.gurobipy - INFO -   Bounds range     [1e+00, 1e+00]
+gurobipy.gurobipy - INFO -   RHS range        [4e-01, 5e+01]
+gurobipy.gurobipy - INFO - Presolve removed 7858 rows and 1780 columns
+gurobipy.gurobipy - INFO - Presolve time: 1.44s
+gurobipy.gurobipy - INFO - Presolved: 21559 rows, 9068 columns, 100831 nonzeros
+gurobipy.gurobipy - INFO - Variable types: 4230 continuous, 4838 integer (4838 binary)
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Root relaxation: objective 4.010227e+00, 490 iterations, 0.21 seconds
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO -     Nodes    |    Current Node    |     Objective Bounds      |     Work
+gurobipy.gurobipy - INFO -  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO -      0     0    3.58559    0   63          -    3.58559      -     -    4s
+gurobipy.gurobipy - INFO - H    0     0                       0.8280003    3.58559   333%     -    4s
+gurobipy.gurobipy - INFO - H    0     0                       1.8176305    3.58559  97.3%     -    4s
+gurobipy.gurobipy - INFO -      0     0    3.28634    0  112    1.81763    3.28634  80.8%     -    7s
+gurobipy.gurobipy - INFO -      0     0    3.28634    0   70    1.81763    3.28634  80.8%     -   28s
+gurobipy.gurobipy - INFO - H    0     0                       2.2895784    3.28634  43.5%     -   29s
+gurobipy.gurobipy - INFO - H    0     0                       2.2907784    3.28634  43.5%     -   29s
+gurobipy.gurobipy - INFO -      0     0    2.77282    0  118    2.29078    2.77282  21.0%     -   53s
+gurobipy.gurobipy - INFO -      0     0    2.72270    0  135    2.29078    2.72270  18.9%     -   55s
+gurobipy.gurobipy - INFO -      0     0    2.63010    0  100    2.29078    2.63010  14.8%     -   92s
+gurobipy.gurobipy - INFO -      0     0    2.63010    0  162    2.29078    2.63010  14.8%     -  110s
+gurobipy.gurobipy - INFO -      0     0    2.63010    0  130    2.29078    2.63010  14.8%     -  115s
+gurobipy.gurobipy - INFO -      0     0    2.57643    0   88    2.29078    2.57643  12.5%     -  115s
+gurobipy.gurobipy - INFO -      0     0    2.57274    0  107    2.29078    2.57274  12.3%     -  115s
+gurobipy.gurobipy - INFO -      0     0    2.57217    0  109    2.29078    2.57217  12.3%     -  116s
+gurobipy.gurobipy - INFO -      0     0    2.57208    0  111    2.29078    2.57208  12.3%     -  116s
+gurobipy.gurobipy - INFO -      0     0    2.48869    0  137    2.29078    2.48869  8.64%     -  118s
+gurobipy.gurobipy - INFO -      0     0    2.48869    0   92    2.29078    2.48869  8.64%     -  133s
+gurobipy.gurobipy - INFO -      0     0    2.43575    0   84    2.29078    2.43575  6.33%     -  134s
+gurobipy.gurobipy - INFO -      0     0    2.42306    0   96    2.29078    2.42306  5.77%     -  134s
+gurobipy.gurobipy - INFO -      0     0    2.40769    0  114    2.29078    2.40769  5.10%     -  135s
+gurobipy.gurobipy - INFO -      0     0    2.40769    0   58    2.29078    2.40769  5.10%     -  146s
+gurobipy.gurobipy - INFO -      0     0    2.33922    0   54    2.29078    2.33922  2.11%     -  149s
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Cutting planes:
+gurobipy.gurobipy - INFO -   Gomory: 19
+gurobipy.gurobipy - INFO -   Cover: 14
+gurobipy.gurobipy - INFO -   Implied bound: 36
+gurobipy.gurobipy - INFO -   Clique: 5
+gurobipy.gurobipy - INFO -   MIR: 15
+gurobipy.gurobipy - INFO -   Flow cover: 19
+gurobipy.gurobipy - INFO -   Flow path: 1
+gurobipy.gurobipy - INFO -   Zero half: 19
+gurobipy.gurobipy - INFO -   Network: 4
+gurobipy.gurobipy - INFO -   RLT: 19
+gurobipy.gurobipy - INFO -   Relax-and-lift: 53
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Explored 1 nodes (8806 simplex iterations) in 149.40 seconds
+gurobipy.gurobipy - INFO - Thread count was 32 (of 32 available processors)
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Solution count 4: 2.29078 2.28958 1.81763 0.828 
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Optimal solution found (tolerance 5.00e-02)
+gurobipy.gurobipy - INFO - Best objective 2.290778404420e+00, best bound 2.339219255824e+00, gap 2.1146%
+root - INFO - MILP	Iteration 0: 149.64290618896484
+root - INFO - Solution:
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO -     Variable            x 
+gurobipy.gurobipy - INFO - -------------------------
+gurobipy.gurobipy - INFO -   contig-103            1 
+gurobipy.gurobipy - INFO -   contig-122            1 
+gurobipy.gurobipy - INFO -   contig-185            1 
+gurobipy.gurobipy - INFO - link-122t185t            1 
+gurobipy.gurobipy - INFO - link-103t122h            1 
+gurobipy.gurobipy - INFO - link-S-to-103-h            1 
+gurobipy.gurobipy - INFO - link-185-h-to-T            1 
+gurobipy.gurobipy - INFO - plasmid-GC-bin-0.5-0.55            1 
+gurobipy.gurobipy - INFO - contig-103-GC-bin-0.5-0.55            1 
+gurobipy.gurobipy - INFO - contig-122-GC-bin-0.5-0.55            1 
+gurobipy.gurobipy - INFO - contig-185-GC-bin-0.5-0.55            1 
+gurobipy.gurobipy - INFO - flow_edge-('122', 't')-to-('185', 't')      1.82158 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-('122', 't')-to-('185', 't')      1.82158 
+gurobipy.gurobipy - INFO - flow_edge-('103', 't')-to-('122', 'h')      1.82158 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-('103', 't')-to-('122', 'h')      1.82158 
+gurobipy.gurobipy - INFO - flow_edge-S-to-('103', 'h')      1.82158 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-S-to-('103', 'h')      1.82158 
+gurobipy.gurobipy - INFO - flow_edge-('185', 'h')-to-T      1.82158 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-('185', 'h')-to-T      1.82158 
+gurobipy.gurobipy - INFO - overall-flow      1.82158 
+root - INFO - None
+root - INFO - Number of vertices: 406
+root - INFO - Number of edges: 514
+gurobipy.gurobipy - INFO - Changed value of parameter LogFile to binning_output/m.log
+gurobipy.gurobipy - INFO -    Prev:   Default: 
+gurobipy.gurobipy - INFO - Changed value of parameter TimeLimit to 300.0
+gurobipy.gurobipy - INFO -    Prev: inf  Min: 0.0  Max: inf  Default: inf
+gurobipy.gurobipy - INFO - Changed value of parameter MIPGap to 0.05
+gurobipy.gurobipy - INFO -    Prev: 0.0001  Min: 0.0  Max: inf  Default: 0.0001
+gurobipy.gurobipy - INFO - Gurobi Optimizer version 9.1.2 build v9.1.2rc0 (linux64)
+gurobipy.gurobipy - INFO - Thread count: 32 physical cores, 32 logical processors, using up to 32 threads
+gurobipy.gurobipy - INFO - Optimize a model with 29301 rows, 10805 columns and 68629 nonzeros
+gurobipy.gurobipy - INFO - Model fingerprint: 0xb0109f3f
+gurobipy.gurobipy - INFO - Variable types: 5305 continuous, 5500 integer (5500 binary)
+gurobipy.gurobipy - INFO - Coefficient statistics:
+gurobipy.gurobipy - INFO -   Matrix range     [2e-03, 5e+01]
+gurobipy.gurobipy - INFO -   Objective range  [2e-16, 1e+00]
+gurobipy.gurobipy - INFO -   Bounds range     [1e+00, 1e+00]
+gurobipy.gurobipy - INFO -   RHS range        [1e-01, 5e+01]
+gurobipy.gurobipy - INFO - Found heuristic solution: objective 0.3176711
+gurobipy.gurobipy - INFO - Presolve removed 7761 rows and 1776 columns
+gurobipy.gurobipy - INFO - Presolve time: 1.13s
+gurobipy.gurobipy - INFO - Presolved: 21540 rows, 9029 columns, 96547 nonzeros
+gurobipy.gurobipy - INFO - Variable types: 4200 continuous, 4829 integer (4829 binary)
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Root relaxation: objective 3.285618e+00, 623 iterations, 0.11 seconds
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO -     Nodes    |    Current Node    |     Objective Bounds      |     Work
+gurobipy.gurobipy - INFO -  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO -      0     0    3.28562    0   66    0.31767    3.28562   934%     -    3s
+gurobipy.gurobipy - INFO - H    0     0                       1.8810159    3.28562  74.7%     -    3s
+gurobipy.gurobipy - INFO -      0     0    2.83228    0  177    1.88102    2.83228  50.6%     -    7s
+gurobipy.gurobipy - INFO - H    0     0                       1.8884321    2.83228  50.0%     -    8s
+gurobipy.gurobipy - INFO -      0     0    2.83068    0  174    1.88843    2.83068  49.9%     -    8s
+gurobipy.gurobipy - INFO -      0     0    2.58924    0  209    1.88843    2.58924  37.1%     -   10s
+gurobipy.gurobipy - INFO -      0     0    2.58924    0   54    1.88843    2.58924  37.1%     -   32s
+gurobipy.gurobipy - INFO -      0     0    2.58924    0   87    1.88843    2.58924  37.1%     -   34s
+gurobipy.gurobipy - INFO -      0     0    2.45698    0  123    1.88843    2.45698  30.1%     -   35s
+gurobipy.gurobipy - INFO -      0     0    2.42974    0  124    1.88843    2.42974  28.7%     -   36s
+gurobipy.gurobipy - INFO -      0     0    2.28668    0  138    1.88843    2.28668  21.1%     -   38s
+gurobipy.gurobipy - INFO -      0     0    2.27409    0  137    1.88843    2.27409  20.4%     -   38s
+gurobipy.gurobipy - INFO -      0     0    2.27055    0  132    1.88843    2.27055  20.2%     -   38s
+gurobipy.gurobipy - INFO -      0     0    2.27029    0  136    1.88843    2.27029  20.2%     -   39s
+gurobipy.gurobipy - INFO -      0     0    2.27029    0  137    1.88843    2.27029  20.2%     -   39s
+gurobipy.gurobipy - INFO -      0     0    2.04208    0   77    1.88843    2.04208  8.14%     -   41s
+gurobipy.gurobipy - INFO -      0     0    2.04208    0   59    1.88843    2.04208  8.14%     -   56s
+gurobipy.gurobipy - INFO - *    0     0               0       1.8884321    1.88843  0.00%     -   56s
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Cutting planes:
+gurobipy.gurobipy - INFO -   Gomory: 27
+gurobipy.gurobipy - INFO -   Cover: 14
+gurobipy.gurobipy - INFO -   Implied bound: 63
+gurobipy.gurobipy - INFO -   Clique: 5
+gurobipy.gurobipy - INFO -   MIR: 13
+gurobipy.gurobipy - INFO -   StrongCG: 1
+gurobipy.gurobipy - INFO -   Flow cover: 22
+gurobipy.gurobipy - INFO -   Zero half: 8
+gurobipy.gurobipy - INFO -   Network: 3
+gurobipy.gurobipy - INFO -   RLT: 28
+gurobipy.gurobipy - INFO -   Relax-and-lift: 58
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Explored 1 nodes (4584 simplex iterations) in 57.01 seconds
+gurobipy.gurobipy - INFO - Thread count was 32 (of 32 available processors)
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Solution count 3: 1.88843 1.88102 0.317671 
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Optimal solution found (tolerance 5.00e-02)
+gurobipy.gurobipy - INFO - Best objective 1.888432064535e+00, best bound 1.888432069091e+00, gap 0.0000%
+root - INFO - MILP	Iteration 1: 57.05600881576538
+root - INFO - Solution:
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO -     Variable            x 
+gurobipy.gurobipy - INFO - -------------------------
+gurobipy.gurobipy - INFO -   contig-111            1 
+gurobipy.gurobipy - INFO -   contig-156            1 
+gurobipy.gurobipy - INFO - link-111t156t            1 
+gurobipy.gurobipy - INFO - link-S-to-111-h            1 
+gurobipy.gurobipy - INFO - link-156-h-to-T            1 
+gurobipy.gurobipy - INFO - plasmid-GC-bin-0.55-0.6            1 
+gurobipy.gurobipy - INFO - contig-111-GC-bin-0.55-0.6            1 
+gurobipy.gurobipy - INFO - contig-156-GC-bin-0.55-0.6            1 
+gurobipy.gurobipy - INFO - flow_edge-('111', 't')-to-('156', 't')      1.79302 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-('111', 't')-to-('156', 't')      1.79302 
+gurobipy.gurobipy - INFO - flow_edge-S-to-('111', 'h')      1.79302 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-S-to-('111', 'h')      1.79302 
+gurobipy.gurobipy - INFO - flow_edge-('156', 'h')-to-T      1.79302 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-('156', 'h')-to-T      1.79302 
+gurobipy.gurobipy - INFO - overall-flow      1.79302 
+root - INFO - None
+root - INFO - Number of vertices: 405
+root - INFO - Number of edges: 512
+gurobipy.gurobipy - INFO - Changed value of parameter LogFile to binning_output/m.log
+gurobipy.gurobipy - INFO -    Prev:   Default: 
+gurobipy.gurobipy - INFO - Changed value of parameter TimeLimit to 300.0
+gurobipy.gurobipy - INFO -    Prev: inf  Min: 0.0  Max: inf  Default: inf
+gurobipy.gurobipy - INFO - Changed value of parameter MIPGap to 0.05
+gurobipy.gurobipy - INFO -    Prev: 0.0001  Min: 0.0  Max: inf  Default: 0.0001
+gurobipy.gurobipy - INFO - Gurobi Optimizer version 9.1.2 build v9.1.2rc0 (linux64)
+gurobipy.gurobipy - INFO - Thread count: 32 physical cores, 32 logical processors, using up to 32 threads
+gurobipy.gurobipy - INFO - Optimize a model with 29217 rows, 10774 columns and 68417 nonzeros
+gurobipy.gurobipy - INFO - Model fingerprint: 0x5adc8f66
+gurobipy.gurobipy - INFO - Variable types: 5289 continuous, 5485 integer (5485 binary)
+gurobipy.gurobipy - INFO - Coefficient statistics:
+gurobipy.gurobipy - INFO -   Matrix range     [2e-03, 5e+01]
+gurobipy.gurobipy - INFO -   Objective range  [2e-16, 1e+00]
+gurobipy.gurobipy - INFO -   Bounds range     [1e+00, 1e+00]
+gurobipy.gurobipy - INFO -   RHS range        [1e-01, 5e+01]
+gurobipy.gurobipy - INFO - Presolve removed 7752 rows and 1778 columns
+gurobipy.gurobipy - INFO - Presolve time: 1.11s
+gurobipy.gurobipy - INFO - Presolved: 21465 rows, 8996 columns, 96247 nonzeros
+gurobipy.gurobipy - INFO - Variable types: 4184 continuous, 4812 integer (4812 binary)
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Root relaxation: objective 2.708590e+00, 1837 iterations, 0.32 seconds
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO -     Nodes    |    Current Node    |     Objective Bounds      |     Work
+gurobipy.gurobipy - INFO -  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO -      0     0    2.70859    0   63          -    2.70859      -     -    3s
+gurobipy.gurobipy - INFO - H    0     0                       0.2394711    2.70859  1031%     -    4s
+gurobipy.gurobipy - INFO - H    0     0                       0.2540605    2.70859   966%     -    5s
+gurobipy.gurobipy - INFO - H    0     0                       0.4004646    2.70859   576%     -    5s
+gurobipy.gurobipy - INFO - H    0     0                       1.4254226    2.70859  90.0%     -    5s
+gurobipy.gurobipy - INFO -      0     0    2.33691    0   98    1.42542    2.33691  63.9%     -    7s
+gurobipy.gurobipy - INFO - H    0     0                       1.5099959    2.33691  54.8%     -    9s
+gurobipy.gurobipy - INFO -      0     0    2.33691    0   98    1.51000    2.33691  54.8%     -    9s
+gurobipy.gurobipy - INFO -      0     0    2.23284    0  182    1.51000    2.23284  47.9%     -   11s
+gurobipy.gurobipy - INFO -      0     0    2.23284    0   80    1.51000    2.23284  47.9%     -   32s
+gurobipy.gurobipy - INFO -      0     0    2.14704    0  119    1.51000    2.14704  42.2%     -   43s
+gurobipy.gurobipy - INFO -      0     0    2.07918    0   84    1.51000    2.07918  37.7%     -   44s
+gurobipy.gurobipy - INFO -      0     0    1.98017    0  174    1.51000    1.98017  31.1%     -   46s
+gurobipy.gurobipy - INFO -      0     0    1.97080    0  139    1.51000    1.97080  30.5%     -   46s
+gurobipy.gurobipy - INFO -      0     0    1.71385    0   39    1.51000    1.71385  13.5%     -   49s
+gurobipy.gurobipy - INFO -      0     0    1.71385    0  104    1.51000    1.71385  13.5%     -   65s
+gurobipy.gurobipy - INFO -      0     0    1.71385    0   44    1.51000    1.71385  13.5%     -   65s
+gurobipy.gurobipy - INFO -      0     0    1.71134    0   94    1.51000    1.71134  13.3%     -   66s
+gurobipy.gurobipy - INFO -      0     0    1.70731    0   94    1.51000    1.70731  13.1%     -   66s
+gurobipy.gurobipy - INFO -      0     0    1.70722    0   93    1.51000    1.70722  13.1%     -   66s
+gurobipy.gurobipy - INFO -      0     0    1.65121    0   71    1.51000    1.65121  9.35%     -   67s
+gurobipy.gurobipy - INFO -      0     0    1.64931    0   62    1.51000    1.64931  9.23%     -   67s
+gurobipy.gurobipy - INFO -      0     0    1.64848    0   72    1.51000    1.64848  9.17%     -   67s
+gurobipy.gurobipy - INFO -      0     0    1.64846    0   74    1.51000    1.64846  9.17%     -   67s
+gurobipy.gurobipy - INFO -      0     0    1.62449    0   78    1.51000    1.62449  7.58%     -   68s
+gurobipy.gurobipy - INFO -      0     0    1.62449    0   70    1.51000    1.62449  7.58%     -   75s
+gurobipy.gurobipy - INFO -      0     0    1.62033    0   53    1.51000    1.62033  7.31%     -   78s
+gurobipy.gurobipy - INFO -      0     0    1.61401    0   51    1.51000    1.61401  6.89%     -   78s
+gurobipy.gurobipy - INFO -      0     0    1.61396    0   51    1.51000    1.61396  6.89%     -   79s
+gurobipy.gurobipy - INFO -      0     0    1.61086    0   68    1.51000    1.61086  6.68%     -   80s
+gurobipy.gurobipy - INFO -      0     0    1.61086    0   64    1.51000    1.61086  6.68%     -   84s
+gurobipy.gurobipy - INFO -      0     0    1.60454    0   55    1.51000    1.60454  6.26%     -   86s
+gurobipy.gurobipy - INFO -      0     0    1.60152    0   57    1.51000    1.60152  6.06%     -   86s
+gurobipy.gurobipy - INFO -      0     0    1.60019    0   60    1.51000    1.60019  5.97%     -   87s
+gurobipy.gurobipy - INFO -      0     0    1.59987    0   61    1.51000    1.59987  5.95%     -   87s
+gurobipy.gurobipy - INFO -      0     0    1.59975    0   61    1.51000    1.59975  5.94%     -   87s
+gurobipy.gurobipy - INFO -      0     0    1.57683    0   65    1.51000    1.57683  4.43%     -   88s
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Cutting planes:
+gurobipy.gurobipy - INFO -   Learned: 1
+gurobipy.gurobipy - INFO -   Gomory: 7
+gurobipy.gurobipy - INFO -   Cover: 10
+gurobipy.gurobipy - INFO -   Implied bound: 29
+gurobipy.gurobipy - INFO -   Clique: 8
+gurobipy.gurobipy - INFO -   MIR: 14
+gurobipy.gurobipy - INFO -   Flow cover: 13
+gurobipy.gurobipy - INFO -   Network: 2
+gurobipy.gurobipy - INFO -   RLT: 22
+gurobipy.gurobipy - INFO -   Relax-and-lift: 1
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Explored 1 nodes (8583 simplex iterations) in 88.38 seconds
+gurobipy.gurobipy - INFO - Thread count was 32 (of 32 available processors)
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Solution count 5: 1.51 1.42542 0.400465 ... 0.239471
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Optimal solution found (tolerance 5.00e-02)
+gurobipy.gurobipy - INFO - Best objective 1.509995852503e+00, best bound 1.576827653345e+00, gap 4.4260%
+root - INFO - MILP	Iteration 2: 88.4664397239685
+root - INFO - Solution:
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO -     Variable            x 
+gurobipy.gurobipy - INFO - -------------------------
+gurobipy.gurobipy - INFO -    contig-89            1 
+gurobipy.gurobipy - INFO -    contig-92            1 
+gurobipy.gurobipy - INFO -   contig-156            1 
+gurobipy.gurobipy - INFO -   contig-317            1 
+gurobipy.gurobipy - INFO - link-317t156h            1 
+gurobipy.gurobipy - INFO - link-156t89t            1 
+gurobipy.gurobipy - INFO - link-92t317h            1 
+gurobipy.gurobipy - INFO - link-89-h-to-T            1 
+gurobipy.gurobipy - INFO - link-S-to-92-h            1 
+gurobipy.gurobipy - INFO - plasmid-GC-bin-0.55-0.6            1 
+gurobipy.gurobipy - INFO - contig-89-GC-bin-0.55-0.6            1 
+gurobipy.gurobipy - INFO - contig-92-GC-bin-0.55-0.6            1 
+gurobipy.gurobipy - INFO - contig-156-GC-bin-0.55-0.6            1 
+gurobipy.gurobipy - INFO - contig-317-GC-bin-0.55-0.6            1 
+gurobipy.gurobipy - INFO - flow_edge-('317', 't')-to-('156', 'h')      1.12844 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-('317', 't')-to-('156', 'h')      1.12844 
+gurobipy.gurobipy - INFO - flow_edge-('156', 't')-to-('89', 't')      1.12844 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-('156', 't')-to-('89', 't')      1.12844 
+gurobipy.gurobipy - INFO - flow_edge-('92', 't')-to-('317', 'h')      1.12844 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-('92', 't')-to-('317', 'h')      1.12844 
+gurobipy.gurobipy - INFO - flow_edge-('89', 'h')-to-T      1.12844 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-('89', 'h')-to-T      1.12844 
+gurobipy.gurobipy - INFO - flow_edge-S-to-('92', 'h')      1.12844 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-S-to-('92', 'h')      1.12844 
+gurobipy.gurobipy - INFO - overall-flow      1.12844 
+root - INFO - None
+root - INFO - Number of vertices: 404
+root - INFO - Number of edges: 510
+gurobipy.gurobipy - INFO - Changed value of parameter LogFile to binning_output/m.log
+gurobipy.gurobipy - INFO -    Prev:   Default: 
+gurobipy.gurobipy - INFO - Changed value of parameter TimeLimit to 300.0
+gurobipy.gurobipy - INFO -    Prev: inf  Min: 0.0  Max: inf  Default: inf
+gurobipy.gurobipy - INFO - Changed value of parameter MIPGap to 0.05
+gurobipy.gurobipy - INFO -    Prev: 0.0001  Min: 0.0  Max: inf  Default: 0.0001
+gurobipy.gurobipy - INFO - Gurobi Optimizer version 9.1.2 build v9.1.2rc0 (linux64)
+gurobipy.gurobipy - INFO - Thread count: 32 physical cores, 32 logical processors, using up to 32 threads
+gurobipy.gurobipy - INFO - Optimize a model with 29133 rows, 10743 columns and 68196 nonzeros
+gurobipy.gurobipy - INFO - Model fingerprint: 0x8b735ba3
+gurobipy.gurobipy - INFO - Variable types: 5273 continuous, 5470 integer (5470 binary)
+gurobipy.gurobipy - INFO - Coefficient statistics:
+gurobipy.gurobipy - INFO -   Matrix range     [2e-03, 5e+01]
+gurobipy.gurobipy - INFO -   Objective range  [2e-16, 1e+00]
+gurobipy.gurobipy - INFO -   Bounds range     [1e+00, 1e+00]
+gurobipy.gurobipy - INFO -   RHS range        [1e-01, 5e+01]
+gurobipy.gurobipy - INFO - Found heuristic solution: objective -0.3926234
+gurobipy.gurobipy - INFO - Presolve removed 7716 rows and 1769 columns
+gurobipy.gurobipy - INFO - Presolve time: 1.18s
+gurobipy.gurobipy - INFO - Presolved: 21417 rows, 8974 columns, 96223 nonzeros
+gurobipy.gurobipy - INFO - Variable types: 4175 continuous, 4799 integer (4799 binary)
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Root relaxation: objective 2.357890e+00, 372 iterations, 0.08 seconds
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO -     Nodes    |    Current Node    |     Objective Bounds      |     Work
+gurobipy.gurobipy - INFO -  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO -      0     0    2.35789    0   43   -0.39262    2.35789   701%     -    2s
+gurobipy.gurobipy - INFO - H    0     0                       0.2066570    2.35789  1041%     -    2s
+gurobipy.gurobipy - INFO - H    0     0                       0.4445136    2.35789   430%     -    2s
+gurobipy.gurobipy - INFO - H    0     0                       1.4574297    2.35789  61.8%     -    4s
+gurobipy.gurobipy - INFO -      0     0    1.96669    0   76    1.45743    1.96669  34.9%     -    6s
+gurobipy.gurobipy - INFO -      0     0    1.96669    0   76    1.45743    1.96669  34.9%     -    6s
+gurobipy.gurobipy - INFO -      0     0    1.87494    0   64    1.45743    1.87494  28.6%     -    7s
+gurobipy.gurobipy - INFO -      0     0    1.87494    0   42    1.45743    1.87494  28.6%     -   25s
+gurobipy.gurobipy - INFO -      0     0    1.85643    0   65    1.45743    1.85643  27.4%     -   28s
+gurobipy.gurobipy - INFO -      0     0    1.85280    0   90    1.45743    1.85280  27.1%     -   29s
+gurobipy.gurobipy - INFO -      0     0    1.77783    0   76    1.45743    1.77783  22.0%     -   31s
+gurobipy.gurobipy - INFO -      0     0    1.77783    0   78    1.45743    1.77783  22.0%     -   31s
+gurobipy.gurobipy - INFO -      0     0    1.77403    0   87    1.45743    1.77403  21.7%     -   32s
+gurobipy.gurobipy - INFO -      0     0    1.75348    0   96    1.45743    1.75348  20.3%     -   32s
+gurobipy.gurobipy - INFO -      0     0    1.71044    0   86    1.45743    1.71044  17.4%     -   33s
+gurobipy.gurobipy - INFO -      0     0    1.71044    0   47    1.45743    1.71044  17.4%     -   49s
+gurobipy.gurobipy - INFO -      0     0    1.71044    0   80    1.45743    1.71044  17.4%     -   50s
+gurobipy.gurobipy - INFO -      0     0    1.71044    0   87    1.45743    1.71044  17.4%     -   50s
+gurobipy.gurobipy - INFO -      0     0    1.71044    0   65    1.45743    1.71044  17.4%     -   51s
+gurobipy.gurobipy - INFO -      0     0    1.71044    0   66    1.45743    1.71044  17.4%     -   51s
+gurobipy.gurobipy - INFO -      0     0    1.67931    0   74    1.45743    1.67931  15.2%     -   52s
+gurobipy.gurobipy - INFO -      0     0    1.67458    0   53    1.45743    1.67458  14.9%     -   52s
+gurobipy.gurobipy - INFO -      0     0    1.66285    0   59    1.45743    1.66285  14.1%     -   52s
+gurobipy.gurobipy - INFO -      0     0    1.66285    0   56    1.45743    1.66285  14.1%     -   68s
+gurobipy.gurobipy - INFO -      0     0    1.66285    0   54    1.45743    1.66285  14.1%     -   68s
+gurobipy.gurobipy - INFO -      0     0    1.66285    0   58    1.45743    1.66285  14.1%     -   68s
+gurobipy.gurobipy - INFO -      0     0    1.59377    0   88    1.45743    1.59377  9.35%     -   69s
+gurobipy.gurobipy - INFO -      0     0    1.55372    0   89    1.45743    1.55372  6.61%     -   69s
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Cutting planes:
+gurobipy.gurobipy - INFO -   Learned: 1
+gurobipy.gurobipy - INFO -   Gomory: 3
+gurobipy.gurobipy - INFO -   Cover: 21
+gurobipy.gurobipy - INFO -   Implied bound: 86
+gurobipy.gurobipy - INFO -   Clique: 20
+gurobipy.gurobipy - INFO -   MIR: 26
+gurobipy.gurobipy - INFO -   Flow cover: 31
+gurobipy.gurobipy - INFO -   Zero half: 2
+gurobipy.gurobipy - INFO -   Network: 1
+gurobipy.gurobipy - INFO -   RLT: 48
+gurobipy.gurobipy - INFO -   Relax-and-lift: 6
+gurobipy.gurobipy - INFO -   BQP: 2
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Explored 1 nodes (5934 simplex iterations) in 70.00 seconds
+gurobipy.gurobipy - INFO - Thread count was 32 (of 32 available processors)
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Solution count 4: 1.45743 0.444514 0.206657 -0.392623 
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Optimal solution found (tolerance 5.00e-02)
+gurobipy.gurobipy - INFO - Best objective 1.457429676005e+00, best bound 1.457429676005e+00, gap 0.0000%
+root - INFO - MILP	Iteration 3: 70.05283331871033
+root - INFO - Solution:
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO -     Variable            x 
+gurobipy.gurobipy - INFO - -------------------------
+gurobipy.gurobipy - INFO -   contig-112            1 
+gurobipy.gurobipy - INFO - link-112-h-to-T            1 
+gurobipy.gurobipy - INFO - link-S-to-112-t            1 
+gurobipy.gurobipy - INFO - plasmid-GC-bin-0.5-0.55            1 
+gurobipy.gurobipy - INFO - contig-112-GC-bin-0.5-0.55            1 
+gurobipy.gurobipy - INFO - flow_edge-('112', 'h')-to-T      1.35863 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-('112', 'h')-to-T      1.35863 
+gurobipy.gurobipy - INFO - flow_edge-S-to-('112', 't')      1.35863 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-S-to-('112', 't')      1.35863 
+gurobipy.gurobipy - INFO - overall-flow      1.35863 
+root - INFO - None
+root - INFO - Number of vertices: 403
+root - INFO - Number of edges: 508
+gurobipy.gurobipy - INFO - Changed value of parameter LogFile to binning_output/m.log
+gurobipy.gurobipy - INFO -    Prev:   Default: 
+gurobipy.gurobipy - INFO - Changed value of parameter TimeLimit to 300.0
+gurobipy.gurobipy - INFO -    Prev: inf  Min: 0.0  Max: inf  Default: inf
+gurobipy.gurobipy - INFO - Changed value of parameter MIPGap to 0.05
+gurobipy.gurobipy - INFO -    Prev: 0.0001  Min: 0.0  Max: inf  Default: 0.0001
+gurobipy.gurobipy - INFO - Gurobi Optimizer version 9.1.2 build v9.1.2rc0 (linux64)
+gurobipy.gurobipy - INFO - Thread count: 32 physical cores, 32 logical processors, using up to 32 threads
+gurobipy.gurobipy - INFO - Optimize a model with 29049 rows, 10712 columns and 67984 nonzeros
+gurobipy.gurobipy - INFO - Model fingerprint: 0x03f06c16
+gurobipy.gurobipy - INFO - Variable types: 5257 continuous, 5455 integer (5455 binary)
+gurobipy.gurobipy - INFO - Coefficient statistics:
+gurobipy.gurobipy - INFO -   Matrix range     [2e-03, 5e+01]
+gurobipy.gurobipy - INFO -   Objective range  [2e-16, 1e+00]
+gurobipy.gurobipy - INFO -   Bounds range     [1e+00, 1e+00]
+gurobipy.gurobipy - INFO -   RHS range        [1e-01, 5e+01]
+gurobipy.gurobipy - INFO - Presolve removed 7758 rows and 1791 columns
+gurobipy.gurobipy - INFO - Presolve time: 1.20s
+gurobipy.gurobipy - INFO - Presolved: 21291 rows, 8921 columns, 97637 nonzeros
+gurobipy.gurobipy - INFO - Variable types: 4149 continuous, 4772 integer (4772 binary)
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Root relaxation: objective 1.861640e+00, 320 iterations, 0.14 seconds
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO -     Nodes    |    Current Node    |     Objective Bounds      |     Work
+gurobipy.gurobipy - INFO -  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO -      0     0    1.86164    0   36          -    1.86164      -     -    2s
+gurobipy.gurobipy - INFO - H    0     0                      -1.3082379    1.86164   242%     -    2s
+gurobipy.gurobipy - INFO - H    0     0                       1.0120854    1.86164  83.9%     -    3s
+gurobipy.gurobipy - INFO -      0     0    1.78145    0   72    1.01209    1.78145  76.0%     -    6s
+gurobipy.gurobipy - INFO - H    0     0                       1.3689364    1.78145  30.1%     -    7s
+gurobipy.gurobipy - INFO -      0     0    1.65804    0   68    1.36894    1.65804  21.1%     -    7s
+gurobipy.gurobipy - INFO -      0     0    1.55879    0   59    1.36894    1.55879  13.9%     -    9s
+gurobipy.gurobipy - INFO -      0     0    1.55879    0   34    1.36894    1.55879  13.9%     -   26s
+gurobipy.gurobipy - INFO -      0     0    1.55879    0   60    1.36894    1.55879  13.9%     -   26s
+gurobipy.gurobipy - INFO -      0     0    1.42768    0   58    1.36894    1.42768  4.29%     -   26s
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Cutting planes:
+gurobipy.gurobipy - INFO -   Learned: 1
+gurobipy.gurobipy - INFO -   Gomory: 3
+gurobipy.gurobipy - INFO -   Cover: 3
+gurobipy.gurobipy - INFO -   Implied bound: 31
+gurobipy.gurobipy - INFO -   Clique: 4
+gurobipy.gurobipy - INFO -   MIR: 3
+gurobipy.gurobipy - INFO -   Flow cover: 7
+gurobipy.gurobipy - INFO -   Zero half: 2
+gurobipy.gurobipy - INFO -   Network: 1
+gurobipy.gurobipy - INFO -   RLT: 18
+gurobipy.gurobipy - INFO -   Relax-and-lift: 2
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Explored 1 nodes (1427 simplex iterations) in 26.97 seconds
+gurobipy.gurobipy - INFO - Thread count was 32 (of 32 available processors)
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Solution count 3: 1.36894 1.01209 -1.30824 
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Optimal solution found (tolerance 5.00e-02)
+gurobipy.gurobipy - INFO - Best objective 1.368936434972e+00, best bound 1.427677826981e+00, gap 4.2910%
+root - INFO - MILP	Iteration 4: 27.015740633010864
+root - INFO - Solution:
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO -     Variable            x 
+gurobipy.gurobipy - INFO - -------------------------
+gurobipy.gurobipy - INFO -    contig-60            1 
+gurobipy.gurobipy - INFO -    contig-72            1 
+gurobipy.gurobipy - INFO -   contig-156            1 
+gurobipy.gurobipy - INFO -   contig-317            1 
+gurobipy.gurobipy - INFO - link-156h317t            1 
+gurobipy.gurobipy - INFO - link-72h156t            1 
+gurobipy.gurobipy - INFO - link-317h60t            1 
+gurobipy.gurobipy - INFO - link-60-h-to-T            1 
+gurobipy.gurobipy - INFO - link-S-to-72-t            1 
+gurobipy.gurobipy - INFO - plasmid-GC-bin-0.55-0.6            1 
+gurobipy.gurobipy - INFO - contig-60-GC-bin-0.55-0.6            1 
+gurobipy.gurobipy - INFO - contig-72-GC-bin-0.55-0.6            1 
+gurobipy.gurobipy - INFO - contig-156-GC-bin-0.55-0.6            1 
+gurobipy.gurobipy - INFO - contig-317-GC-bin-0.55-0.6            1 
+gurobipy.gurobipy - INFO - flow_edge-('156', 'h')-to-('317', 't')     0.733784 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-('156', 'h')-to-('317', 't')     0.733784 
+gurobipy.gurobipy - INFO - flow_edge-('72', 'h')-to-('156', 't')     0.733784 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-('72', 'h')-to-('156', 't')     0.733784 
+gurobipy.gurobipy - INFO - flow_edge-('317', 'h')-to-('60', 't')     0.733784 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-('317', 'h')-to-('60', 't')     0.733784 
+gurobipy.gurobipy - INFO - flow_edge-('60', 'h')-to-T     0.733784 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-('60', 'h')-to-T     0.733784 
+gurobipy.gurobipy - INFO - flow_edge-S-to-('72', 't')     0.733784 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-S-to-('72', 't')     0.733784 
+gurobipy.gurobipy - INFO - overall-flow     0.733784 
+root - INFO - None
+root - INFO - Number of vertices: 401
+root - INFO - Number of edges: 504
+gurobipy.gurobipy - INFO - Changed value of parameter LogFile to binning_output/m.log
+gurobipy.gurobipy - INFO -    Prev:   Default: 
+gurobipy.gurobipy - INFO - Changed value of parameter TimeLimit to 300.0
+gurobipy.gurobipy - INFO -    Prev: inf  Min: 0.0  Max: inf  Default: inf
+gurobipy.gurobipy - INFO - Changed value of parameter MIPGap to 0.05
+gurobipy.gurobipy - INFO -    Prev: 0.0001  Min: 0.0  Max: inf  Default: 0.0001
+gurobipy.gurobipy - INFO - Gurobi Optimizer version 9.1.2 build v9.1.2rc0 (linux64)
+gurobipy.gurobipy - INFO - Thread count: 32 physical cores, 32 logical processors, using up to 32 threads
+gurobipy.gurobipy - INFO - Optimize a model with 28880 rows, 10650 columns and 67559 nonzeros
+gurobipy.gurobipy - INFO - Model fingerprint: 0x0223dbc3
+gurobipy.gurobipy - INFO - Variable types: 5225 continuous, 5425 integer (5425 binary)
+gurobipy.gurobipy - INFO - Coefficient statistics:
+gurobipy.gurobipy - INFO -   Matrix range     [2e-03, 5e+01]
+gurobipy.gurobipy - INFO -   Objective range  [2e-16, 1e+00]
+gurobipy.gurobipy - INFO -   Bounds range     [1e+00, 1e+00]
+gurobipy.gurobipy - INFO -   RHS range        [1e-01, 5e+01]
+gurobipy.gurobipy - INFO - Presolve removed 8054 rows and 1961 columns
+gurobipy.gurobipy - INFO - Presolve time: 1.42s
+gurobipy.gurobipy - INFO - Presolved: 20826 rows, 8689 columns, 104674 nonzeros
+gurobipy.gurobipy - INFO - Variable types: 4009 continuous, 4680 integer (4680 binary)
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Root relaxation: objective 1.439523e+00, 218 iterations, 0.12 seconds
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO -     Nodes    |    Current Node    |     Objective Bounds      |     Work
+gurobipy.gurobipy - INFO -  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO -      0     0    1.33763    0   34          -    1.33763      -     -    2s
+gurobipy.gurobipy - INFO - H    0     0                      -0.0055051    1.33763      -     -    3s
+gurobipy.gurobipy - INFO - H    0     0                       0.2193922    1.33763   510%     -    5s
+gurobipy.gurobipy - INFO - H    0     0                       0.9966524    1.33763  34.2%     -    5s
+gurobipy.gurobipy - INFO - H    0     0                       1.0120854    1.04571  3.32%     -    6s
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Cutting planes:
+gurobipy.gurobipy - INFO -   Learned: 2
+gurobipy.gurobipy - INFO -   Gomory: 14
+gurobipy.gurobipy - INFO -   Cover: 3
+gurobipy.gurobipy - INFO -   Implied bound: 39
+gurobipy.gurobipy - INFO -   Clique: 5
+gurobipy.gurobipy - INFO -   MIR: 9
+gurobipy.gurobipy - INFO -   Flow cover: 16
+gurobipy.gurobipy - INFO -   GUB cover: 1
+gurobipy.gurobipy - INFO -   Zero half: 6
+gurobipy.gurobipy - INFO -   RLT: 34
+gurobipy.gurobipy - INFO -   Relax-and-lift: 5
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Explored 1 nodes (253 simplex iterations) in 6.40 seconds
+gurobipy.gurobipy - INFO - Thread count was 32 (of 32 available processors)
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Solution count 4: 1.01209 0.996652 0.219392 -0.00550513 
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Optimal solution found (tolerance 5.00e-02)
+gurobipy.gurobipy - INFO - Best objective 1.012085443382e+00, best bound 1.045705763583e+00, gap 3.3219%
+root - INFO - MILP	Iteration 5: 6.417722463607788
+root - INFO - Solution:
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO -     Variable            x 
+gurobipy.gurobipy - INFO - -------------------------
+gurobipy.gurobipy - INFO -    contig-93            1 
+gurobipy.gurobipy - INFO - link-S-to-93-h            1 
+gurobipy.gurobipy - INFO - link-93-t-to-T            1 
+gurobipy.gurobipy - INFO - plasmid-GC-bin-0.55-0.6            1 
+gurobipy.gurobipy - INFO - contig-93-GC-bin-0.55-0.6            1 
+gurobipy.gurobipy - INFO - flow_edge-S-to-('93', 'h')     0.792885 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-S-to-('93', 'h')     0.792885 
+gurobipy.gurobipy - INFO - flow_edge-('93', 't')-to-T     0.792885 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-('93', 't')-to-T     0.792885 
+gurobipy.gurobipy - INFO - overall-flow     0.792885 
+root - INFO - None
+root - INFO - Number of vertices: 400
+root - INFO - Number of edges: 503
+gurobipy.gurobipy - INFO - Changed value of parameter LogFile to binning_output/m.log
+gurobipy.gurobipy - INFO -    Prev:   Default: 
+gurobipy.gurobipy - INFO - Changed value of parameter TimeLimit to 300.0
+gurobipy.gurobipy - INFO -    Prev: inf  Min: 0.0  Max: inf  Default: inf
+gurobipy.gurobipy - INFO - Changed value of parameter MIPGap to 0.05
+gurobipy.gurobipy - INFO -    Prev: 0.0001  Min: 0.0  Max: inf  Default: 0.0001
+gurobipy.gurobipy - INFO - Gurobi Optimizer version 9.1.2 build v9.1.2rc0 (linux64)
+gurobipy.gurobipy - INFO - Thread count: 32 physical cores, 32 logical processors, using up to 32 threads
+gurobipy.gurobipy - INFO - Optimize a model with 28812 rows, 10625 columns and 67393 nonzeros
+gurobipy.gurobipy - INFO - Model fingerprint: 0xd6dca046
+gurobipy.gurobipy - INFO - Variable types: 5213 continuous, 5412 integer (5412 binary)
+gurobipy.gurobipy - INFO - Coefficient statistics:
+gurobipy.gurobipy - INFO -   Matrix range     [2e-03, 5e+01]
+gurobipy.gurobipy - INFO -   Objective range  [2e-16, 1e+00]
+gurobipy.gurobipy - INFO -   Bounds range     [1e+00, 1e+00]
+gurobipy.gurobipy - INFO -   RHS range        [1e-01, 5e+01]
+gurobipy.gurobipy - INFO - Found heuristic solution: objective 0.1294781
+gurobipy.gurobipy - INFO - Presolve removed 20613 rows and 7636 columns
+gurobipy.gurobipy - INFO - Presolve time: 1.86s
+gurobipy.gurobipy - INFO - Presolved: 8199 rows, 2989 columns, 21719 nonzeros
+gurobipy.gurobipy - INFO - Variable types: 732 continuous, 2257 integer (2257 binary)
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Root relaxation: objective 1.011016e+00, 293 iterations, 0.03 seconds
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO -     Nodes    |    Current Node    |     Objective Bounds      |     Work
+gurobipy.gurobipy - INFO -  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO -      0     0    1.01102    0   20    0.12948    1.01102   681%     -    2s
+gurobipy.gurobipy - INFO - H    0     0                       0.9903882    1.01102  2.08%     -    2s
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Explored 1 nodes (309 simplex iterations) in 2.20 seconds
+gurobipy.gurobipy - INFO - Thread count was 32 (of 32 available processors)
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Solution count 2: 0.990388 0.129478 
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO - Optimal solution found (tolerance 5.00e-02)
+gurobipy.gurobipy - INFO - Best objective 9.903881822702e-01, best bound 1.011016147847e+00, gap 2.0828%
+root - INFO - MILP	Iteration 6: 2.2223567962646484
+root - INFO - Solution:
+gurobipy.gurobipy - INFO - 
+gurobipy.gurobipy - INFO -     Variable            x 
+gurobipy.gurobipy - INFO - -------------------------
+gurobipy.gurobipy - INFO -   contig-119            1 
+gurobipy.gurobipy - INFO - link-S-to-119-h            1 
+gurobipy.gurobipy - INFO - link-119-t-to-T            1 
+gurobipy.gurobipy - INFO - plasmid-GC-bin-0.55-0.6            1 
+gurobipy.gurobipy - INFO - contig-119-GC-bin-0.55-0.6            1 
+gurobipy.gurobipy - INFO - flow_edge-S-to-('119', 'h')     0.744788 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-S-to-('119', 'h')     0.744788 
+gurobipy.gurobipy - INFO - flow_edge-('119', 't')-to-T     0.744788 
+gurobipy.gurobipy - INFO - counted-overall-flow_edge-('119', 't')-to-T     0.744788 
+gurobipy.gurobipy - INFO - overall-flow     0.744788 
+root - INFO - None
