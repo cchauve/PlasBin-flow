@@ -147,5 +147,9 @@ samples could be processed in parallel on a HPC system, using for
 example the array feature of the SLURM scheduler.
 
 The output of the binning command for each sample are the files
-`binning_output/<sample>.<tool>.pred.txt`
-where `tool` is in `[gene_density,PlasClass,plASgraph,RFPlasmid]`.
+`binning_output/<sample>.<tool>.pred.txt` where `tool` is in
+`[gene_density,PlasClass,plASgraph,RFPlasmid]`.  The results are
+generally quite different illustrating the impact of the method chosen
+to compute the plasmid score.
+
+
