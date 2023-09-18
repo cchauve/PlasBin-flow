@@ -1,0 +1,189 @@
+root - INFO - ## GC content probabilities files
+root - INFO - ACTION	compute GC content probabilities file for sample SAMEA12292472-unicycler
+root - INFO - FILE	preprocessing_output/SAMEA12292472-unicycler.gc.tsv
+root - INFO - ACTION	compute GC content probabilities file for sample SAMEA12292472-skesa
+root - INFO - FILE	preprocessing_output/SAMEA12292472-skesa.gc.tsv
+root - INFO - ## Prepare temporary FASTA/GFA files
+root - INFO - ACTION	copy assembly files for sample SAMEA12292472-unicycler
+root - INFO - FILE	preprocessing_tmp/SAMEA12292472-unicycler.gfa
+root - INFO - FILE	preprocessing_tmp/SAMEA12292472-unicycler.gfa.fasta
+root - INFO - ACTION	copy assembly files for sample SAMEA12292472-skesa
+root - INFO - FILE	preprocessing_tmp/SAMEA12292472-skesa.gfa
+root - INFO - FILE	preprocessing_tmp/SAMEA12292472-skesa.gfa.fasta
+root - INFO - ## Mapping plasmid genes database to sample contigs
+root - INFO - ACTION Computing genes to contigs mappings for SAMEA12292472-unicycler
+root - INFO - ACTION	compute blast database for preprocessing_tmp/SAMEA12292472-unicycler.gfa.fasta: preprocessing_tmp/SAMEA12292472-unicycler.gfa.fasta.db
+root - INFO - COMMAND	makeblastdb -in preprocessing_tmp/SAMEA12292472-unicycler.gfa.fasta -dbtype nucl -out preprocessing_tmp/SAMEA12292472-unicycler.gfa.fasta.db
+root - INFO - STDOUT:
+
+
+Building a new DB, current time: 09/18/2023 11:20:22
+New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/binning/preprocessing_tmp/SAMEA12292472-unicycler.gfa.fasta.db
+New DB title:  preprocessing_tmp/SAMEA12292472-unicycler.gfa.fasta
+Sequence type: Nucleotide
+Keep MBits: T
+Maximum file size: 1000000000B
+Adding sequences from FASTA; added 407 sequences in 0.125755 seconds.
+
+
+
+root - INFO - STDOUT:
+
+
+Building a new DB, current time: 09/18/2023 11:20:32
+New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/binning/preprocessing_tmp/SAMEA12292472-unicycler.gfa.fasta.db
+New DB title:  preprocessing_tmp/SAMEA12292472-unicycler.gfa.fasta
+Sequence type: Nucleotide
+Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/binning/preprocessing_tmp/SAMEA12292472-unicycler.gfa.fasta.db
+Keep MBits: T
+Maximum file size: 1000000000B
+Adding sequences from FASTA; added 407 sequences in 0.476725 seconds.
+
+
+
+root - INFO - STDOUT:
+
+
+Building a new DB, current time: 09/18/2023 11:20:43
+New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/binning/preprocessing_tmp/SAMEA12292472-unicycler.gfa.fasta.db
+New DB title:  preprocessing_tmp/SAMEA12292472-unicycler.gfa.fasta
+Sequence type: Nucleotide
+Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/binning/preprocessing_tmp/SAMEA12292472-unicycler.gfa.fasta.db
+Keep MBits: T
+Maximum file size: 1000000000B
+Adding sequences from FASTA; added 407 sequences in 2.38189 seconds.
+
+
+
+root - INFO - STDOUT:
+
+
+Building a new DB, current time: 09/18/2023 11:20:47
+New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/binning/preprocessing_tmp/SAMEA12292472-unicycler.gfa.fasta.db
+New DB title:  preprocessing_tmp/SAMEA12292472-unicycler.gfa.fasta
+Sequence type: Nucleotide
+Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/binning/preprocessing_tmp/SAMEA12292472-unicycler.gfa.fasta.db
+Keep MBits: T
+Maximum file size: 1000000000B
+Adding sequences from FASTA; added 407 sequences in 0.268516 seconds.
+
+
+
+root - INFO - STDOUT:
+
+
+Building a new DB, current time: 09/18/2023 11:20:55
+New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/binning/preprocessing_tmp/SAMEA12292472-unicycler.gfa.fasta.db
+New DB title:  preprocessing_tmp/SAMEA12292472-unicycler.gfa.fasta
+Sequence type: Nucleotide
+Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/binning/preprocessing_tmp/SAMEA12292472-unicycler.gfa.fasta.db
+Keep MBits: T
+Maximum file size: 1000000000B
+Adding sequences from FASTA; added 407 sequences in 0.369222 seconds.
+
+
+
+root - INFO - ACTION	map ../../database/genes.fasta to preprocessing_tmp/SAMEA12292472-unicycler.gfa.fasta.db
+root - INFO - COMMAND	blastn -task megablast -query ../../database/genes.fasta -db preprocessing_tmp/SAMEA12292472-unicycler.gfa.fasta.db -out preprocessing_output/SAMEA12292472-unicycler.genes_mappings.txt -outfmt 6
+root - INFO - STDOUT:
+
+root - INFO - STDOUT:
+
+root - INFO - STDOUT:
+
+root - INFO - STDOUT:
+
+root - INFO - STDOUT:
+
+root - INFO - FILE	preprocessing_output/SAMEA12292472-unicycler.genes_mappings.txt
+root - INFO - ACTION Computing genes to contigs mappings for SAMEA12292472-skesa
+root - INFO - ACTION	compute blast database for preprocessing_tmp/SAMEA12292472-skesa.gfa.fasta: preprocessing_tmp/SAMEA12292472-skesa.gfa.fasta.db
+root - INFO - COMMAND	makeblastdb -in preprocessing_tmp/SAMEA12292472-skesa.gfa.fasta -dbtype nucl -out preprocessing_tmp/SAMEA12292472-skesa.gfa.fasta.db
+root - INFO - STDOUT:
+
+
+Building a new DB, current time: 09/18/2023 11:21:06
+New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/binning/preprocessing_tmp/SAMEA12292472-skesa.gfa.fasta.db
+New DB title:  preprocessing_tmp/SAMEA12292472-skesa.gfa.fasta
+Sequence type: Nucleotide
+Keep MBits: T
+Maximum file size: 1000000000B
+Adding sequences from FASTA; added 424 sequences in 1.24405 seconds.
+
+
+
+root - INFO - STDOUT:
+
+
+Building a new DB, current time: 09/18/2023 11:21:09
+New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/binning/preprocessing_tmp/SAMEA12292472-skesa.gfa.fasta.db
+New DB title:  preprocessing_tmp/SAMEA12292472-skesa.gfa.fasta
+Sequence type: Nucleotide
+Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/binning/preprocessing_tmp/SAMEA12292472-skesa.gfa.fasta.db
+Keep MBits: T
+Maximum file size: 1000000000B
+Adding sequences from FASTA; added 424 sequences in 0.185668 seconds.
+
+
+
+root - INFO - STDOUT:
+
+
+Building a new DB, current time: 09/18/2023 11:21:11
+New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/binning/preprocessing_tmp/SAMEA12292472-skesa.gfa.fasta.db
+New DB title:  preprocessing_tmp/SAMEA12292472-skesa.gfa.fasta
+Sequence type: Nucleotide
+Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/binning/preprocessing_tmp/SAMEA12292472-skesa.gfa.fasta.db
+Keep MBits: T
+Maximum file size: 1000000000B
+Adding sequences from FASTA; added 424 sequences in 0.0727088 seconds.
+
+
+
+root - INFO - STDOUT:
+
+
+Building a new DB, current time: 09/18/2023 11:21:31
+New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/binning/preprocessing_tmp/SAMEA12292472-skesa.gfa.fasta.db
+New DB title:  preprocessing_tmp/SAMEA12292472-skesa.gfa.fasta
+Sequence type: Nucleotide
+Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/binning/preprocessing_tmp/SAMEA12292472-skesa.gfa.fasta.db
+Keep MBits: T
+Maximum file size: 1000000000B
+Adding sequences from FASTA; added 424 sequences in 0.365438 seconds.
+
+
+
+root - INFO - STDOUT:
+
+
+Building a new DB, current time: 09/18/2023 11:21:33
+New DB name:   /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/binning/preprocessing_tmp/SAMEA12292472-skesa.gfa.fasta.db
+New DB title:  preprocessing_tmp/SAMEA12292472-skesa.gfa.fasta
+Sequence type: Nucleotide
+Deleted existing Nucleotide BLAST database named /project/6069942/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/example/binning/preprocessing_tmp/SAMEA12292472-skesa.gfa.fasta.db
+Keep MBits: T
+Maximum file size: 1000000000B
+Adding sequences from FASTA; added 424 sequences in 4.22821 seconds.
+
+
+
+root - INFO - ACTION	map ../../database/genes.fasta to preprocessing_tmp/SAMEA12292472-skesa.gfa.fasta.db
+root - INFO - COMMAND	blastn -task megablast -query ../../database/genes.fasta -db preprocessing_tmp/SAMEA12292472-skesa.gfa.fasta.db -out preprocessing_output/SAMEA12292472-skesa.genes_mappings.txt -outfmt 6
+root - INFO - STDOUT:
+
+root - INFO - STDOUT:
+
+root - INFO - STDOUT:
+
+root - INFO - STDOUT:
+
+root - INFO - STDOUT:
+
+root - INFO - FILE	preprocessing_output/SAMEA12292472-skesa.genes_mappings.txt
+root - INFO - ## Compute gene density and create new dataset CSV file
+root - INFO - ACTION	compute gene density for SAMEA12292472-unicycler
+root - INFO - FILE	preprocessing_output/SAMEA12292472-unicycler.gd.tsv
+root - INFO - ACTION	compute gene density for SAMEA12292472-skesa
+root - INFO - FILE	preprocessing_output/SAMEA12292472-skesa.gd.tsv
+root - INFO - FILE	preprocessing_output.csv

@@ -1,0 +1,3 @@
+sample,assembler,gfa,RFPlasmid,plASgraph,gc_probabilities,genes2ctgs_mappings,pls_score
+SAMEA12292472-unicycler,unicycler,data/SAMEA12292472-unicycler.gfa.gz,data/SAMEA12292472-unicycler.RFPlasmid.pls_score.csv,data/SAMEA12292472-unicycler.plASgraph.pls_score.csv,preprocessing_output/SAMEA12292472-unicycler.gc.tsv,preprocessing_output/SAMEA12292472-unicycler.genes_mappings.txt,preprocessing_output/SAMEA12292472-unicycler.gd.tsv
+SAMEA12292472-skesa,skesa,data/SAMEA12292472-skesa.gfa.gz,data/SAMEA12292472-skesa.RFPlasmid.pls_score.csv,data/SAMEA12292472-skesa.plASgraph.pls_score.csv,preprocessing_output/SAMEA12292472-skesa.gc.tsv,preprocessing_output/SAMEA12292472-skesa.genes_mappings.txt,preprocessing_output/SAMEA12292472-skesa.gd.tsv
