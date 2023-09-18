@@ -1,9 +1,0 @@
-root - INFO - ## Compute GC content intervals files
-root - INFO - ACTION	record chr FASTA files paths
-root - INFO - FILE	/home/chauvec/projects/ctb-chauvec/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/code/plasbin_utils_test/plasbin_utils_test_tmp/chr.fasta.txt
-root - INFO - ACTION	record pls FASTA files paths
-root - INFO - FILE	/home/chauvec/projects/ctb-chauvec/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/code/plasbin_utils_test/plasbin_utils_test_tmp/pls.fasta.txt
-root - INFO - ACTION	compute GC content intervals files /home/chauvec/projects/ctb-chauvec/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/code/plasbin_utils_test/plasbin_utils_test_results/gc.txt
-root - INFO - FILE	/home/chauvec/projects/ctb-chauvec/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/code/plasbin_utils_test/plasbin_utils_test_results/gc.csv
-root - INFO - FILE	/home/chauvec/projects/ctb-chauvec/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/code/plasbin_utils_test/plasbin_utils_test_results/gc.png
-root - INFO - FILE	/home/chauvec/projects/ctb-chauvec/PLASMIDS/USRA_PLASMIDS_2023/bin/PlasBin-flow/code/plasbin_utils_test/plasbin_utils_test_results/gc.txt

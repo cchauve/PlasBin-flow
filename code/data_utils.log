@@ -1,8 +1,0 @@
-root - INFO - DATA	File dev/SAMD00491646-unicycler.gfa.gz contains 84 contigs and 222 edges
-root - INFO - DATA	File dev/SAMD00491646-unicycler.gfa.gz minimum coverage 0.7343266666666667 maximum coverage 5.9
-root - INFO - DATA	File dev/SAMD00491646-unicycler.gd.tsv maximum plasmid score 1.0
-root - INFO - DATA	File dev/SAMD00491646-unicycler.gfa.gz has 3 seed(s)
-root - INFO - DATA	File dev/SAMD00491646-skesa.gfa.gz contains 96 contigs and 296 edges
-root - INFO - DATA	File dev/SAMD00491646-skesa.gfa.gz minimum coverage 0.7088545873939933 maximum coverage 8.67001384623159
-root - INFO - DATA	File dev/SAMD00491646-skesa.gd.tsv maximum plasmid score 0.23838475017256944
-root - INFO - DATA	File dev/SAMD00491646-skesa.gfa.gz has 2 seed(s)
