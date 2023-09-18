@@ -75,13 +75,20 @@ def check_number_lt(x, y, msg='CHECK_EQ'):
     except Exception as e:
         process_exception(f'{msg}: {e}')    
         
-def check_lists(list1, list2, msg='CHECK_LISTS_EQ'):
+def check_lists_equality(list1, list2, msg='CHECK_LISTS_EQ'):
     try:
-        if sorted(list1) != sorted(list2):
-            raise CustomException(f'Unequal sets')
+        if set(list1) != set(list2):
+            raise CustomException(f'Sets equality error')
     except Exception as e:
         process_exception(f'{msg}: {e}')
-        
+
+def check_lists_inclusion(list1, list2, msg='CHECK_LISTS_INCLUSION'):
+    try:
+        if not set(list1).issubset(list2):
+            raise CustomException(f'Sets inclusion error')
+    except Exception as e:
+        process_exception(f'{msg}: {e}')    
+
 def check_num_fields(in_list, min_num_fields, msg='CHECK_NUM_FIELDS'):
     try:
         num_fields = len(in_list)

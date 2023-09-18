@@ -8,7 +8,8 @@ import logging
 from log_errors_utils import (
     process_exception,
     CustomException,
-    check_lists,
+    check_lists_equality,
+    check_lists_inclusion,
     check_num_fields,
     check_number_range
 )
@@ -61,6 +62,10 @@ DEFAULT_TAIL_STR = 't'
 # Default thresholds defining seeds used in the paper experiments
 DEFAULT_SEED_LEN_THRESHOLD = 2650
 DEFAULT_SEED_SCORE_THRESHOLD = 0.58
+# Default plasmid score for short contigs or contigs with no score
+DEFAULT_PLS_SCORE = 0.5
+# Default minimum length under which contigs receive the default score
+DEFAULT_MIN_CTG_LEN = 0
 
 def read_pls_score_file(in_pls_score_file):
     """
@@ -86,7 +91,9 @@ def read_pls_score_file(in_pls_score_file):
 
 def read_ctgs_data(
     in_gfa_file, in_pls_score_file,
-    assembler=UNICYCLER_TAG, gfa_gzipped=True
+    assembler=UNICYCLER_TAG, gfa_gzipped=True,
+    default_pls_score=DEFAULT_PLS_SCORE,
+    min_ctg_len=DEFAULT_MIN_CTG_LEN    
 ):
     """
     Reads all data related to contigs
@@ -95,6 +102,9 @@ def read_ctgs_data(
         - in_pls_score_file (str): path to a plasmid score file
         - gfa_gzipped (bool): True if GFA file gzipped
         - assembler (str): tag of the used assembler
+        - default_pls_score (float): default plasmid score
+        - min_ctg_len (int): minimm length under which a contig 
+                             receives the default plasmid score
     Returns:
         Dictionary described above without the SEEDS field
     """
@@ -110,15 +120,20 @@ def read_ctgs_data(
     )
     _update_ctgs_dictionary(ctgs_data_dict, ctgs_len_dict, LEN_KEY)
     _update_ctgs_dictionary(ctgs_data_dict, ctgs_cov_dict, COV_KEY)
-        
+
     ctgs_score_dict = read_pls_score_file(in_pls_score_file)
-    _update_ctgs_dictionary(ctgs_data_dict, ctgs_score_dict, SCORE_KEY)
-        
-    check_lists(
-        ctgs_data_dict.keys(),
+    check_lists_inclusion(
         ctgs_score_dict.keys(),
-        msg=f'{in_gfa_file} {in_pls_score_file} have inconsistent contig sets'
+        ctgs_len_dict.keys(),
+        msg=f'{in_pls_score_file} has contigs not present in {in_gfa_file}'
     )
+    _update_ctgs_dictionary(ctgs_data_dict, ctgs_score_dict, SCORE_KEY)
+    
+    # If a contig is not in the plasmid scores file or is too short
+    # it receives the default plasmid score
+    for ctg_id,ctg_data in ctgs_data_dict.items():
+        if SCORE_KEY not in ctg_data.keys() or ctg_data[LEN_KEY] < min_ctg_len:
+            ctg_data[SCORE_KEY] = default_pls_score
 
     return ctgs_data_dict
     
@@ -180,7 +195,7 @@ def read_gc_data(gc_probabilities_file, gc_intervals_file, gfa_ctgs_list):
             for int_str,ctg_gc_prob in gc_probs_dict[ctg_id].items()
         }
         
-    check_lists(
+    check_lists_equality(
         gfa_ctgs_list,
         gc_probs_dict.keys(),
         msg=f'GFA file and {gc_probabilities_file} have inconsistent contig sets'

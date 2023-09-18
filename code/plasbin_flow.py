@@ -29,6 +29,8 @@ from data_utils import (
     DEFAULT_TAIL_STR,
     DEFAULT_SEED_LEN_THRESHOLD,
     DEFAULT_SEED_SCORE_THRESHOLD,
+    DEFAULT_MIN_CTG_LEN,
+    DEFAULT_PLS_SCORE,
     read_ctgs_data,
     get_seeds,
     read_gc_data,
@@ -96,6 +98,8 @@ def parse_arguments():
     other.add_argument("-assembler", type=str, default=UNICYCLER_TAG, help="Name of assembler (unicycler/skesa)")
     other.add_argument("-gc_intervals", default=None, help="GC intervals file")
     other.add_argument("-min_pls_len", type=int, default=DEFAULT_MIN_PLS_LEN, help="Minimum plasmid length to be reported")
+    other.add_argument("-min_ctg_len", type=int, default=DEFAULT_MIN_CTG_LEN, help="Minimum contig length to account for plasmid score")
+    other.add_argument("-default_pls_score", type=float, default=DEFAULT_PLS_SCORE, help="Default plasmid score")
    
     return parser.parse_args()
 
@@ -125,6 +129,8 @@ if __name__ == "__main__":
     assembler = args.assembler
     gc_int_file = args.gc_intervals
     min_pls_len = args.min_pls_len
+    min_ctg_len = args.min_ctg_len
+    default_pls_score = args.default_pls_score
 
     # Initialize logging
     logging.basicConfig(
@@ -136,39 +142,48 @@ if __name__ == "__main__":
 
     # Checking the values of parameters
     check_number_range(
-        p, (0.0,1.0), msg='INPUT\tParameter "-p", {p}: '
+        p, (0.0,1.0),
+        msg=f'INPUT\tParameter "-p", {p}: '
     )
     check_number_range(
         alpha1, (0.0,None),
-        msg='INPUT\tParameter "-alpha1", {alpha1}: '
+        msg=f'INPUT\tParameter "-alpha1", {alpha1}: '
     )
     check_number_range(
         alpha2, (0.0,None),
-        msg='INPUT\tParameter "-alpha2", {alpha2}: '
+        msg=f'INPUT\tParameter "-alpha2", {alpha2}: '
     )
     check_number_range(
         alpha3, (0.0,None),
-        msg='INPUT\tParameter "-alpha3", {alpha3}: '
+        msg=f'INPUT\tParameter "-alpha3", {alpha3}: '
     )
     check_number_range(
         seed_len, (0,None),
-        msg='INPUT\tParameter "-seed_len", {seed_len}: '
+        msg=f'INPUT\tParameter "-seed_len", {seed_len}: '
     )
     check_number_range(
         seed_score, (0.0,1.0),
-        msg='INPUT\tParameter "-seed_score", {seed_score}: '
+        msg=f'INPUT\tParameter "-seed_score", {seed_score}: '
     )
     check_number_range(
         min_pls_len, (0.0,None),
-        msg='INPUT\tParameter "-min_pls_len", {min_pls_len}: '
+        msg=f'INPUT\tParameter "-min_pls_len", {min_pls_len}: '
+    )
+    check_number_range(
+        min_ctg_len, (0.0,None),
+        msg=f'INPUT\tParameter "-min_ctg_len", {min_ctg_len}: '
+    )
+    check_number_range(
+        default_pls_score, (0.0,1.0),
+        msg=f'INPUT\tParameter "-default_pls_score", {default_pls_score}: '
     )
     check_number_range(
         gurobi_mip_gap, (0.0,1.0),
-        msg='INPUT\tParameter "-gurobi_mip_gap", {gurobi_mip_gap}: '
+        msg=f'INPUT\tParameter "-gurobi_mip_gap", {gurobi_mip_gap}: '
     )
     check_number_range(
         gurobi_time_limit, (0.0,None),
-        msg='INPUT\tParameter "-gurobi_time_limit", {gurobi_time_limit}: '
+        msg=f'INPUT\tParameter "-gurobi_time_limit", {gurobi_time_limit}: '
     )
 
     # Checking that input files exist and are not empty (warning if empty)
@@ -265,18 +280,18 @@ if __name__ == "__main__":
         logging.info(f'Number of edges: {len(links_list)}')
 
         #-----------------------------------------------
-	    #Initializing the ILP
+	#Initializing the ILP
         m = Model("Plasmids")
         m.params.LogFile= os.path.join(output_folder,'m.log')
         m.setParam(GRB.Param.TimeLimit, gurobi_time_limit)
         m.setParam(GRB.Param.MIPGap, gurobi_mip_gap)
 
-	    #Initializing variables
+	#Initializing variables
         contigs = {}	#Key: Contig (e.g. '1'), Value: Gurobi binary variable
         contigs = model_setup.contig_vars(m, contigs_dict, contigs)
 
         links = {}		#Key: Directed link from one extremity to another
-            #(e.g. (('1',DEFAULT_HEAD_STR),('2',DEFAULT_TAIL_STR)) ), Value: Gurobi binary variable
+        #(e.g. (('1',DEFAULT_HEAD_STR),('2',DEFAULT_TAIL_STR)) ), Value: Gurobi binary variable
         links = model_setup.link_vars(m, links_list, links, contigs)
 
         plas_GC = {}	#Key: GC bin, Value: Gurobi binary variable
@@ -289,7 +304,7 @@ if __name__ == "__main__":
         F = m.addVar(vtype=GRB.CONTINUOUS, name='overall-flow')	
 
         #-----------------------------------------------
-	    #Setting up the expression for the objective function
+	#Setting up the expression for the objective function
         expr = LinExpr()
 
         expr.addTerms(alpha1, F)
@@ -300,36 +315,36 @@ if __name__ == "__main__":
         m.setObjective(expr, GRB.MAXIMIZE)
 
         #-----------------------------------------------
-	    #Setting up constraints
+	#Setting up constraints
 
         constraint_count = 0
         
-	    #Constraint type 1: A link 'e' is in the plasmid only if both its endpoints are in the plasmid.
+	#Constraint type 1: A link 'e' is in the plasmid only if both its endpoints are in the plasmid.
         m, constraint_count = model_setup.link_inclusion_constr(m, links, contigs, constraint_count)
 
-	    #Constraint type 2: An extremity is in the plasmid only if at least one link is incident on it.
+	#Constraint type 2: An extremity is in the plasmid only if at least one link is incident on it.
         m, constraint_count = model_setup.extr_inclusion_constr(m, links, contigs, extr_dict, constraint_count)
 
-	    #Constraint type 3: A contig is considered to be a ”counted” seed if it is eligible to be a seed contig
-	    #                   and is considered to be part of the solution
+	#Constraint type 3: A contig is considered to be a ”counted” seed if it is eligible to be a seed contig
+	#                   and is considered to be part of the solution
         m, constraint_count = model_setup.seed_inclusion_constr(m, contigs, contigs_dict, constraint_count)
 
-	    #Constraint type 4: 'F' should equal the flow out of SOURCE and into SINK. 
-	    #                   Exactly one edge exits SOURCE and exactly one enters SINK.
+	#Constraint type 4: 'F' should equal the flow out of SOURCE and into SINK. 
+	#                   Exactly one edge exits SOURCE and exactly one enters SINK.
         m, constraint_count = model_setup.min_flow_constr(m, links, flows, F, MIN_COV, constraint_count)
 
-	    #Constraint types 5 and 6
-	    #Conservation constraints: Flow into ('u',DEFAULT_HEAD_STR) (resp. ('u',DEFAULT_TAIL_STR) ) should be equal to flow out of ('u',DEFAULT_TAIL_STR) (resp. ('u',DEFAULT_HEAD_STR) ).
-	    #Capacity constraints    : The maximum flow into a vertex should be at most the capacity (read depth) of the vertex itself.
-	    #	                       The maximum flow through an edge has to be at most the capacity (capacities[e]) of the edge.
+	#Constraint types 5 and 6
+	#Conservation constraints: Flow into ('u',DEFAULT_HEAD_STR) (resp. ('u',DEFAULT_TAIL_STR) ) should be equal to flow out of ('u',DEFAULT_TAIL_STR) (resp. ('u',DEFAULT_HEAD_STR) ).
+	#Capacity constraints    : The maximum flow into a vertex should be at most the capacity (read depth) of the vertex itself.
+	#	                       The maximum flow through an edge has to be at most the capacity (capacities[e]) of the edge.
         m, constraint_count = model_setup.flow_conservation_constraints(m, links, contigs, flows, incoming, outgoing, capacities, contigs_dict, constraint_count)
 
-	    #Constraint types 7 and 8
-	    #7. The overall flow 'F' through link 'e' is ”counted” only if 'e' is part of the solution.
-	    #8. The overall flow 'F' cannot exceed the flow through any active link 'e'.
+	#Constraint types 7 and 8
+	#7. The overall flow 'F' through link 'e' is ”counted” only if 'e' is part of the solution.
+	#8. The overall flow 'F' cannot exceed the flow through any active link 'e'.
         m, constraint_count = model_setup.counted_flow_constr(m, links, flows, counted_F, F, MAX_COV, constraint_count)
 
-	    #Constraint type 9: Handling the GC-content term in the objective function
+	#Constraint type 9: Handling the GC-content term in the objective function
         m, constraint_count = model_setup.GC_constr(m, contig_GC, plas_GC, contigs, constraint_count)
 
         extra_comps = 1	#default
@@ -346,7 +361,7 @@ if __name__ == "__main__":
 
             rmiter_count += 1
 
-	        #Message if solution not obtained
+	    #Message if solution not obtained
             if m.status == GRB.Status.INFEASIBLE:
                 logging.warning(f'MILP\tThe model cannot be solved because it is infeasible')
             elif m.status == GRB.Status.UNBOUNDED:
@@ -354,7 +369,7 @@ if __name__ == "__main__":
             elif m.status == GRB.Status.INF_OR_UNBD:
                 logging.warning(f'MILP\tThe model cannot be solved because it is infeasible or unbounded ')
 
-	        #Storing Irreducible Inconsistent Subsystem in case solution is not obtained
+	    #Storing Irreducible Inconsistent Subsystem in case solution is not obtained
             if m.status == GRB.Status.INF_OR_UNBD or m.status == GRB.Status.INFEASIBLE:
                 logging.warning(f'MILP\tStoring Irreducible Inconsistent Subsystem in m.ilp')
                 m.computeIIS()
@@ -367,11 +382,11 @@ if __name__ == "__main__":
             logging.info(f'Solution:')
             logging.info(m.printAttr('x'))
 
-	        #Flow zero condition
+	    #Flow zero condition
             if F.x == 0:
                 exit(1)			
 
-	        #Finding components in the solution
+	    #Finding components in the solution
             G = nx.DiGraph()
             for c in contigs:
                 if contigs[c].x > 0:
@@ -418,17 +433,17 @@ if __name__ == "__main__":
                         m.addConstr(links[e] == 0, "muted_edge-"+str(e))
                         logging.info(f'{str(e)}')	
 
-	        #Condition to stop iterating: If number of connected components is 1, there are no extra components, thus breaking the while loop.
+	    #Condition to stop iterating: If number of connected components is 1, there are no extra components, thus breaking the while loop.
             extra_comps = comp_count - 1			
 
-	    #Recording the plasmid bin if the plasmid is long enough
+	#Recording the plasmid bin if the plasmid is long enough
         plasmid_length = 0
         for c in contigs:
             if contigs[c].x > 0:
                 plasmid_length += contigs_dict[c][LEN_KEY]
 
         if plasmid_length >= min_pls_len:
-	        #Recording objective function scores
+	    #Recording objective function scores
             GC_sum = 0
             gd_sum = 0
             for c in contigs:
@@ -483,7 +498,7 @@ if __name__ == "__main__":
                         if node not in pbf_bins[n_bins]['Contigs']:
                             pbf_bins[n_bins]['Contigs'][node] = 0
 
-	    #Updating assembly graph and formulation
+	#Updating assembly graph and formulation
         for e in flows:
             if e[1] != SINK:
                 c = e[1][0]
