@@ -15,8 +15,8 @@ For each of the samples file, the initial data contains
 
 Then, for each sample, plasmid scores were obtained with three
 different plasmid contigs classifiers:
-<a hef="https://github.com/Shamir-Lab/PlasClass">PlasClass</a>,
-<a hef="https://github.com/cchauve/plASgraph2/">plASgraph2</a>,
+<a href="https://github.com/Shamir-Lab/PlasClass">PlasClass</a>,
+<a href="https://github.com/cchauve/plASgraph2/">plASgraph2</a>,
 <a href="https://github.com/aldertzomer/RFPlasmid">RFPlasmid</a>
 (using its *Pseudomonas* model).  For RFPlasmid, as it does not work
 with very short contigs, the FASTA file was filtered to eliminate all
