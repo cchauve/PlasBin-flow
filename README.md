@@ -8,7 +8,7 @@ PlasBin-flow is based on a Mixed-Integer Linear Programming (MILP) formulation f
 
 The `code` directory contains the source code of PlasBin-flow. 
 
-PlasBin-flow is described in the paper *PlasBin-flow: A flow-based MILP algorithm for plasmid contigs binning*.
+PlasBin-flow is described in the paper *PlasBin-flow: A flow-based MILP algorithm for plasmid contigs binning* presented at ISMB/ECCB 2023. The code in this branch is the code that was used for the paper experiments. We recommend using the latest release instead.
 
 ## Installation
 PlasBin-flow can be installed from this repository 
