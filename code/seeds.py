@@ -114,14 +114,21 @@ def _read_input_data(input_file):
     }
     pls_ctgs_dict = {}
     for _,sample_row in input_df.iterrows():
-        all_ctgs_dict[PLS_SCORE_KEY].update(
-            _read_sample_pls_score(
-                sample_row[SAMPLE_KEY], sample_row[PS_FILE_KEY]
-            )
-        )
         all_ctgs_dict[LEN_KEY].update(
             _read_sample_ctgs_len(
                 sample_row[SAMPLE_KEY], sample_row[GFA_FILE_KEY]
+            )
+        )
+        # Contigs with no score receibe a score of 0.0
+        all_ctgs_dict[PLS_SCORE_KEY].update(
+            {
+                ctg_id: 0.0
+                for ctg_id in all_ctgs_dict[PLS_LEN_KEY].keys()
+            }
+        )
+        all_ctgs_dict[PLS_SCORE_KEY].update(
+            _read_sample_pls_score(
+                sample_row[SAMPLE_KEY], sample_row[PS_FILE_KEY]
             )
         )
         sample_ground_truth_df = read_ground_truth_file(
