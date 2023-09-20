@@ -272,7 +272,7 @@ def compute_optimal_seeds_parameters(
 
 def compute_seeds_parameters_file(
         input_file, out_file_name,
-        min_len=50, max_len=5000, len_step=50, pls_score_step=1
+        min_len=500, max_len=5000, len_step=50, pls_score_step=1
 ):
     best_thresholds = compute_optimal_seeds_parameters(
         input_file, min_len, max_len, len_step, pls_score_step
