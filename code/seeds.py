@@ -20,6 +20,14 @@ from data_utils import (
     read_pls_score_file
 )
 
+# Should be added as parameters to seeds computation
+SEEDS_DEFAULT_MIN_CTG_LEN=500
+SEEDS_DEFAULT_MAX_CTG_LEN=5000
+SEEDS_DEFAULT_CTG_LEN_STEP=50
+SEEDS_DEFAULT_MIN_PLS_SCORE=0.01
+SEEDS_DEFAULT_MAX_PLS_SCORE=1.0
+SEEDS_DEFAULT_PLS_SCORE_STEP=0.01
+
 """
 Reading data
 """
@@ -114,14 +122,21 @@ def _read_input_data(input_file):
     }
     pls_ctgs_dict = {}
     for _,sample_row in input_df.iterrows():
-        all_ctgs_dict[PLS_SCORE_KEY].update(
-            _read_sample_pls_score(
-                sample_row[SAMPLE_KEY], sample_row[PS_FILE_KEY]
-            )
-        )
         all_ctgs_dict[LEN_KEY].update(
             _read_sample_ctgs_len(
                 sample_row[SAMPLE_KEY], sample_row[GFA_FILE_KEY]
+            )
+        )
+        # Contigs with no score receibe a score of 0.0
+        all_ctgs_dict[PLS_SCORE_KEY].update(
+            {
+                ctg_id: 0.0
+                for ctg_id in all_ctgs_dict[LEN_KEY].keys()
+            }
+        )
+        all_ctgs_dict[PLS_SCORE_KEY].update(
+            _read_sample_pls_score(
+                sample_row[SAMPLE_KEY], sample_row[PS_FILE_KEY]
             )
         )
         sample_ground_truth_df = read_ground_truth_file(
@@ -247,7 +262,9 @@ def read_seeds_thresholds_file(in_file_name):
 """ Main """
 
 def compute_optimal_seeds_parameters(
-        input_file, min_len, max_len, len_step, pls_score_step
+        input_file,
+        min_ctg_len, max_ctg_len, ctg_len_step,
+        min_pls_score, max_pls_score, pls_score_step
 ):
     """
     Compute optimal seeds parameters
@@ -255,8 +272,12 @@ def compute_optimal_seeds_parameters(
     all_ctgs_dict,pls_ctgs_dict = _read_input_data(input_file)
     combined_thresholds = [
         (len_threshold,pls_score_threshold)
-        for len_threshold in np.arange(min_len,max_len+1,len_step)
-        for pls_score_threshold in np.arange(1, 101, pls_score_step)/100
+        for len_threshold in np.arange(
+                min_ctg_len, max_ctg_len+ctg_len_step, ctg_len_step
+        )
+        for pls_score_threshold in np.arange(
+                min_pls_score, max_pls_score+pls_score_step, pls_score_step
+        )
     ]
     best_thresholds = select_best_thresholds(
         combined_thresholds, all_ctgs_dict, pls_ctgs_dict
@@ -265,10 +286,17 @@ def compute_optimal_seeds_parameters(
 
 def compute_seeds_parameters_file(
         input_file, out_file_name,
-        min_len=50, max_len=5000, len_step=50, pls_score_step=1
+        min_ctg_len=SEEDS_DEFAULT_MIN_CTG_LEN,
+        max_ctg_len=SEEDS_DEFAULT_MAX_CTG_LEN,
+        ctg_len_step=SEEDS_DEFAULT_CTG_LEN_STEP,
+        min_pls_score=SEEDS_DEFAULT_MIN_PLS_SCORE,
+        max_pls_score=SEEDS_DEFAULT_MAX_PLS_SCORE,
+        pls_score_step=SEEDS_DEFAULT_PLS_SCORE_STEP
 ):
     best_thresholds = compute_optimal_seeds_parameters(
-        input_file, min_len, max_len, len_step, pls_score_step
+        input_file,
+        min_ctg_len, max_ctg_len, ctg_len_step,
+        min_pls_score, max_pls_score, pls_score_step
     )
     if len(best_thresholds) == 0:
         logging.warning('No optimal seeds paramaters were found')
