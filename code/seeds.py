@@ -95,14 +95,14 @@ def _create_pls_ctgs_list(sample, ground_truth_df):
         - ground_truth_df (DataFrame): ground truth dataframe obtained 
           by ground_truth.read_ground_truth_file
     Returns dictionary:
-	Key: Plasmid
+	Key: (sample,plasmid)
 	Value: List of contigs belonging to plasmid in format (sample,ctg)
     """
     pls_ctgs_dict = ground_truth_df.groupby(
         GT_PLS_KEY
     )[GT_CTG_KEY].apply(list).to_dict()
     return {
-        pls_id: [(sample,ctg_id) for ctg_id in pls_ctgs]
+        (sample,pls_id): [(sample,ctg_id) for ctg_id in pls_ctgs]
         for pls_id,pls_ctgs in pls_ctgs_dict.items()
     }
 
