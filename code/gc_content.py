@@ -49,7 +49,7 @@ def _process_sequence(sequence):
     length = len(sequence)
     return {
         GC_COUNT_KEY: gc_count,
-        GC_RATIO_KEY: gc_count / length,
+        GC_RATIO_KEY: gc_count / length if length > 0 else 0.0,
         LENGTH_KEY: length
     }
 
