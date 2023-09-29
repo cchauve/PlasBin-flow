@@ -48,38 +48,6 @@ MOL_TYPE_PLS = 'plasmid'
 LEN_KEY = 'length'
 PLS_SCORE_KEY = 'pls_score'
 
-def _read_sample_ctgs_len(sample, gfa_file):
-    """
-    Reads contigs name and length from a GFA file
-    Args:
-        - sample (str): sample name
-        - gfa_file (str): path to a gzipped GFA file
-    Returns dictionary:
-        Key (sample,ctg) 
-        Value: contig length (int)
-    """
-    return {
-        (sample,ctg_id): ctg_len
-        for ctg_id,ctg_len in read_GFA_len(gfa_file, gzipped=True).items()
-    }
-
-def _read_sample_pls_score(sample, pls_score_file):
-    """
-    Reads plasmid score file for a sample
-    Args:
-        - sample (str): sample name
-        - pls_score_file (str): path to a plasmid score file
-    Returns Dictionary 
-        Key: (sample,ctg)
-        Value: contig plasmid score (float) 
-    """
-    return {        
-        (sample,ctg_id): pls_score
-        for ctg_id,pls_score in read_pls_score_file(
-                pls_score_file
-        ).items()
-    }
-
 """
 pls_ctgs_dict:
 
@@ -95,7 +63,7 @@ def _create_pls_ctgs_list(sample, ground_truth_df):
         - ground_truth_df (DataFrame): ground truth dataframe obtained 
           by ground_truth.read_ground_truth_file
     Returns dictionary:
-	Key: (sample,plasmid)
+	Key: plasmid
 	Value: List of contigs belonging to plasmid in format (sample,ctg)
     """
     pls_ctgs_dict = ground_truth_df.groupby(
@@ -107,6 +75,18 @@ def _create_pls_ctgs_list(sample, ground_truth_df):
     }
 
 def _read_input_data(input_file):
+    """
+    Reads the seeds input file and returns dictionary on contigs and plasmids
+    Args:
+       - input_file: path to CSV file with fields 
+         sample, gfa_file, pls_score_file, ground_truth_file
+    Returns
+       - Dictionary: 
+         LEN_KEY:       Dictionary (sample,contig): length
+         PLS_SCORE_KEY: Dictionary (sample,contig): plasmid score
+         MOL_TYPE_KEY:  Dictionary (sample,contig): plasmid/chromsome
+       - Dictionary (sample,plasmid): list (sample,contig) of contigs in plasmid ground truth
+    """
     SAMPLE_KEY = 'sample'
     GFA_FILE_KEY = 'gfa_file'
     PS_FILE_KEY = 'pls_score_file'
@@ -117,39 +97,35 @@ def _read_input_data(input_file):
         names=[SAMPLE_KEY,GFA_FILE_KEY,PS_FILE_KEY,GT_FILE_KEY]
     )
     all_ctgs_dict = {
-        LEN_KEY: {},  PLS_SCORE_KEY: {},
-        MOL_TYPE_KEY: defaultdict(lambda: MOL_TYPE_CHR)
+        LEN_KEY: {},  PLS_SCORE_KEY: {}, MOL_TYPE_KEY: {}
     }
     pls_ctgs_dict = {}
     for _,sample_row in input_df.iterrows():
-        all_ctgs_dict[LEN_KEY].update(
-            _read_sample_ctgs_len(
-                sample_row[SAMPLE_KEY], sample_row[GFA_FILE_KEY]
-            )
+        sample = sample_row[SAMPLE_KEY]
+        # Reading all contigs length from sample GFA file
+        sample_ctgs_len_dict = read_GFA_len(
+            sample_row[GFA_FILE_KEY], gzipped=True
         )
-        # Contigs with no score receibe a score of 0.0
-        all_ctgs_dict[PLS_SCORE_KEY].update(
-            {
-                ctg_id: 0.0
-                for ctg_id in all_ctgs_dict[LEN_KEY].keys()
-            }
-        )
-        all_ctgs_dict[PLS_SCORE_KEY].update(
-            _read_sample_pls_score(
-                sample_row[SAMPLE_KEY], sample_row[PS_FILE_KEY]
-            )
-        )
-        sample_ground_truth_df = read_ground_truth_file(
-            sample_row[GT_FILE_KEY]
-        )
+        for ctg_id,ctg_len in sample_ctgs_len_dict.items():
+            all_ctgs_dict[LEN_KEY][(sample,ctg_id)] = ctg_len
+            all_ctgs_dict[PLS_SCORE_KEY][(sample,ctg_id)] = 0.0
+            all_ctgs_dict[MOL_TYPE_KEY][(sample,ctg_id)] = MOL_TYPE_CHR
+        # Updating contigs plasmid score from sample plasmid scores file
+        sample_ctgs_pls_score_dict = read_pls_score_file(sample_row[PS_FILE_KEY])
+        for ctg_id,ctg_pls_score in sample_ctgs_pls_score_dict.items():
+            all_ctgs_dict[PLS_SCORE_KEY][(sample,ctg_id)] = ctg_pls_score
+        # Reading sample ground truth
+        sample_ground_truth_df = read_ground_truth_file(sample_row[GT_FILE_KEY])
+        # Recording the contigs on true plasmid
         for _,gt_row in sample_ground_truth_df.iterrows():
-            ctg_key = (sample_row[SAMPLE_KEY], gt_row[GT_CTG_KEY])
-            all_ctgs_dict[MOL_TYPE_KEY][ctg_key] = MOL_TYPE_PLS
-        pls_ctgs_dict.update(
-            _create_pls_ctgs_list(
-                sample_row[SAMPLE_KEY], sample_ground_truth_df
-            )
+            ctg_id = gt_row[GT_CTG_KEY]
+            all_ctgs_dict[MOL_TYPE_KEY][(sample,ctg_id)] = MOL_TYPE_PLS
+        # Updating the dictionary (sample,plasmid) -> list of contigs on plasmid
+        sample_pls_ctgs_list_dict = _create_pls_ctgs_list(
+            sample, sample_ground_truth_df
         )
+        for (sample,pls_id),pls_ctgs_list in sample_pls_ctgs_list_dict.items():
+            pls_ctgs_dict[(sample,pls_id)] = pls_ctgs_list
     return all_ctgs_dict,pls_ctgs_dict
         
 """
@@ -165,40 +141,52 @@ def count_false_seeds(thresholds, all_ctgs_dict):
         - all_ctgs_dict (Dictionary): see all_ctgs_dict description above    
     Returns Dictionary 
        Key: pair of thresholds (int,float)
-       Value: number of false seeds
+       Value: list of false seeds (sample,ctg)
     """
     all_ctgs = all_ctgs_dict[LEN_KEY].keys()
-    false_seeds_dict = defaultdict(int)
-    for (len_threshold,score_threshold) in thresholds:
+    false_seeds_dict = {}
+    for (len_thr,pls_score_thr) in thresholds:
+        false_seeds_dict[(len_thr,pls_score_thr)] = []
         for ctg_id in all_ctgs:
             test_chr = all_ctgs_dict[MOL_TYPE_KEY][ctg_id] == MOL_TYPE_CHR
-            test_len = all_ctgs_dict[LEN_KEY][ctg_id] >= len_threshold
-            test_score = all_ctgs_dict[PLS_SCORE_KEY][ctg_id] >= score_threshold
+            test_len = all_ctgs_dict[LEN_KEY][ctg_id] >= len_thr
+            test_score = all_ctgs_dict[PLS_SCORE_KEY][ctg_id] >= pls_score_thr
             if test_chr and test_len and test_score:
-                false_seeds_dict[(len_threshold,score_threshold)] += 1
+                false_seeds_dict[(len_thr,pls_score_thr)].append(ctg_id)
     return false_seeds_dict
 
-def count_pls_with_seeds(thresholds, all_ctgs_dict, pls_ctgs_dict):
+def count_pls_with_seed(thresholds, all_ctgs_dict, pls_ctgs_dict):
     """
     Computing number of plasmids with at least one seed contig
     Args:
         - thresholds (List((int,float)): list of (length,score) thresholds
         - all_ctgs_dict (Dictionary): see all_ctgs_dict description above 
         - pls_ctgs_dict (Dictionary): see pls_ctgs_dict description above 
-    Returns Dictionary:
-       Key: pair of thresholds (int,float)
-       Value: number of plasmids with at least one seed
+    Returns 
+       - Dictionary:
+         Key: pair of thresholds (int,float)
+         Value: list of (sample,plasmid) with at least one seed
+       - Dictionary:
+         Key: pair of thresholds (int,float)
+         Value: list of (sample,plasmid) with at no seed
     """
-    pls_with_seeds_dict = defaultdict(int)
+    pls_with_seed_dict = {}
+    pls_without_seed_dict = {}
     for (len_thr,pls_score_thr) in thresholds:
-        for pls_ctgs_list in pls_ctgs_dict.values():
+        pls_with_seed_dict[(len_thr,pls_score_thr)] = []
+        pls_without_seed_dict[(len_thr,pls_score_thr)] = []
+        for sample_pls_id,pls_ctgs_list in pls_ctgs_dict.items():
+            add_pls_with_seed = False
             for ctg_id in pls_ctgs_list:
                 ctg_len = all_ctgs_dict[LEN_KEY][ctg_id]
                 ctg_pls_score = all_ctgs_dict[PLS_SCORE_KEY][ctg_id]
                 if  ctg_pls_score >= pls_score_thr and ctg_len >= len_thr:
-                    pls_with_seeds_dict[(len_thr,pls_score_thr)] += 1
-                    break
-    return pls_with_seeds_dict
+                    add_pls_with_seed = True
+            if add_pls_with_seed:
+                pls_with_seed_dict[(len_thr,pls_score_thr)].append(sample_pls_id)
+            else:
+                pls_without_seed_dict[(len_thr,pls_score_thr)].append(sample_pls_id)
+    return pls_with_seed_dict,pls_without_seed_dict
 
 def select_best_thresholds(thresholds, all_ctgs_dict, pls_ctgs_dict):
     """
@@ -212,36 +200,45 @@ def select_best_thresholds(thresholds, all_ctgs_dict, pls_ctgs_dict):
         - all_ctgs_dict (Dictionary): see all_ctgs_dict description above 
         - pls_ctgs_dict (Dictionary): see pls_ctgs_dict description above 
     Returns
-        List((int,float,int,int)): list of optimal threshold pairs (len,score)
-        augmented by the number of plasmid with seeds and the number of false seeds
+        - List((int,float,int,int,int)): list of optimal threshold pairs (len,score)
+          augmented by the number of plasmid with seed, the number of false seeds
+          and the number of plasmids without seed
+        - List((int,float,int,int,int)): all results
     """
-    pls_with_seeds_dict = count_pls_with_seeds(
+    pls_with_seed_dict,pls_without_seed_dict = count_pls_with_seed(
         thresholds, all_ctgs_dict, pls_ctgs_dict
     )
     false_seeds_dict = count_false_seeds(thresholds, all_ctgs_dict)
-    best_objective,best_thresholds = None,[]
+    best_objective,best_thresholds,all_thresholds = None,[],[]
     for thr_pair in thresholds:
-        pls_with_seeds = pls_with_seeds_dict[thr_pair]
+        pls_with_seed = pls_with_seed_dict[thr_pair]
+        pls_without_seed = pls_without_seed_dict[thr_pair]
         false_seeds = false_seeds_dict[thr_pair]
-        objective = pls_with_seeds - false_seeds
+        objective = len(pls_with_seed) - len(false_seeds)
+        result = [
+            thr_pair[0], thr_pair[1],
+            len(pls_with_seed), len(false_seeds), len(pls_without_seed)
+        ]
         if best_objective is None or objective > best_objective:
-            best_thresholds = [
-                [thr_pair[0], thr_pair[1], pls_with_seeds, false_seeds]
-            ]
+            best_thresholds = [result]
             best_objective = objective
         elif objective == best_objective:
-            best_thresholds.append(
-                [thr_pair[0], thr_pair[1], pls_with_seeds, false_seeds]
-            )
-    return best_thresholds
+            best_thresholds.append(result)
+        all_thresholds.append(result)
+    return best_thresholds,all_thresholds
 
 """ I/O """
             
 def _write_seeds_thresholds_file(thresholds, out_file_name):
     with open(out_file_name, "w") as out_file:
-        for [len_thr,score_thr,pls_with_seeds,false_seeds] in thresholds:
+        out_file.write(
+            f'contig_length\tplasmid_score\tseed_score\tplasmids_with_seed\tfalse_seeds\tplasmids_without_seed\n'
+        )
+        for [len_thr,score_thr,pls_with_seed,false_seeds,pls_without_seed] in thresholds:
+            rounded_score_thr = round(score_thr,2)
+            seed_score = pls_with_seed - false_seeds
             out_file.write(
-                f'{len_thr}\t{score_thr}\t{pls_with_seeds}\t{false_seeds}\n'
+                f'{len_thr}\t{rounded_score_thr}\t{seed_score}\t{pls_with_seed}\t{false_seeds}\t{pls_without_seed}\n'
             )
 
 def read_seeds_thresholds_file(in_file_name):
@@ -249,14 +246,17 @@ def read_seeds_thresholds_file(in_file_name):
     with open(in_file_name) as in_file:
         for line in in_file.readlines():
             line_split = line.restrip().split('\t')
-            thresholds.append(
-                [
-                    int(line_split[0]),
-                    float(line_split[1]),
-                    int(line_split[2]),
-                    int(line_split[3])
-                ]
-            )
+            if line_split[0] != 'contig_length':
+                thresholds.append(
+                    [
+                        int(line_split[0]),
+                        float(line_split[1]),
+                        int(line_split[2]),
+                        int(line_split[3]),
+                        int(line_split[4]),
+                        int(line_split[5])
+                    ]
+                )
     return thresholds
 
 """ Main """
@@ -279,10 +279,10 @@ def compute_optimal_seeds_parameters(
                 min_pls_score, max_pls_score+pls_score_step, pls_score_step
         )
     ]
-    best_thresholds = select_best_thresholds(
+    best_thresholds,all_thresholds = select_best_thresholds(
         combined_thresholds, all_ctgs_dict, pls_ctgs_dict
     )
-    return best_thresholds
+    return best_thresholds,all_thresholds
 
 def compute_seeds_parameters_file(
         input_file, out_file_name,
@@ -293,7 +293,7 @@ def compute_seeds_parameters_file(
         max_pls_score=SEEDS_DEFAULT_MAX_PLS_SCORE,
         pls_score_step=SEEDS_DEFAULT_PLS_SCORE_STEP
 ):
-    best_thresholds = compute_optimal_seeds_parameters(
+    best_thresholds,all_thresholds = compute_optimal_seeds_parameters(
         input_file,
         min_ctg_len, max_ctg_len, ctg_len_step,
         min_pls_score, max_pls_score, pls_score_step
@@ -305,3 +305,8 @@ def compute_seeds_parameters_file(
             f'{len(best_thresholds)} optimal seeds paramaters were found'
         )
     _write_seeds_thresholds_file(best_thresholds, out_file_name)
+    (out_file_name_prefix,out_file_name_ext) = os.path.splitext(out_file_name)
+    out_file_name_all = os.path.normpath(
+        f'{out_file_name_prefix}_all{out_file_name_ext}'
+    )
+    _write_seeds_thresholds_file(all_thresholds, out_file_name_all)

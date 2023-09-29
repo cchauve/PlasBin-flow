@@ -494,13 +494,19 @@ python plasbin_utils.py seeds
 computes a file `out_dir/seeds.tsv` that contains the optimal seed
 contigs parameters.
 
-Each line of the `out_dir/seeds.tsv` file contains 4 tab-separated fields
-(plasmid score, length, number of plasmids with seeds, number of false seeds):
+Each line of the `out_dir/seeds.tsv` file contains 6 tab-separated fields
+(plasmid score, length, seed score, number of plasmids with seeds, 
+number of false seeds, number of plasmid without seed):
 - plasmid score and length are the thresholds values,
+- seed score defined as the difference of the next 2 fields described below,
 - number of reference plasmids with seeds is the number of true plasmids 
   with at least one contig identified as a seed based on the thresholds,
 - number of false seeds is the number of contigs that meets the thresholds 
-  but are not assigned to a reference plasmid in their sample.
+  but are not assigned to a reference plasmid in their sample,
+- number of plasmid with no seed.
+
+A file `out_dir/seeds_all.tsv` in the same format contains the sam results 
+but for all thresholds combinations, not only the ones with the best seed score.
 
 The file `input_file` must contain the fields `sample`, `gfa`,
 `ground_truth` and `pls_score`.
