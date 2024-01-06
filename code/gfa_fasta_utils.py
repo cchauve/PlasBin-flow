@@ -322,7 +322,8 @@ def read_GFA_id(in_file_path, gzipped=False, id_fun=lambda x: x):
         for ctg_id in list(
                 read_GFA_ctgs(
                     in_file_path,
-                    record_fun=lambda x: None,
+                    attributes_list=[],
+                    ctg_fun=lambda x: None,
                     gzipped=gzipped
                 ).keys()
         )
