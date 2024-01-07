@@ -526,13 +526,13 @@ if __name__ == "__main__":
                     links_list = temp_list	
 
 
-    output_bins.write('#Pls_ID\tFlow\tGC_bin\t\tContigs\n')
+    output_bins.write('#Pls_ID\tFlow\tGC_bin\tContigs\n')
     for p in pbf_bins:
         fval = "%.2f" %pbf_bins[p]['Flow']
         gcb = pbf_bins[p]['GC_bin']
         print(p, fval, gcb, pbf_bins[p]['Contigs'])
 
-        output_bins.write('P'+str(p)+'\t\t'+str(fval)+'\t'+str(gcb)+'\t\t')
+        output_bins.write('P'+str(p)+'\t'+str(fval)+'\t'+str(gcb)+'\t')
         nctg = 0
         for c in pbf_bins[p]['Contigs']:
             ctg_mul = pbf_bins[p]['Contigs'][c]
