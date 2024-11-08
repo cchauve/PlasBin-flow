@@ -137,7 +137,7 @@ def read_ctgs_data(
 
     return ctgs_data_dict
     
-def get_seeds(ctgs_data_dict, seed_len, seed_score,):
+def get_seeds(ctgs_data_dict, seed_len, seed_score):
     """
     Computes the set of seed contigs and updates the contigs data
     Args:
@@ -155,6 +155,24 @@ def get_seeds(ctgs_data_dict, seed_len, seed_score,):
         ctg_data[SEED_KEY] = len_test and score_test
         if ctg_data[SEED_KEY]:
             seeds.add(ctg_id)
+    return seeds
+
+def read_seeds_file(in_seeds_file, ctgs_data_dict):
+    """
+    Reads the set of seed contigs and updates the contigs data
+    Args:
+        - ctgs_data_dict (Dictionary): see above
+        - in_seeds_file (sr): path to seeds file
+    Returns:
+        Set(contig names)
+        Updates the fild SEED_KEY of ctgs_data_dict
+    """
+    seeds = set()
+    with open(in_seeds_file) as in_file:
+        for seed_line in in_file.readlines():
+            ctg_id = seed_line.rstrip()
+            seeds.add(ctg_id)
+            ctg_data[ctg_id][SEED_KEY] = True
     return seeds
 
 def read_gc_data(gc_probabilities_file, gc_intervals_file, gfa_ctgs_list):
