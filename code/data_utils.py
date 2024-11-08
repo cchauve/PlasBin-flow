@@ -137,42 +137,39 @@ def read_ctgs_data(
 
     return ctgs_data_dict
     
-def get_seeds(ctgs_data_dict, seed_len, seed_score):
+def get_seeds(ctgs_data_dict, seeds_file, seed_len, seed_score):
     """
     Computes the set of seed contigs and updates the contigs data
     Args:
         - ctgs_data_dict (Dictionary): see above
+        - seeds_file (str/None): pah to seeds file if it exists
         - seed_len (int): length threshold defining seeds
-        - seed_score float): plasmid score threshold defining seeds
+        - seed_score (float): plasmid score threshold defining seeds
     Returns:
         Set(contig names)
         Updates the fild SEED_KEY of ctgs_data_dict
     """
     seeds = set()
-    for ctg_id,ctg_data in ctgs_data_dict.items():
-        len_test = ctg_data[LEN_KEY] >= seed_len            
-        score_test = ctg_data[SCORE_KEY] >= seed_score
-        ctg_data[SEED_KEY] = len_test and score_test
-        if ctg_data[SEED_KEY]:
-            seeds.add(ctg_id)
-    return seeds
-
-def read_seeds_file(in_seeds_file, ctgs_data_dict):
-    """
-    Reads the set of seed contigs and updates the contigs data
-    Args:
-        - ctgs_data_dict (Dictionary): see above
-        - in_seeds_file (sr): path to seeds file
-    Returns:
-        Set(contig names)
-        Updates the fild SEED_KEY of ctgs_data_dict
-    """
-    seeds = set()
-    with open(in_seeds_file) as in_file:
-        for seed_line in in_file.readlines():
-            ctg_id = seed_line.rstrip()
-            seeds.add(ctg_id)
+    ctgs_id_list = list(ctgs_data_dict.keys())
+    if seeds_file is not None:
+        with open(in_seeds_file) as in_file:
+            for seed_line in in_file.readlines():
+                ctg_id = seed_line.rstrip()
+                seeds.add(ctg_id)
+        check_lists_inclusion(
+            list(seeds),
+            ctgs_id_list,
+            msg=f'GFA file and {seeds_file} have inconsistent contig sets'
+        )
+        for ctg_id in seeds:
             ctg_data[ctg_id][SEED_KEY] = True
+    else:
+        for ctg_id,ctg_data in ctgs_data_dict.items():
+            len_test = ctg_data[LEN_KEY] >= seed_len            
+            score_test = ctg_data[SCORE_KEY] >= seed_score
+            ctg_data[SEED_KEY] = len_test and score_test
+            if ctg_data[SEED_KEY]:
+                seeds.add(ctg_id)
     return seeds
 
 def read_gc_data(gc_probabilities_file, gc_intervals_file, gfa_ctgs_list):
