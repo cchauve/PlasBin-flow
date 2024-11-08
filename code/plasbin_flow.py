@@ -68,6 +68,7 @@ def parse_arguments():
     pbf_input.add_argument("-ag", help="Path to assembly graph file")
     pbf_input.add_argument("-gc", help="Path to GC probabilities file")
     pbf_input.add_argument("-score", help="Path to plasmid score file")
+    pbf_input.add_argument("-seeds", type=str, default=None, help="[Optional] Path to seeds file")
 
     #Output
     pbf_output = parser.add_argument_group('Output')
@@ -119,6 +120,7 @@ if __name__ == "__main__":
     alpha2 = float(args.alpha2)
     alpha3 = float(args.alpha3)
 
+    seeds_file = args.seeds
     seed_len = args.seed_len
     seed_score = args.seed_score    
 
@@ -202,6 +204,7 @@ if __name__ == "__main__":
     )
     seeds_set = get_seeds(
         contigs_dict,
+	seeds_file=seeds_file,
         seed_len=seed_len,
         seed_score=seed_score
     )
