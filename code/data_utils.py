@@ -146,7 +146,7 @@ def read_seeds_file(in_seeds_file):
         Set(contig names)
     """
     seeds = Set()
-     with open(in_seeds_file) as in_file:
+    with open(in_seeds_file) as in_file:
         for seed_line in in_file.readlines():
             ctg_id = seed_line.rstrip()
             seeds.add(ctg_id)
