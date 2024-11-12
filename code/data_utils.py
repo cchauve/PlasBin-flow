@@ -177,10 +177,10 @@ def get_seeds(ctgs_data_dict, seeds_file, seed_len, seed_score):
     else:
         seeds = set()
         for ctg_id,ctg_data in ctgs_data_dict.items():
-            len_test = ctgs_data_dict[LEN_KEY] >= seed_len            
-            score_test = ctgs_data_dict[SCORE_KEY] >= seed_score
-            ctgs_data_dict[SEED_KEY] = len_test and score_test
-            if ctgs_data_dict[SEED_KEY]:
+            len_test = ctg_data[LEN_KEY] >= seed_len            
+            score_test = ctg_data[SCORE_KEY] >= seed_score
+            ctg_data[SEED_KEY] = len_test and score_test
+            if ctg_data[SEED_KEY]:
                 seeds.add(ctg_id)
     return seeds
 
