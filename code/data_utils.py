@@ -172,6 +172,8 @@ def get_seeds(ctgs_data_dict, seeds_file, seed_len, seed_score):
             ctgs_id_list,
             msg=f'GFA file and {seeds_file} have inconsistent contig sets'
         )
+        for ctg_id in ctgs_id_list:
+            ctgs_data_dict[ctg_id][SEED_KEY] = False
         for ctg_id in seeds:
             ctgs_data_dict[ctg_id][SEED_KEY] = True
     else:
