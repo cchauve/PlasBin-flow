@@ -143,9 +143,9 @@ def read_seeds_file(in_seeds_file):
     Args:
         - in_seeds_file (str/None): path to seeds file if it exists
     Returns:
-        Set(contig names)
+        set(contig names)
     """
-    seeds = Set()
+    seeds = set()
     with open(in_seeds_file) as in_file:
         for seed_line in in_file.readlines():
             ctg_id = seed_line.rstrip()
@@ -161,7 +161,7 @@ def get_seeds(ctgs_data_dict, seeds_file, seed_len, seed_score):
         - seed_len (int): length threshold defining seeds
         - seed_score (float): plasmid score threshold defining seeds
     Returns:
-        Set(contig names)
+        set(contig names)
         Updates the fild SEED_KEY of ctgs_data_dict
     """
     if seeds_file is not None:
@@ -175,7 +175,7 @@ def get_seeds(ctgs_data_dict, seeds_file, seed_len, seed_score):
         for ctg_id in seeds:
             ctgs_data_dict[ctg_id][SEED_KEY] = True
     else:
-        seeds = Set()
+        seeds = set()
         for ctg_id,ctg_data in ctgs_data_dict.items():
             len_test = ctgs_data_dict[LEN_KEY] >= seed_len            
             score_test = ctgs_data_dict[SCORE_KEY] >= seed_score
