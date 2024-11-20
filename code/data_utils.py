@@ -292,7 +292,7 @@ def get_capacities(links_list, ctgs_data_dict):
         capacities_dict[(ext_t,DEFAULT_SINK)] = capacity
     return capacities_dict
 
-def log_data(ctgs_data_dict, links_list, in_gfa_file, in_pls_score_file):
+def log_data(ctgs_data_dict, links_list, in_gfa_file, in_pls_score_file, in_seeds_file):
     ctgs_list = ctgs_data_dict.keys()
     num_ctgs = len(ctgs_list)
     num_links = sum([len(links) for links in links_list])
@@ -308,7 +308,8 @@ def log_data(ctgs_data_dict, links_list, in_gfa_file, in_pls_score_file):
     num_seeds = len(
         [ctg_id for ctg_id in ctgs_list if ctgs_data_dict[ctg_id][SEED_KEY]]
     )
+    seeds_file = in_gfa_file if (in_seeds_file is None) else in_seeds_file
     if num_seeds == 0:
-        logging.warning(f'DATA\tFile {in_gfa_file} has no seed')
+        logging.warning(f'DATA\tFile {seeds_file} has no seed')
     else:
-        logging.info(f'DATA\tFile {in_gfa_file} has {num_seeds} seed(s)')
+        logging.info(f'DATA\tFile {seeds_file} has {num_seeds} seed(s)')
