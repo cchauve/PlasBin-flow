@@ -292,7 +292,16 @@ def get_capacities(links_list, ctgs_data_dict):
         capacities_dict[(ext_t,DEFAULT_SINK)] = capacity
     return capacities_dict
 
-def log_data(ctgs_data_dict, links_list, in_gfa_file, in_pls_score_file, in_seeds_file):
+def log_data(ctgs_data_dict, links_list, in_gfa_file, in_pls_score_file, in_seeds_file, print_ctg_info=True):
+    if print_ctg_info:
+        for ctg_id,ctg_data in ctgs_data_dict.items():
+            ctg_len = ctg_data[LEN_KEY]
+            ctg_pls_score = ctg_data[SCORE_KEY]
+            ctg_cov = ctg_data[COV_KEY]
+            ctg_seed = 1 if (ctg_data[SEED_KEY]) else 0
+            logging.info(
+                f'DATA\tContig:{ctg_id}\tlen:{ctg_len}\tscore:{ctg_pls_score}\tcoverage:{ctg_cov}\tseed:{ctg_seed}'
+            )
     ctgs_list = ctgs_data_dict.keys()
     num_ctgs = len(ctgs_list)
     num_links = sum([len(links) for links in links_list])
