@@ -216,7 +216,7 @@ if __name__ == "__main__":
         assembly_file, gfa_gzipped=True
     )
     log_data(
-        contigs_dict, links_list, assembly_file, score_file
+        contigs_dict, links_list, assembly_file, score_file, seeds_file
     )
 
     #Naming and creating output files
