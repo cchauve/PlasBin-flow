@@ -136,25 +136,54 @@ def read_ctgs_data(
             ctg_data[SCORE_KEY] = default_pls_score
 
     return ctgs_data_dict
-    
-def get_seeds(ctgs_data_dict, seed_len, seed_score,):
+
+def read_seeds_file(in_seeds_file):
+    """
+    Reads the set of seed contigs from a file
+    Args:
+        - in_seeds_file (str/None): path to seeds file if it exists
+    Returns:
+        set(contig names)
+    """
+    seeds = set()
+    with open(in_seeds_file) as in_file:
+        for seed_line in in_file.readlines():
+            ctg_id = seed_line.rstrip()
+            seeds.add(ctg_id)
+    return seeds
+
+def get_seeds(ctgs_data_dict, seeds_file, seed_len, seed_score):
     """
     Computes the set of seed contigs and updates the contigs data
     Args:
         - ctgs_data_dict (Dictionary): see above
+        - seeds_file (str/None): path to seeds file if it exists
         - seed_len (int): length threshold defining seeds
-        - seed_score float): plasmid score threshold defining seeds
+        - seed_score (float): plasmid score threshold defining seeds
     Returns:
-        Set(contig names)
+        set(contig names)
         Updates the fild SEED_KEY of ctgs_data_dict
     """
-    seeds = set()
-    for ctg_id,ctg_data in ctgs_data_dict.items():
-        len_test = ctg_data[LEN_KEY] >= seed_len            
-        score_test = ctg_data[SCORE_KEY] >= seed_score
-        ctg_data[SEED_KEY] = len_test and score_test
-        if ctg_data[SEED_KEY]:
-            seeds.add(ctg_id)
+    if seeds_file is not None:
+        seeds = read_seeds_file(seeds_file)
+        ctgs_id_list = list(ctgs_data_dict.keys())
+        check_lists_inclusion(
+            list(seeds),
+            ctgs_id_list,
+            msg=f'GFA file and {seeds_file} have inconsistent contig sets'
+        )
+        for ctg_id in ctgs_id_list:
+            ctgs_data_dict[ctg_id][SEED_KEY] = False
+        for ctg_id in seeds:
+            ctgs_data_dict[ctg_id][SEED_KEY] = True
+    else:
+        seeds = set()
+        for ctg_id,ctg_data in ctgs_data_dict.items():
+            len_test = ctg_data[LEN_KEY] >= seed_len            
+            score_test = ctg_data[SCORE_KEY] >= seed_score
+            ctg_data[SEED_KEY] = len_test and score_test
+            if ctg_data[SEED_KEY]:
+                seeds.add(ctg_id)
     return seeds
 
 def read_gc_data(gc_probabilities_file, gc_intervals_file, gfa_ctgs_list):
@@ -263,7 +292,16 @@ def get_capacities(links_list, ctgs_data_dict):
         capacities_dict[(ext_t,DEFAULT_SINK)] = capacity
     return capacities_dict
 
-def log_data(ctgs_data_dict, links_list, in_gfa_file, in_pls_score_file):
+def log_data(ctgs_data_dict, links_list, in_gfa_file, in_pls_score_file, in_seeds_file, print_ctg_info=True):
+    if print_ctg_info:
+        for ctg_id,ctg_data in ctgs_data_dict.items():
+            ctg_len = ctg_data[LEN_KEY]
+            ctg_pls_score = ctg_data[SCORE_KEY]
+            ctg_cov = ctg_data[COV_KEY]
+            ctg_seed = 1 if (ctg_data[SEED_KEY]) else 0
+            logging.info(
+                f'DATA\tContig:{ctg_id}\tlen:{ctg_len}\tscore:{ctg_pls_score}\tcoverage:{ctg_cov}\tseed:{ctg_seed}'
+            )
     ctgs_list = ctgs_data_dict.keys()
     num_ctgs = len(ctgs_list)
     num_links = sum([len(links) for links in links_list])
@@ -279,7 +317,8 @@ def log_data(ctgs_data_dict, links_list, in_gfa_file, in_pls_score_file):
     num_seeds = len(
         [ctg_id for ctg_id in ctgs_list if ctgs_data_dict[ctg_id][SEED_KEY]]
     )
+    seeds_file = in_gfa_file if (in_seeds_file is None) else in_seeds_file
     if num_seeds == 0:
-        logging.warning(f'DATA\tFile {in_gfa_file} has no seed')
+        logging.warning(f'DATA\tFile {seeds_file} has no seed')
     else:
-        logging.info(f'DATA\tFile {in_gfa_file} has {num_seeds} seed(s)')
+        logging.info(f'DATA\tFile {seeds_file} has {num_seeds} seed(s)')
