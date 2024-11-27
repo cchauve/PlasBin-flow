@@ -1,0 +1,3 @@
+Weighted Precision: 0.9991190456927627
+Weighted Recall: 0.5970850837514639
+Weighted F1: 0.7474721660854974
