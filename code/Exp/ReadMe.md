@@ -13,7 +13,17 @@ A CSV file containing rows with information for each sample. Each row must inclu
 - **Seeds file path**
 
 ### Script to Execute
-- `plasbin_flow.py`
+- `plasbin_flow.py`:This script runs one sample at a time.paths for each sample must be extracted using an additional script.
+#### Command Example
+```bash
+python plasbin_flow.py \
+       -ag ${GFA} \
+       -gc ${GC} \
+       -score ${GD} \
+       -out_dir ${OUTPUT_DIR} \
+       -out_file ${OUT_FILE} \
+       -log_file ${LOG_FILE} \
+       -seeds ${SEEDS}
 
 ## Requirements for Running the Evaluation
 
