@@ -1,3 +1,0 @@
-Unweighted Precision: 0.5714285714285714
-Unweighted Recall: 0.8380952380952381
-Unweighted F1: 0.6795366795366795
