@@ -49,4 +49,5 @@ Key findings:
   - Unweighted: **0.51**
   - Weighted: **0.30**
 
-Despite the high recall, the precision—both weighted and unweighted—is very low. Further analysis is required to identify and address the cause of the low precision.
+While the results show a relatively high recall, both unweighted and weighted precisions are very low. Further analysis is needed to explain the cause of the low precision.
+
