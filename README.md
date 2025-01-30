@@ -157,6 +157,7 @@ python code/plasbin_flow.py
        -ag assembly graph
        -gc contigs gc_content_file
        -ps contigs plasmid scores file
+       -seeds contigs seeds file
        -outdir output_dir
        -outfile output_file
        -log_file
@@ -172,7 +173,7 @@ where
 - `output_dir` and `output_file` are the directory and file name for the output file,
 - `log_file` is the path to a file containing detailed log information and warnings,
 - [optional] `assembler` can be either `unicycler` (default value, for GFA files with a `dp` tag encoding normalized depth coverage) or `skesa` (for GFA files with a `KC` tag encoding k-mer count used to infer the normalized depth coverage),
-- [optional] `seeds length threshold` and `seeds plasmid score threshold` are the length and plasmid score thresholds defining seeds (default values, used in the PlasBin-flow paper experiments, `2650` and `0.58`),
+- [optional] `seeds length threshold` and `seeds plasmid score threshold` are the length and plasmid score thresholds defining seeds (default values, used in the PlasBin-flow paper experiments, `2650` and `0.58`; ot needed if a seeds file is provided),
 - [optional] `GC content intervals file` describes the GC content intervals used to compute GC content probability scores for contigs (defaut intervals, used in the PlasBin-flow paper experiments, are the ones in the file [gc_intervals.txt](example/default/gc_intervals.txt).
 
 The output of PlasBin-flow is a TSV file with each line containing the following information:
