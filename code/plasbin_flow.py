@@ -192,8 +192,8 @@ if __name__ == "__main__":
     input_files = [
         assembly_file, score_file, gc_prob_file
     ]
-    input_files =+ [seeds_file] if (seeds_file is not None) else []
-    input_files =+ [gc_int_file] if (gc_int_file is not None) else []
+    input_files += [seeds_file] if (seeds_file is not None) else []
+    input_files += [gc_int_file] if (gc_int_file is not None) else []
     for in_file in input_files:
         check_file(in_file)
     
