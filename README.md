@@ -156,7 +156,7 @@ follows:
 python code/plasbin_flow.py
        -ag assembly graph
        -gc contigs gc_content_file
-       -ps contigs plasmid scores file
+       -score contigs plasmid scores file
        -seeds contigs seeds file
        -outdir output_dir
        -outfile output_file
